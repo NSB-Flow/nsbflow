@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Json } from "@/integrations/supabase/types";
 
 const RunInput = z.object({
   agent: z.string().min(1),
@@ -17,7 +18,7 @@ export const runAgentFn = createServerFn({ method: "POST" })
   .inputValidator((raw: unknown) => RunInput.parse(raw))
   // Uniform return shape for serialization
   // { runId, status, result?, error? }
-  .handler(async ({ data, context }): Promise<{ runId: string; status: "done" | "error"; result?: Record<string, unknown> | null; error?: string | null }> => {
+  .handler(async ({ data, context }): Promise<{ runId: string; status: "done" | "error"; result?: Json | null; error?: string | null }> => {
     const { supabase, userId } = context;
 
     // Descobre webhook
