@@ -132,7 +132,7 @@ function SectionRenderer({ section }: { section: Json }) {
 
 function TypedContent({ type, content }: { type: string; content: Json }) {
   if (type === "table" && Array.isArray(content)) return <TableRenderer rows={content} />;
-  if (type === "bullets" || type === "list") return <BulletList items={coerceArray(content)} />;
+  if (type === "bullets" || type === "list") return <BulletList items={coerceArray(content) as (string | number | Record<string, Json>)[]} />;
   if (type === "kpi-grid" || type === "kpis") return <KpiGrid items={coerceArray(content)} />;
   if (type === "quote" && typeof content === "string") return <Quote text={content} />;
   if (type === "objections") return <ObjectionsList items={coerceArray(content)} />;
