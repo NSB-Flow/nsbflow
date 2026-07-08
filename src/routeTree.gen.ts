@@ -9,38 +9,239 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
+import { Route as AuthenticatedAppRelatoriosRouteImport } from './routes/_authenticated/app.relatorios'
+import { Route as AuthenticatedAppPessoasRouteImport } from './routes/_authenticated/app.pessoas'
+import { Route as AuthenticatedAppHistoricoRouteImport } from './routes/_authenticated/app.historico'
+import { Route as AuthenticatedAppEmpresasRouteImport } from './routes/_authenticated/app.empresas'
+import { Route as AuthenticatedAppDeapMeetingRouteImport } from './routes/_authenticated/app.deap-meeting'
+import { Route as AuthenticatedAppDeapAssessmentRouteImport } from './routes/_authenticated/app.deap-assessment'
+import { Route as AuthenticatedAppConfiguracoesRouteImport } from './routes/_authenticated/app.configuracoes'
+import { Route as AuthenticatedAppBibliotecaRouteImport } from './routes/_authenticated/app.biblioteca'
+import { Route as AuthenticatedAppAjudaRouteImport } from './routes/_authenticated/app.ajuda'
+import { Route as AuthenticatedAppAcademyRouteImport } from './routes/_authenticated/app.academy'
+import { Route as AuthenticatedAppHistoricoIdRouteImport } from './routes/_authenticated/app.historico.$id'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppRelatoriosRoute =
+  AuthenticatedAppRelatoriosRouteImport.update({
+    id: '/relatorios',
+    path: '/relatorios',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppPessoasRoute = AuthenticatedAppPessoasRouteImport.update({
+  id: '/pessoas',
+  path: '/pessoas',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppHistoricoRoute =
+  AuthenticatedAppHistoricoRouteImport.update({
+    id: '/historico',
+    path: '/historico',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppEmpresasRoute =
+  AuthenticatedAppEmpresasRouteImport.update({
+    id: '/empresas',
+    path: '/empresas',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppDeapMeetingRoute =
+  AuthenticatedAppDeapMeetingRouteImport.update({
+    id: '/deap-meeting',
+    path: '/deap-meeting',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppDeapAssessmentRoute =
+  AuthenticatedAppDeapAssessmentRouteImport.update({
+    id: '/deap-assessment',
+    path: '/deap-assessment',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppConfiguracoesRoute =
+  AuthenticatedAppConfiguracoesRouteImport.update({
+    id: '/configuracoes',
+    path: '/configuracoes',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppBibliotecaRoute =
+  AuthenticatedAppBibliotecaRouteImport.update({
+    id: '/biblioteca',
+    path: '/biblioteca',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppAjudaRoute = AuthenticatedAppAjudaRouteImport.update({
+  id: '/ajuda',
+  path: '/ajuda',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppAcademyRoute = AuthenticatedAppAcademyRouteImport.update({
+  id: '/academy',
+  path: '/academy',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppHistoricoIdRoute =
+  AuthenticatedAppHistoricoIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAppHistoricoRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/app': typeof AuthenticatedAppRouteWithChildren
+  '/app/academy': typeof AuthenticatedAppAcademyRoute
+  '/app/ajuda': typeof AuthenticatedAppAjudaRoute
+  '/app/biblioteca': typeof AuthenticatedAppBibliotecaRoute
+  '/app/configuracoes': typeof AuthenticatedAppConfiguracoesRoute
+  '/app/deap-assessment': typeof AuthenticatedAppDeapAssessmentRoute
+  '/app/deap-meeting': typeof AuthenticatedAppDeapMeetingRoute
+  '/app/empresas': typeof AuthenticatedAppEmpresasRoute
+  '/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
+  '/app/pessoas': typeof AuthenticatedAppPessoasRoute
+  '/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
+  '/app/': typeof AuthenticatedAppIndexRoute
+  '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/app/academy': typeof AuthenticatedAppAcademyRoute
+  '/app/ajuda': typeof AuthenticatedAppAjudaRoute
+  '/app/biblioteca': typeof AuthenticatedAppBibliotecaRoute
+  '/app/configuracoes': typeof AuthenticatedAppConfiguracoesRoute
+  '/app/deap-assessment': typeof AuthenticatedAppDeapAssessmentRoute
+  '/app/deap-meeting': typeof AuthenticatedAppDeapMeetingRoute
+  '/app/empresas': typeof AuthenticatedAppEmpresasRoute
+  '/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
+  '/app/pessoas': typeof AuthenticatedAppPessoasRoute
+  '/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
+  '/app': typeof AuthenticatedAppIndexRoute
+  '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/_authenticated/app/academy': typeof AuthenticatedAppAcademyRoute
+  '/_authenticated/app/ajuda': typeof AuthenticatedAppAjudaRoute
+  '/_authenticated/app/biblioteca': typeof AuthenticatedAppBibliotecaRoute
+  '/_authenticated/app/configuracoes': typeof AuthenticatedAppConfiguracoesRoute
+  '/_authenticated/app/deap-assessment': typeof AuthenticatedAppDeapAssessmentRoute
+  '/_authenticated/app/deap-meeting': typeof AuthenticatedAppDeapMeetingRoute
+  '/_authenticated/app/empresas': typeof AuthenticatedAppEmpresasRoute
+  '/_authenticated/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
+  '/_authenticated/app/pessoas': typeof AuthenticatedAppPessoasRoute
+  '/_authenticated/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
+  '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/_authenticated/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/app'
+    | '/app/academy'
+    | '/app/ajuda'
+    | '/app/biblioteca'
+    | '/app/configuracoes'
+    | '/app/deap-assessment'
+    | '/app/deap-meeting'
+    | '/app/empresas'
+    | '/app/historico'
+    | '/app/pessoas'
+    | '/app/relatorios'
+    | '/app/'
+    | '/app/historico/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/app/academy'
+    | '/app/ajuda'
+    | '/app/biblioteca'
+    | '/app/configuracoes'
+    | '/app/deap-assessment'
+    | '/app/deap-meeting'
+    | '/app/empresas'
+    | '/app/historico'
+    | '/app/pessoas'
+    | '/app/relatorios'
+    | '/app'
+    | '/app/historico/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/app'
+    | '/_authenticated/app/academy'
+    | '/_authenticated/app/ajuda'
+    | '/_authenticated/app/biblioteca'
+    | '/_authenticated/app/configuracoes'
+    | '/_authenticated/app/deap-assessment'
+    | '/_authenticated/app/deap-meeting'
+    | '/_authenticated/app/empresas'
+    | '/_authenticated/app/historico'
+    | '/_authenticated/app/pessoas'
+    | '/_authenticated/app/relatorios'
+    | '/_authenticated/app/'
+    | '/_authenticated/app/historico/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +249,160 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/app': {
+      id: '/_authenticated/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AuthenticatedAppRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/': {
+      id: '/_authenticated/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/relatorios': {
+      id: '/_authenticated/app/relatorios'
+      path: '/relatorios'
+      fullPath: '/app/relatorios'
+      preLoaderRoute: typeof AuthenticatedAppRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/pessoas': {
+      id: '/_authenticated/app/pessoas'
+      path: '/pessoas'
+      fullPath: '/app/pessoas'
+      preLoaderRoute: typeof AuthenticatedAppPessoasRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/historico': {
+      id: '/_authenticated/app/historico'
+      path: '/historico'
+      fullPath: '/app/historico'
+      preLoaderRoute: typeof AuthenticatedAppHistoricoRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/empresas': {
+      id: '/_authenticated/app/empresas'
+      path: '/empresas'
+      fullPath: '/app/empresas'
+      preLoaderRoute: typeof AuthenticatedAppEmpresasRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/deap-meeting': {
+      id: '/_authenticated/app/deap-meeting'
+      path: '/deap-meeting'
+      fullPath: '/app/deap-meeting'
+      preLoaderRoute: typeof AuthenticatedAppDeapMeetingRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/deap-assessment': {
+      id: '/_authenticated/app/deap-assessment'
+      path: '/deap-assessment'
+      fullPath: '/app/deap-assessment'
+      preLoaderRoute: typeof AuthenticatedAppDeapAssessmentRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/configuracoes': {
+      id: '/_authenticated/app/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/app/configuracoes'
+      preLoaderRoute: typeof AuthenticatedAppConfiguracoesRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/biblioteca': {
+      id: '/_authenticated/app/biblioteca'
+      path: '/biblioteca'
+      fullPath: '/app/biblioteca'
+      preLoaderRoute: typeof AuthenticatedAppBibliotecaRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/ajuda': {
+      id: '/_authenticated/app/ajuda'
+      path: '/ajuda'
+      fullPath: '/app/ajuda'
+      preLoaderRoute: typeof AuthenticatedAppAjudaRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/academy': {
+      id: '/_authenticated/app/academy'
+      path: '/academy'
+      fullPath: '/app/academy'
+      preLoaderRoute: typeof AuthenticatedAppAcademyRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/historico/$id': {
+      id: '/_authenticated/app/historico/$id'
+      path: '/$id'
+      fullPath: '/app/historico/$id'
+      preLoaderRoute: typeof AuthenticatedAppHistoricoIdRouteImport
+      parentRoute: typeof AuthenticatedAppHistoricoRoute
+    }
   }
 }
 
+interface AuthenticatedAppHistoricoRouteChildren {
+  AuthenticatedAppHistoricoIdRoute: typeof AuthenticatedAppHistoricoIdRoute
+}
+
+const AuthenticatedAppHistoricoRouteChildren: AuthenticatedAppHistoricoRouteChildren =
+  {
+    AuthenticatedAppHistoricoIdRoute: AuthenticatedAppHistoricoIdRoute,
+  }
+
+const AuthenticatedAppHistoricoRouteWithChildren =
+  AuthenticatedAppHistoricoRoute._addFileChildren(
+    AuthenticatedAppHistoricoRouteChildren,
+  )
+
+interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppAcademyRoute: typeof AuthenticatedAppAcademyRoute
+  AuthenticatedAppAjudaRoute: typeof AuthenticatedAppAjudaRoute
+  AuthenticatedAppBibliotecaRoute: typeof AuthenticatedAppBibliotecaRoute
+  AuthenticatedAppConfiguracoesRoute: typeof AuthenticatedAppConfiguracoesRoute
+  AuthenticatedAppDeapAssessmentRoute: typeof AuthenticatedAppDeapAssessmentRoute
+  AuthenticatedAppDeapMeetingRoute: typeof AuthenticatedAppDeapMeetingRoute
+  AuthenticatedAppEmpresasRoute: typeof AuthenticatedAppEmpresasRoute
+  AuthenticatedAppHistoricoRoute: typeof AuthenticatedAppHistoricoRouteWithChildren
+  AuthenticatedAppPessoasRoute: typeof AuthenticatedAppPessoasRoute
+  AuthenticatedAppRelatoriosRoute: typeof AuthenticatedAppRelatoriosRoute
+  AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
+}
+
+const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppAcademyRoute: AuthenticatedAppAcademyRoute,
+  AuthenticatedAppAjudaRoute: AuthenticatedAppAjudaRoute,
+  AuthenticatedAppBibliotecaRoute: AuthenticatedAppBibliotecaRoute,
+  AuthenticatedAppConfiguracoesRoute: AuthenticatedAppConfiguracoesRoute,
+  AuthenticatedAppDeapAssessmentRoute: AuthenticatedAppDeapAssessmentRoute,
+  AuthenticatedAppDeapMeetingRoute: AuthenticatedAppDeapMeetingRoute,
+  AuthenticatedAppEmpresasRoute: AuthenticatedAppEmpresasRoute,
+  AuthenticatedAppHistoricoRoute: AuthenticatedAppHistoricoRouteWithChildren,
+  AuthenticatedAppPessoasRoute: AuthenticatedAppPessoasRoute,
+  AuthenticatedAppRelatoriosRoute: AuthenticatedAppRelatoriosRoute,
+  AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
+}
+
+const AuthenticatedAppRouteWithChildren =
+  AuthenticatedAppRoute._addFileChildren(AuthenticatedAppRouteChildren)
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAppRoute: typeof AuthenticatedAppRouteWithChildren
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAppRoute: AuthenticatedAppRouteWithChildren,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
