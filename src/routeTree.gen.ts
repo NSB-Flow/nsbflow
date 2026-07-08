@@ -14,7 +14,10 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
+import { Route as AuthenticatedAppHistoricoRouteImport } from './routes/_authenticated/app.historico'
 import { Route as AuthenticatedAppDeapMeetingRouteImport } from './routes/_authenticated/app.deap-meeting'
+import { Route as AuthenticatedAppConfiguracoesRouteImport } from './routes/_authenticated/app.configuracoes'
+import { Route as AuthenticatedAppHistoricoIdRouteImport } from './routes/_authenticated/app.historico.$id'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -40,25 +43,49 @@ const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppHistoricoRoute =
+  AuthenticatedAppHistoricoRouteImport.update({
+    id: '/historico',
+    path: '/historico',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppDeapMeetingRoute =
   AuthenticatedAppDeapMeetingRouteImport.update({
     id: '/deap-meeting',
     path: '/deap-meeting',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppConfiguracoesRoute =
+  AuthenticatedAppConfiguracoesRouteImport.update({
+    id: '/configuracoes',
+    path: '/configuracoes',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppHistoricoIdRoute =
+  AuthenticatedAppHistoricoIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAppHistoricoRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
+  '/app/configuracoes': typeof AuthenticatedAppConfiguracoesRoute
   '/app/deap-meeting': typeof AuthenticatedAppDeapMeetingRoute
+  '/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
   '/app/': typeof AuthenticatedAppIndexRoute
+  '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/app/configuracoes': typeof AuthenticatedAppConfiguracoesRoute
   '/app/deap-meeting': typeof AuthenticatedAppDeapMeetingRoute
+  '/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
   '/app': typeof AuthenticatedAppIndexRoute
+  '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -66,22 +93,43 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/_authenticated/app/configuracoes': typeof AuthenticatedAppConfiguracoesRoute
   '/_authenticated/app/deap-meeting': typeof AuthenticatedAppDeapMeetingRoute
+  '/_authenticated/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/_authenticated/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/app' | '/app/deap-meeting' | '/app/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/app'
+    | '/app/configuracoes'
+    | '/app/deap-meeting'
+    | '/app/historico'
+    | '/app/'
+    | '/app/historico/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/app/deap-meeting' | '/app'
+  to:
+    | '/'
+    | '/auth'
+    | '/app/configuracoes'
+    | '/app/deap-meeting'
+    | '/app/historico'
+    | '/app'
+    | '/app/historico/$id'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/app'
+    | '/_authenticated/app/configuracoes'
     | '/_authenticated/app/deap-meeting'
+    | '/_authenticated/app/historico'
     | '/_authenticated/app/'
+    | '/_authenticated/app/historico/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -127,6 +175,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/historico': {
+      id: '/_authenticated/app/historico'
+      path: '/historico'
+      fullPath: '/app/historico'
+      preLoaderRoute: typeof AuthenticatedAppHistoricoRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/deap-meeting': {
       id: '/_authenticated/app/deap-meeting'
       path: '/deap-meeting'
@@ -134,16 +189,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppDeapMeetingRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/configuracoes': {
+      id: '/_authenticated/app/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/app/configuracoes'
+      preLoaderRoute: typeof AuthenticatedAppConfiguracoesRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/historico/$id': {
+      id: '/_authenticated/app/historico/$id'
+      path: '/$id'
+      fullPath: '/app/historico/$id'
+      preLoaderRoute: typeof AuthenticatedAppHistoricoIdRouteImport
+      parentRoute: typeof AuthenticatedAppHistoricoRoute
+    }
   }
 }
 
+interface AuthenticatedAppHistoricoRouteChildren {
+  AuthenticatedAppHistoricoIdRoute: typeof AuthenticatedAppHistoricoIdRoute
+}
+
+const AuthenticatedAppHistoricoRouteChildren: AuthenticatedAppHistoricoRouteChildren =
+  {
+    AuthenticatedAppHistoricoIdRoute: AuthenticatedAppHistoricoIdRoute,
+  }
+
+const AuthenticatedAppHistoricoRouteWithChildren =
+  AuthenticatedAppHistoricoRoute._addFileChildren(
+    AuthenticatedAppHistoricoRouteChildren,
+  )
+
 interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppConfiguracoesRoute: typeof AuthenticatedAppConfiguracoesRoute
   AuthenticatedAppDeapMeetingRoute: typeof AuthenticatedAppDeapMeetingRoute
+  AuthenticatedAppHistoricoRoute: typeof AuthenticatedAppHistoricoRouteWithChildren
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppConfiguracoesRoute: AuthenticatedAppConfiguracoesRoute,
   AuthenticatedAppDeapMeetingRoute: AuthenticatedAppDeapMeetingRoute,
+  AuthenticatedAppHistoricoRoute: AuthenticatedAppHistoricoRouteWithChildren,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
 }
 
