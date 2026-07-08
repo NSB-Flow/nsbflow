@@ -83,7 +83,7 @@ export const runAgentFn = createServerFn({ method: "POST" })
       clearTimeout(timeout);
 
       const text = await res.text();
-      let json: unknown;
+      let json: Json;
       try {
         json = text ? JSON.parse(text) : {};
       } catch {
