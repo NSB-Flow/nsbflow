@@ -15,6 +15,8 @@ const RunInput = z.object({
 export const runAgentFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw: unknown) => RunInput.parse(raw))
+  // Uniform return shape for serialization
+  // { runId, status, result?, error? }
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
