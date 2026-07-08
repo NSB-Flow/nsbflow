@@ -17,7 +17,7 @@ export const runAgentFn = createServerFn({ method: "POST" })
   .inputValidator((raw: unknown) => RunInput.parse(raw))
   // Uniform return shape for serialization
   // { runId, status, result?, error? }
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data, context }): Promise<{ runId: string; status: "done" | "error"; result?: Record<string, unknown> | null; error?: string | null }> => {
     const { supabase, userId } = context;
 
     // Descobre webhook
