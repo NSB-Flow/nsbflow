@@ -148,7 +148,7 @@ function ValueRenderer({ value }: { value: Json }) {
   if (Array.isArray(value)) {
     // list of strings vs list of objects
     if (value.every((v) => typeof v === "string" || typeof v === "number")) {
-      return <BulletList items={value as (string | number)[]} />;
+      return <BulletList items={value as (string | number | Record<string, Json>)[]} />;
     }
     return (
       <div className="space-y-3">
