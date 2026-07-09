@@ -19,6 +19,7 @@ import { Route as AuthenticatedAppRelatoriosRouteImport } from './routes/_authen
 import { Route as AuthenticatedAppPlanosRouteImport } from './routes/_authenticated/app.planos'
 import { Route as AuthenticatedAppPessoasRouteImport } from './routes/_authenticated/app.pessoas'
 import { Route as AuthenticatedAppHistoricoRouteImport } from './routes/_authenticated/app.historico'
+import { Route as AuthenticatedAppEquipeRouteImport } from './routes/_authenticated/app.equipe'
 import { Route as AuthenticatedAppEmpresasRouteImport } from './routes/_authenticated/app.empresas'
 import { Route as AuthenticatedAppDeapMeetingRouteImport } from './routes/_authenticated/app.deap-meeting'
 import { Route as AuthenticatedAppDeapAssessmentRouteImport } from './routes/_authenticated/app.deap-assessment'
@@ -82,6 +83,11 @@ const AuthenticatedAppHistoricoRoute =
     path: '/historico',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppEquipeRoute = AuthenticatedAppEquipeRouteImport.update({
+  id: '/equipe',
+  path: '/equipe',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppEmpresasRoute =
   AuthenticatedAppEmpresasRouteImport.update({
     id: '/empresas',
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/app/deap-assessment': typeof AuthenticatedAppDeapAssessmentRoute
   '/app/deap-meeting': typeof AuthenticatedAppDeapMeetingRoute
   '/app/empresas': typeof AuthenticatedAppEmpresasRoute
+  '/app/equipe': typeof AuthenticatedAppEquipeRoute
   '/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
   '/app/pessoas': typeof AuthenticatedAppPessoasRoute
   '/app/planos': typeof AuthenticatedAppPlanosRoute
@@ -174,6 +181,7 @@ export interface FileRoutesByTo {
   '/app/deap-assessment': typeof AuthenticatedAppDeapAssessmentRoute
   '/app/deap-meeting': typeof AuthenticatedAppDeapMeetingRoute
   '/app/empresas': typeof AuthenticatedAppEmpresasRoute
+  '/app/equipe': typeof AuthenticatedAppEquipeRoute
   '/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
   '/app/pessoas': typeof AuthenticatedAppPessoasRoute
   '/app/planos': typeof AuthenticatedAppPlanosRoute
@@ -197,6 +205,7 @@ export interface FileRoutesById {
   '/_authenticated/app/deap-assessment': typeof AuthenticatedAppDeapAssessmentRoute
   '/_authenticated/app/deap-meeting': typeof AuthenticatedAppDeapMeetingRoute
   '/_authenticated/app/empresas': typeof AuthenticatedAppEmpresasRoute
+  '/_authenticated/app/equipe': typeof AuthenticatedAppEquipeRoute
   '/_authenticated/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
   '/_authenticated/app/pessoas': typeof AuthenticatedAppPessoasRoute
   '/_authenticated/app/planos': typeof AuthenticatedAppPlanosRoute
@@ -220,6 +229,7 @@ export interface FileRouteTypes {
     | '/app/deap-assessment'
     | '/app/deap-meeting'
     | '/app/empresas'
+    | '/app/equipe'
     | '/app/historico'
     | '/app/pessoas'
     | '/app/planos'
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
     | '/app/deap-assessment'
     | '/app/deap-meeting'
     | '/app/empresas'
+    | '/app/equipe'
     | '/app/historico'
     | '/app/pessoas'
     | '/app/planos'
@@ -262,6 +273,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/deap-assessment'
     | '/_authenticated/app/deap-meeting'
     | '/_authenticated/app/empresas'
+    | '/_authenticated/app/equipe'
     | '/_authenticated/app/historico'
     | '/_authenticated/app/pessoas'
     | '/_authenticated/app/planos'
@@ -347,6 +359,13 @@ declare module '@tanstack/react-router' {
       path: '/historico'
       fullPath: '/app/historico'
       preLoaderRoute: typeof AuthenticatedAppHistoricoRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/equipe': {
+      id: '/_authenticated/app/equipe'
+      path: '/equipe'
+      fullPath: '/app/equipe'
+      preLoaderRoute: typeof AuthenticatedAppEquipeRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/empresas': {
@@ -446,6 +465,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppDeapAssessmentRoute: typeof AuthenticatedAppDeapAssessmentRoute
   AuthenticatedAppDeapMeetingRoute: typeof AuthenticatedAppDeapMeetingRoute
   AuthenticatedAppEmpresasRoute: typeof AuthenticatedAppEmpresasRoute
+  AuthenticatedAppEquipeRoute: typeof AuthenticatedAppEquipeRoute
   AuthenticatedAppHistoricoRoute: typeof AuthenticatedAppHistoricoRouteWithChildren
   AuthenticatedAppPessoasRoute: typeof AuthenticatedAppPessoasRoute
   AuthenticatedAppPlanosRoute: typeof AuthenticatedAppPlanosRoute
@@ -464,6 +484,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppDeapAssessmentRoute: AuthenticatedAppDeapAssessmentRoute,
   AuthenticatedAppDeapMeetingRoute: AuthenticatedAppDeapMeetingRoute,
   AuthenticatedAppEmpresasRoute: AuthenticatedAppEmpresasRoute,
+  AuthenticatedAppEquipeRoute: AuthenticatedAppEquipeRoute,
   AuthenticatedAppHistoricoRoute: AuthenticatedAppHistoricoRouteWithChildren,
   AuthenticatedAppPessoasRoute: AuthenticatedAppPessoasRoute,
   AuthenticatedAppPlanosRoute: AuthenticatedAppPlanosRoute,
