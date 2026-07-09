@@ -1,9 +1,11 @@
-import { createFileRoute, Outlet, Link, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, useRouterState, Navigate } from "@tanstack/react-router";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Fragment } from "react";
+import { useEntitlements } from "@/lib/entitlements";
+
 
 export const Route = createFileRoute("/_authenticated/app")({
   component: AppLayout,
@@ -25,12 +27,20 @@ const LABELS: Record<string, string> = {
 
 function AppLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const parts = pathname.split("/").filter(Boolean); // ex: ["app","deap-meeting"]
+  const ent = useEntitlements();
+  const parts = pathname.split("/").filter(Boolean);
   const crumbs = parts.map((p, i) => ({
     label: LABELS[p] ?? p,
     href: "/" + parts.slice(0, i + 1).join("/"),
     last: i === parts.length - 1,
   }));
+
+  // Trial expirado: bloqueia acesso a agentes; libera billing/config/trial-expirado
+  const allowedWhenExpired = ["/app/planos","/app/checkout","/app/assinatura","/app/configuracoes","/app/trial-expirado","/app/workspaces","/app/ajuda"];
+  if (ent.isTrialExpired && !allowedWhenExpired.some((p) => pathname.startsWith(p))) {
+    return <Navigate to="/app/trial-expirado" />;
+  }
+
 
   return (
     <SidebarProvider>

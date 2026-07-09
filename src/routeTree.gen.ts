@@ -14,14 +14,20 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
+import { Route as AuthenticatedAppWorkspacesRouteImport } from './routes/_authenticated/app.workspaces'
+import { Route as AuthenticatedAppTrialExpiradoRouteImport } from './routes/_authenticated/app.trial-expirado'
 import { Route as AuthenticatedAppRelatoriosRouteImport } from './routes/_authenticated/app.relatorios'
+import { Route as AuthenticatedAppPlanosRouteImport } from './routes/_authenticated/app.planos'
 import { Route as AuthenticatedAppPessoasRouteImport } from './routes/_authenticated/app.pessoas'
 import { Route as AuthenticatedAppHistoricoRouteImport } from './routes/_authenticated/app.historico'
+import { Route as AuthenticatedAppEquipeRouteImport } from './routes/_authenticated/app.equipe'
 import { Route as AuthenticatedAppEmpresasRouteImport } from './routes/_authenticated/app.empresas'
 import { Route as AuthenticatedAppDeapMeetingRouteImport } from './routes/_authenticated/app.deap-meeting'
 import { Route as AuthenticatedAppDeapAssessmentRouteImport } from './routes/_authenticated/app.deap-assessment'
 import { Route as AuthenticatedAppConfiguracoesRouteImport } from './routes/_authenticated/app.configuracoes'
+import { Route as AuthenticatedAppCheckoutRouteImport } from './routes/_authenticated/app.checkout'
 import { Route as AuthenticatedAppBibliotecaRouteImport } from './routes/_authenticated/app.biblioteca'
+import { Route as AuthenticatedAppAssinaturaRouteImport } from './routes/_authenticated/app.assinatura'
 import { Route as AuthenticatedAppAjudaRouteImport } from './routes/_authenticated/app.ajuda'
 import { Route as AuthenticatedAppAcademyRouteImport } from './routes/_authenticated/app.academy'
 import { Route as AuthenticatedAppHistoricoIdRouteImport } from './routes/_authenticated/app.historico.$id'
@@ -50,12 +56,29 @@ const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppWorkspacesRoute =
+  AuthenticatedAppWorkspacesRouteImport.update({
+    id: '/workspaces',
+    path: '/workspaces',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppTrialExpiradoRoute =
+  AuthenticatedAppTrialExpiradoRouteImport.update({
+    id: '/trial-expirado',
+    path: '/trial-expirado',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppRelatoriosRoute =
   AuthenticatedAppRelatoriosRouteImport.update({
     id: '/relatorios',
     path: '/relatorios',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppPlanosRoute = AuthenticatedAppPlanosRouteImport.update({
+  id: '/planos',
+  path: '/planos',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppPessoasRoute = AuthenticatedAppPessoasRouteImport.update({
   id: '/pessoas',
   path: '/pessoas',
@@ -67,6 +90,11 @@ const AuthenticatedAppHistoricoRoute =
     path: '/historico',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppEquipeRoute = AuthenticatedAppEquipeRouteImport.update({
+  id: '/equipe',
+  path: '/equipe',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppEmpresasRoute =
   AuthenticatedAppEmpresasRouteImport.update({
     id: '/empresas',
@@ -91,10 +119,22 @@ const AuthenticatedAppConfiguracoesRoute =
     path: '/configuracoes',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppCheckoutRoute =
+  AuthenticatedAppCheckoutRouteImport.update({
+    id: '/checkout',
+    path: '/checkout',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppBibliotecaRoute =
   AuthenticatedAppBibliotecaRouteImport.update({
     id: '/biblioteca',
     path: '/biblioteca',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppAssinaturaRoute =
+  AuthenticatedAppAssinaturaRouteImport.update({
+    id: '/assinatura',
+    path: '/assinatura',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppAjudaRoute = AuthenticatedAppAjudaRouteImport.update({
@@ -120,14 +160,20 @@ export interface FileRoutesByFullPath {
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/app/academy': typeof AuthenticatedAppAcademyRoute
   '/app/ajuda': typeof AuthenticatedAppAjudaRoute
+  '/app/assinatura': typeof AuthenticatedAppAssinaturaRoute
   '/app/biblioteca': typeof AuthenticatedAppBibliotecaRoute
+  '/app/checkout': typeof AuthenticatedAppCheckoutRoute
   '/app/configuracoes': typeof AuthenticatedAppConfiguracoesRoute
   '/app/deap-assessment': typeof AuthenticatedAppDeapAssessmentRoute
   '/app/deap-meeting': typeof AuthenticatedAppDeapMeetingRoute
   '/app/empresas': typeof AuthenticatedAppEmpresasRoute
+  '/app/equipe': typeof AuthenticatedAppEquipeRoute
   '/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
   '/app/pessoas': typeof AuthenticatedAppPessoasRoute
+  '/app/planos': typeof AuthenticatedAppPlanosRoute
   '/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
+  '/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
+  '/app/workspaces': typeof AuthenticatedAppWorkspacesRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
 }
@@ -136,14 +182,20 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/app/academy': typeof AuthenticatedAppAcademyRoute
   '/app/ajuda': typeof AuthenticatedAppAjudaRoute
+  '/app/assinatura': typeof AuthenticatedAppAssinaturaRoute
   '/app/biblioteca': typeof AuthenticatedAppBibliotecaRoute
+  '/app/checkout': typeof AuthenticatedAppCheckoutRoute
   '/app/configuracoes': typeof AuthenticatedAppConfiguracoesRoute
   '/app/deap-assessment': typeof AuthenticatedAppDeapAssessmentRoute
   '/app/deap-meeting': typeof AuthenticatedAppDeapMeetingRoute
   '/app/empresas': typeof AuthenticatedAppEmpresasRoute
+  '/app/equipe': typeof AuthenticatedAppEquipeRoute
   '/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
   '/app/pessoas': typeof AuthenticatedAppPessoasRoute
+  '/app/planos': typeof AuthenticatedAppPlanosRoute
   '/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
+  '/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
+  '/app/workspaces': typeof AuthenticatedAppWorkspacesRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
 }
@@ -155,14 +207,20 @@ export interface FileRoutesById {
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/_authenticated/app/academy': typeof AuthenticatedAppAcademyRoute
   '/_authenticated/app/ajuda': typeof AuthenticatedAppAjudaRoute
+  '/_authenticated/app/assinatura': typeof AuthenticatedAppAssinaturaRoute
   '/_authenticated/app/biblioteca': typeof AuthenticatedAppBibliotecaRoute
+  '/_authenticated/app/checkout': typeof AuthenticatedAppCheckoutRoute
   '/_authenticated/app/configuracoes': typeof AuthenticatedAppConfiguracoesRoute
   '/_authenticated/app/deap-assessment': typeof AuthenticatedAppDeapAssessmentRoute
   '/_authenticated/app/deap-meeting': typeof AuthenticatedAppDeapMeetingRoute
   '/_authenticated/app/empresas': typeof AuthenticatedAppEmpresasRoute
+  '/_authenticated/app/equipe': typeof AuthenticatedAppEquipeRoute
   '/_authenticated/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
   '/_authenticated/app/pessoas': typeof AuthenticatedAppPessoasRoute
+  '/_authenticated/app/planos': typeof AuthenticatedAppPlanosRoute
   '/_authenticated/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
+  '/_authenticated/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
+  '/_authenticated/app/workspaces': typeof AuthenticatedAppWorkspacesRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
 }
@@ -174,14 +232,20 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/academy'
     | '/app/ajuda'
+    | '/app/assinatura'
     | '/app/biblioteca'
+    | '/app/checkout'
     | '/app/configuracoes'
     | '/app/deap-assessment'
     | '/app/deap-meeting'
     | '/app/empresas'
+    | '/app/equipe'
     | '/app/historico'
     | '/app/pessoas'
+    | '/app/planos'
     | '/app/relatorios'
+    | '/app/trial-expirado'
+    | '/app/workspaces'
     | '/app/'
     | '/app/historico/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -190,14 +254,20 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app/academy'
     | '/app/ajuda'
+    | '/app/assinatura'
     | '/app/biblioteca'
+    | '/app/checkout'
     | '/app/configuracoes'
     | '/app/deap-assessment'
     | '/app/deap-meeting'
     | '/app/empresas'
+    | '/app/equipe'
     | '/app/historico'
     | '/app/pessoas'
+    | '/app/planos'
     | '/app/relatorios'
+    | '/app/trial-expirado'
+    | '/app/workspaces'
     | '/app'
     | '/app/historico/$id'
   id:
@@ -208,14 +278,20 @@ export interface FileRouteTypes {
     | '/_authenticated/app'
     | '/_authenticated/app/academy'
     | '/_authenticated/app/ajuda'
+    | '/_authenticated/app/assinatura'
     | '/_authenticated/app/biblioteca'
+    | '/_authenticated/app/checkout'
     | '/_authenticated/app/configuracoes'
     | '/_authenticated/app/deap-assessment'
     | '/_authenticated/app/deap-meeting'
     | '/_authenticated/app/empresas'
+    | '/_authenticated/app/equipe'
     | '/_authenticated/app/historico'
     | '/_authenticated/app/pessoas'
+    | '/_authenticated/app/planos'
     | '/_authenticated/app/relatorios'
+    | '/_authenticated/app/trial-expirado'
+    | '/_authenticated/app/workspaces'
     | '/_authenticated/app/'
     | '/_authenticated/app/historico/$id'
   fileRoutesById: FileRoutesById
@@ -263,11 +339,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/workspaces': {
+      id: '/_authenticated/app/workspaces'
+      path: '/workspaces'
+      fullPath: '/app/workspaces'
+      preLoaderRoute: typeof AuthenticatedAppWorkspacesRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/trial-expirado': {
+      id: '/_authenticated/app/trial-expirado'
+      path: '/trial-expirado'
+      fullPath: '/app/trial-expirado'
+      preLoaderRoute: typeof AuthenticatedAppTrialExpiradoRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/relatorios': {
       id: '/_authenticated/app/relatorios'
       path: '/relatorios'
       fullPath: '/app/relatorios'
       preLoaderRoute: typeof AuthenticatedAppRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/planos': {
+      id: '/_authenticated/app/planos'
+      path: '/planos'
+      fullPath: '/app/planos'
+      preLoaderRoute: typeof AuthenticatedAppPlanosRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/pessoas': {
@@ -282,6 +379,13 @@ declare module '@tanstack/react-router' {
       path: '/historico'
       fullPath: '/app/historico'
       preLoaderRoute: typeof AuthenticatedAppHistoricoRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/equipe': {
+      id: '/_authenticated/app/equipe'
+      path: '/equipe'
+      fullPath: '/app/equipe'
+      preLoaderRoute: typeof AuthenticatedAppEquipeRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/empresas': {
@@ -312,11 +416,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppConfiguracoesRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/checkout': {
+      id: '/_authenticated/app/checkout'
+      path: '/checkout'
+      fullPath: '/app/checkout'
+      preLoaderRoute: typeof AuthenticatedAppCheckoutRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/biblioteca': {
       id: '/_authenticated/app/biblioteca'
       path: '/biblioteca'
       fullPath: '/app/biblioteca'
       preLoaderRoute: typeof AuthenticatedAppBibliotecaRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/assinatura': {
+      id: '/_authenticated/app/assinatura'
+      path: '/assinatura'
+      fullPath: '/app/assinatura'
+      preLoaderRoute: typeof AuthenticatedAppAssinaturaRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/ajuda': {
@@ -360,28 +478,40 @@ const AuthenticatedAppHistoricoRouteWithChildren =
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAcademyRoute: typeof AuthenticatedAppAcademyRoute
   AuthenticatedAppAjudaRoute: typeof AuthenticatedAppAjudaRoute
+  AuthenticatedAppAssinaturaRoute: typeof AuthenticatedAppAssinaturaRoute
   AuthenticatedAppBibliotecaRoute: typeof AuthenticatedAppBibliotecaRoute
+  AuthenticatedAppCheckoutRoute: typeof AuthenticatedAppCheckoutRoute
   AuthenticatedAppConfiguracoesRoute: typeof AuthenticatedAppConfiguracoesRoute
   AuthenticatedAppDeapAssessmentRoute: typeof AuthenticatedAppDeapAssessmentRoute
   AuthenticatedAppDeapMeetingRoute: typeof AuthenticatedAppDeapMeetingRoute
   AuthenticatedAppEmpresasRoute: typeof AuthenticatedAppEmpresasRoute
+  AuthenticatedAppEquipeRoute: typeof AuthenticatedAppEquipeRoute
   AuthenticatedAppHistoricoRoute: typeof AuthenticatedAppHistoricoRouteWithChildren
   AuthenticatedAppPessoasRoute: typeof AuthenticatedAppPessoasRoute
+  AuthenticatedAppPlanosRoute: typeof AuthenticatedAppPlanosRoute
   AuthenticatedAppRelatoriosRoute: typeof AuthenticatedAppRelatoriosRoute
+  AuthenticatedAppTrialExpiradoRoute: typeof AuthenticatedAppTrialExpiradoRoute
+  AuthenticatedAppWorkspacesRoute: typeof AuthenticatedAppWorkspacesRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAcademyRoute: AuthenticatedAppAcademyRoute,
   AuthenticatedAppAjudaRoute: AuthenticatedAppAjudaRoute,
+  AuthenticatedAppAssinaturaRoute: AuthenticatedAppAssinaturaRoute,
   AuthenticatedAppBibliotecaRoute: AuthenticatedAppBibliotecaRoute,
+  AuthenticatedAppCheckoutRoute: AuthenticatedAppCheckoutRoute,
   AuthenticatedAppConfiguracoesRoute: AuthenticatedAppConfiguracoesRoute,
   AuthenticatedAppDeapAssessmentRoute: AuthenticatedAppDeapAssessmentRoute,
   AuthenticatedAppDeapMeetingRoute: AuthenticatedAppDeapMeetingRoute,
   AuthenticatedAppEmpresasRoute: AuthenticatedAppEmpresasRoute,
+  AuthenticatedAppEquipeRoute: AuthenticatedAppEquipeRoute,
   AuthenticatedAppHistoricoRoute: AuthenticatedAppHistoricoRouteWithChildren,
   AuthenticatedAppPessoasRoute: AuthenticatedAppPessoasRoute,
+  AuthenticatedAppPlanosRoute: AuthenticatedAppPlanosRoute,
   AuthenticatedAppRelatoriosRoute: AuthenticatedAppRelatoriosRoute,
+  AuthenticatedAppTrialExpiradoRoute: AuthenticatedAppTrialExpiradoRoute,
+  AuthenticatedAppWorkspacesRoute: AuthenticatedAppWorkspacesRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
 }
 
@@ -407,13 +537,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

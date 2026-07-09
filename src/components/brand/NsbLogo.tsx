@@ -1,16 +1,20 @@
 import { cn } from "@/lib/utils";
+import logoAsset from "@/assets/nsb-logo.png.asset.json";
 
 /**
- * Wordmark tipográfico NSB até o logo oficial ser enviado.
- * Azul marinho + detalhe dourado em "Flow".
+ * Logotipo oficial NSB — Growth by Method.
+ * `collapsed` mostra apenas o ícone quadrado; full mostra o logotipo horizontal.
  */
 export function NsbLogo({ collapsed = false, className }: { collapsed?: boolean; className?: string }) {
   return (
     <div className={cn("flex items-center gap-2 min-w-0", className)}>
-      <div className="h-8 w-8 rounded-md nsb-gradient flex items-center justify-center shrink-0 shadow-sm">
-        <span className="font-display font-bold text-primary-foreground text-sm tracking-tighter">
-          N
-        </span>
+      <div className="h-9 w-9 rounded-md overflow-hidden shrink-0 shadow-sm ring-1 ring-border/40">
+        <img
+          src={logoAsset.url}
+          alt="NSB"
+          className="h-full w-full object-cover"
+          draggable={false}
+        />
       </div>
       {!collapsed && (
         <div className="min-w-0 leading-none">
@@ -23,5 +27,16 @@ export function NsbLogo({ collapsed = false, className }: { collapsed?: boolean;
         </div>
       )}
     </div>
+  );
+}
+
+export function NsbLogoFull({ className }: { className?: string }) {
+  return (
+    <img
+      src={logoAsset.url}
+      alt="NSB — Growth by Method"
+      className={cn("h-14 w-auto object-contain", className)}
+      draggable={false}
+    />
   );
 }
