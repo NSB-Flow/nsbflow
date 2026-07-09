@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as AuthenticatedAppRelatoriosRouteImport } from './routes/_authenticated/app.relatorios'
+import { Route as AuthenticatedAppPlanosRouteImport } from './routes/_authenticated/app.planos'
 import { Route as AuthenticatedAppPessoasRouteImport } from './routes/_authenticated/app.pessoas'
 import { Route as AuthenticatedAppHistoricoRouteImport } from './routes/_authenticated/app.historico'
 import { Route as AuthenticatedAppEmpresasRouteImport } from './routes/_authenticated/app.empresas'
@@ -56,6 +57,11 @@ const AuthenticatedAppRelatoriosRoute =
     path: '/relatorios',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppPlanosRoute = AuthenticatedAppPlanosRouteImport.update({
+  id: '/planos',
+  path: '/planos',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppPessoasRoute = AuthenticatedAppPessoasRouteImport.update({
   id: '/pessoas',
   path: '/pessoas',
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/app/empresas': typeof AuthenticatedAppEmpresasRoute
   '/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
   '/app/pessoas': typeof AuthenticatedAppPessoasRoute
+  '/app/planos': typeof AuthenticatedAppPlanosRoute
   '/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
@@ -143,6 +150,7 @@ export interface FileRoutesByTo {
   '/app/empresas': typeof AuthenticatedAppEmpresasRoute
   '/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
   '/app/pessoas': typeof AuthenticatedAppPessoasRoute
+  '/app/planos': typeof AuthenticatedAppPlanosRoute
   '/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
@@ -162,6 +170,7 @@ export interface FileRoutesById {
   '/_authenticated/app/empresas': typeof AuthenticatedAppEmpresasRoute
   '/_authenticated/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
   '/_authenticated/app/pessoas': typeof AuthenticatedAppPessoasRoute
+  '/_authenticated/app/planos': typeof AuthenticatedAppPlanosRoute
   '/_authenticated/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
@@ -181,6 +190,7 @@ export interface FileRouteTypes {
     | '/app/empresas'
     | '/app/historico'
     | '/app/pessoas'
+    | '/app/planos'
     | '/app/relatorios'
     | '/app/'
     | '/app/historico/$id'
@@ -197,6 +207,7 @@ export interface FileRouteTypes {
     | '/app/empresas'
     | '/app/historico'
     | '/app/pessoas'
+    | '/app/planos'
     | '/app/relatorios'
     | '/app'
     | '/app/historico/$id'
@@ -215,6 +226,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/empresas'
     | '/_authenticated/app/historico'
     | '/_authenticated/app/pessoas'
+    | '/_authenticated/app/planos'
     | '/_authenticated/app/relatorios'
     | '/_authenticated/app/'
     | '/_authenticated/app/historico/$id'
@@ -268,6 +280,13 @@ declare module '@tanstack/react-router' {
       path: '/relatorios'
       fullPath: '/app/relatorios'
       preLoaderRoute: typeof AuthenticatedAppRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/planos': {
+      id: '/_authenticated/app/planos'
+      path: '/planos'
+      fullPath: '/app/planos'
+      preLoaderRoute: typeof AuthenticatedAppPlanosRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/pessoas': {
@@ -367,6 +386,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppEmpresasRoute: typeof AuthenticatedAppEmpresasRoute
   AuthenticatedAppHistoricoRoute: typeof AuthenticatedAppHistoricoRouteWithChildren
   AuthenticatedAppPessoasRoute: typeof AuthenticatedAppPessoasRoute
+  AuthenticatedAppPlanosRoute: typeof AuthenticatedAppPlanosRoute
   AuthenticatedAppRelatoriosRoute: typeof AuthenticatedAppRelatoriosRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
 }
@@ -381,6 +401,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppEmpresasRoute: AuthenticatedAppEmpresasRoute,
   AuthenticatedAppHistoricoRoute: AuthenticatedAppHistoricoRouteWithChildren,
   AuthenticatedAppPessoasRoute: AuthenticatedAppPessoasRoute,
+  AuthenticatedAppPlanosRoute: AuthenticatedAppPlanosRoute,
   AuthenticatedAppRelatoriosRoute: AuthenticatedAppRelatoriosRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
 }
