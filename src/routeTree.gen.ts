@@ -22,6 +22,7 @@ import { Route as AuthenticatedAppEmpresasRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAppDeapMeetingRouteImport } from './routes/_authenticated/app.deap-meeting'
 import { Route as AuthenticatedAppDeapAssessmentRouteImport } from './routes/_authenticated/app.deap-assessment'
 import { Route as AuthenticatedAppConfiguracoesRouteImport } from './routes/_authenticated/app.configuracoes'
+import { Route as AuthenticatedAppCheckoutRouteImport } from './routes/_authenticated/app.checkout'
 import { Route as AuthenticatedAppBibliotecaRouteImport } from './routes/_authenticated/app.biblioteca'
 import { Route as AuthenticatedAppAjudaRouteImport } from './routes/_authenticated/app.ajuda'
 import { Route as AuthenticatedAppAcademyRouteImport } from './routes/_authenticated/app.academy'
@@ -97,6 +98,12 @@ const AuthenticatedAppConfiguracoesRoute =
     path: '/configuracoes',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppCheckoutRoute =
+  AuthenticatedAppCheckoutRouteImport.update({
+    id: '/checkout',
+    path: '/checkout',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppBibliotecaRoute =
   AuthenticatedAppBibliotecaRouteImport.update({
     id: '/biblioteca',
@@ -127,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/app/academy': typeof AuthenticatedAppAcademyRoute
   '/app/ajuda': typeof AuthenticatedAppAjudaRoute
   '/app/biblioteca': typeof AuthenticatedAppBibliotecaRoute
+  '/app/checkout': typeof AuthenticatedAppCheckoutRoute
   '/app/configuracoes': typeof AuthenticatedAppConfiguracoesRoute
   '/app/deap-assessment': typeof AuthenticatedAppDeapAssessmentRoute
   '/app/deap-meeting': typeof AuthenticatedAppDeapMeetingRoute
@@ -144,6 +152,7 @@ export interface FileRoutesByTo {
   '/app/academy': typeof AuthenticatedAppAcademyRoute
   '/app/ajuda': typeof AuthenticatedAppAjudaRoute
   '/app/biblioteca': typeof AuthenticatedAppBibliotecaRoute
+  '/app/checkout': typeof AuthenticatedAppCheckoutRoute
   '/app/configuracoes': typeof AuthenticatedAppConfiguracoesRoute
   '/app/deap-assessment': typeof AuthenticatedAppDeapAssessmentRoute
   '/app/deap-meeting': typeof AuthenticatedAppDeapMeetingRoute
@@ -164,6 +173,7 @@ export interface FileRoutesById {
   '/_authenticated/app/academy': typeof AuthenticatedAppAcademyRoute
   '/_authenticated/app/ajuda': typeof AuthenticatedAppAjudaRoute
   '/_authenticated/app/biblioteca': typeof AuthenticatedAppBibliotecaRoute
+  '/_authenticated/app/checkout': typeof AuthenticatedAppCheckoutRoute
   '/_authenticated/app/configuracoes': typeof AuthenticatedAppConfiguracoesRoute
   '/_authenticated/app/deap-assessment': typeof AuthenticatedAppDeapAssessmentRoute
   '/_authenticated/app/deap-meeting': typeof AuthenticatedAppDeapMeetingRoute
@@ -184,6 +194,7 @@ export interface FileRouteTypes {
     | '/app/academy'
     | '/app/ajuda'
     | '/app/biblioteca'
+    | '/app/checkout'
     | '/app/configuracoes'
     | '/app/deap-assessment'
     | '/app/deap-meeting'
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/app/academy'
     | '/app/ajuda'
     | '/app/biblioteca'
+    | '/app/checkout'
     | '/app/configuracoes'
     | '/app/deap-assessment'
     | '/app/deap-meeting'
@@ -220,6 +232,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/academy'
     | '/_authenticated/app/ajuda'
     | '/_authenticated/app/biblioteca'
+    | '/_authenticated/app/checkout'
     | '/_authenticated/app/configuracoes'
     | '/_authenticated/app/deap-assessment'
     | '/_authenticated/app/deap-meeting'
@@ -331,6 +344,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppConfiguracoesRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/checkout': {
+      id: '/_authenticated/app/checkout'
+      path: '/checkout'
+      fullPath: '/app/checkout'
+      preLoaderRoute: typeof AuthenticatedAppCheckoutRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/biblioteca': {
       id: '/_authenticated/app/biblioteca'
       path: '/biblioteca'
@@ -380,6 +400,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAcademyRoute: typeof AuthenticatedAppAcademyRoute
   AuthenticatedAppAjudaRoute: typeof AuthenticatedAppAjudaRoute
   AuthenticatedAppBibliotecaRoute: typeof AuthenticatedAppBibliotecaRoute
+  AuthenticatedAppCheckoutRoute: typeof AuthenticatedAppCheckoutRoute
   AuthenticatedAppConfiguracoesRoute: typeof AuthenticatedAppConfiguracoesRoute
   AuthenticatedAppDeapAssessmentRoute: typeof AuthenticatedAppDeapAssessmentRoute
   AuthenticatedAppDeapMeetingRoute: typeof AuthenticatedAppDeapMeetingRoute
@@ -395,6 +416,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAcademyRoute: AuthenticatedAppAcademyRoute,
   AuthenticatedAppAjudaRoute: AuthenticatedAppAjudaRoute,
   AuthenticatedAppBibliotecaRoute: AuthenticatedAppBibliotecaRoute,
+  AuthenticatedAppCheckoutRoute: AuthenticatedAppCheckoutRoute,
   AuthenticatedAppConfiguracoesRoute: AuthenticatedAppConfiguracoesRoute,
   AuthenticatedAppDeapAssessmentRoute: AuthenticatedAppDeapAssessmentRoute,
   AuthenticatedAppDeapMeetingRoute: AuthenticatedAppDeapMeetingRoute,
