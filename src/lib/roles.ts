@@ -1,15 +1,20 @@
 export type AppRole =
+  | "super_admin"
   | "admin"
+  | "admin_empresa"
   | "ceo"
   | "diretor"
   | "gerente"
   | "coordenador"
   | "vendedor"
   | "consultor"
-  | "sdr";
+  | "sdr"
+  | "cliente";
 
 export const ROLE_LABELS: Record<AppRole, string> = {
+  super_admin: "Super Administrador",
   admin: "Administrador",
+  admin_empresa: "Administrador da Empresa",
   ceo: "CEO",
   diretor: "Diretor",
   gerente: "Gerente",
@@ -17,7 +22,22 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   vendedor: "Vendedor",
   consultor: "Consultor",
   sdr: "SDR",
+  cliente: "Cliente",
 };
+
+export const ROLE_ORDER: AppRole[] = [
+  "super_admin",
+  "admin",
+  "admin_empresa",
+  "ceo",
+  "diretor",
+  "gerente",
+  "coordenador",
+  "consultor",
+  "vendedor",
+  "sdr",
+  "cliente",
+];
 
 export type ModuleKey =
   | "dashboard"
@@ -30,57 +50,42 @@ export type ModuleKey =
   | "relatorios"
   | "historico"
   | "configuracoes"
-  | "ajuda";
+  | "equipe"
+  | "assinatura"
+  | "planos"
+  | "workspaces"
+  | "ajuda"
+  | "admin";
 
-/** Módulos visíveis por perfil. Admin/CEO/Diretor: tudo. */
+/** Módulos visíveis por perfil. Roles administrativos: tudo. */
 export const MODULE_ACCESS: Record<AppRole, ModuleKey[] | "*"> = {
+  super_admin: "*",
   admin: "*",
+  admin_empresa: "*",
   ceo: "*",
   diretor: "*",
   gerente: [
-    "dashboard",
-    "deap-meeting",
-    "deap-assessment",
-    "empresas",
-    "pessoas",
-    "biblioteca",
-    "academy",
-    "relatorios",
-    "historico",
-    "ajuda",
+    "dashboard", "deap-meeting", "deap-assessment", "empresas", "pessoas",
+    "biblioteca", "academy", "relatorios", "historico", "equipe",
+    "assinatura", "planos", "workspaces", "ajuda",
   ],
   coordenador: [
-    "dashboard",
-    "deap-meeting",
-    "deap-assessment",
-    "empresas",
-    "pessoas",
-    "biblioteca",
-    "academy",
-    "relatorios",
-    "historico",
-    "ajuda",
-  ],
-  vendedor: [
-    "dashboard",
-    "deap-meeting",
-    "empresas",
-    "biblioteca",
-    "academy",
-    "historico",
-    "ajuda",
+    "dashboard", "deap-meeting", "deap-assessment", "empresas", "pessoas",
+    "biblioteca", "academy", "relatorios", "historico", "workspaces", "ajuda",
   ],
   consultor: [
-    "dashboard",
-    "deap-meeting",
-    "deap-assessment",
-    "empresas",
-    "biblioteca",
-    "academy",
-    "historico",
-    "ajuda",
+    "dashboard", "deap-meeting", "deap-assessment", "empresas", "biblioteca",
+    "academy", "historico", "workspaces", "ajuda",
   ],
-  sdr: ["dashboard", "deap-meeting", "empresas", "biblioteca", "academy", "historico", "ajuda"],
+  vendedor: [
+    "dashboard", "deap-meeting", "empresas", "biblioteca", "academy",
+    "historico", "workspaces", "ajuda",
+  ],
+  sdr: [
+    "dashboard", "deap-meeting", "empresas", "biblioteca", "academy",
+    "historico", "workspaces", "ajuda",
+  ],
+  cliente: ["dashboard", "historico", "ajuda"],
 };
 
 export function canAccess(roles: AppRole[], module: ModuleKey): boolean {
@@ -88,4 +93,8 @@ export function canAccess(roles: AppRole[], module: ModuleKey): boolean {
     const access = MODULE_ACCESS[r];
     return access === "*" || access.includes(module);
   });
+}
+
+export function isAdminRole(role: AppRole): boolean {
+  return ["super_admin", "admin", "admin_empresa", "ceo", "diretor"].includes(role);
 }
