@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
+import { Route as AuthenticatedAppWorkspacesRouteImport } from './routes/_authenticated/app.workspaces'
 import { Route as AuthenticatedAppTrialExpiradoRouteImport } from './routes/_authenticated/app.trial-expirado'
 import { Route as AuthenticatedAppRelatoriosRouteImport } from './routes/_authenticated/app.relatorios'
 import { Route as AuthenticatedAppPlanosRouteImport } from './routes/_authenticated/app.planos'
@@ -55,6 +56,12 @@ const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppWorkspacesRoute =
+  AuthenticatedAppWorkspacesRouteImport.update({
+    id: '/workspaces',
+    path: '/workspaces',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppTrialExpiradoRoute =
   AuthenticatedAppTrialExpiradoRouteImport.update({
     id: '/trial-expirado',
@@ -166,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/app/planos': typeof AuthenticatedAppPlanosRoute
   '/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
   '/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
+  '/app/workspaces': typeof AuthenticatedAppWorkspacesRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
 }
@@ -187,6 +195,7 @@ export interface FileRoutesByTo {
   '/app/planos': typeof AuthenticatedAppPlanosRoute
   '/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
   '/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
+  '/app/workspaces': typeof AuthenticatedAppWorkspacesRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
 }
@@ -211,6 +220,7 @@ export interface FileRoutesById {
   '/_authenticated/app/planos': typeof AuthenticatedAppPlanosRoute
   '/_authenticated/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
   '/_authenticated/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
+  '/_authenticated/app/workspaces': typeof AuthenticatedAppWorkspacesRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
 }
@@ -235,6 +245,7 @@ export interface FileRouteTypes {
     | '/app/planos'
     | '/app/relatorios'
     | '/app/trial-expirado'
+    | '/app/workspaces'
     | '/app/'
     | '/app/historico/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -256,6 +267,7 @@ export interface FileRouteTypes {
     | '/app/planos'
     | '/app/relatorios'
     | '/app/trial-expirado'
+    | '/app/workspaces'
     | '/app'
     | '/app/historico/$id'
   id:
@@ -279,6 +291,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/planos'
     | '/_authenticated/app/relatorios'
     | '/_authenticated/app/trial-expirado'
+    | '/_authenticated/app/workspaces'
     | '/_authenticated/app/'
     | '/_authenticated/app/historico/$id'
   fileRoutesById: FileRoutesById
@@ -324,6 +337,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/app/'
       preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/workspaces': {
+      id: '/_authenticated/app/workspaces'
+      path: '/workspaces'
+      fullPath: '/app/workspaces'
+      preLoaderRoute: typeof AuthenticatedAppWorkspacesRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/trial-expirado': {
@@ -471,6 +491,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppPlanosRoute: typeof AuthenticatedAppPlanosRoute
   AuthenticatedAppRelatoriosRoute: typeof AuthenticatedAppRelatoriosRoute
   AuthenticatedAppTrialExpiradoRoute: typeof AuthenticatedAppTrialExpiradoRoute
+  AuthenticatedAppWorkspacesRoute: typeof AuthenticatedAppWorkspacesRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
 }
 
@@ -490,6 +511,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppPlanosRoute: AuthenticatedAppPlanosRoute,
   AuthenticatedAppRelatoriosRoute: AuthenticatedAppRelatoriosRoute,
   AuthenticatedAppTrialExpiradoRoute: AuthenticatedAppTrialExpiradoRoute,
+  AuthenticatedAppWorkspacesRoute: AuthenticatedAppWorkspacesRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
 }
 
