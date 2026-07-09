@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
+import { Route as AuthenticatedAppTrialExpiradoRouteImport } from './routes/_authenticated/app.trial-expirado'
 import { Route as AuthenticatedAppRelatoriosRouteImport } from './routes/_authenticated/app.relatorios'
 import { Route as AuthenticatedAppPlanosRouteImport } from './routes/_authenticated/app.planos'
 import { Route as AuthenticatedAppPessoasRouteImport } from './routes/_authenticated/app.pessoas'
@@ -53,6 +54,12 @@ const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppTrialExpiradoRoute =
+  AuthenticatedAppTrialExpiradoRouteImport.update({
+    id: '/trial-expirado',
+    path: '/trial-expirado',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppRelatoriosRoute =
   AuthenticatedAppRelatoriosRouteImport.update({
     id: '/relatorios',
@@ -151,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/app/pessoas': typeof AuthenticatedAppPessoasRoute
   '/app/planos': typeof AuthenticatedAppPlanosRoute
   '/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
+  '/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
 }
@@ -170,6 +178,7 @@ export interface FileRoutesByTo {
   '/app/pessoas': typeof AuthenticatedAppPessoasRoute
   '/app/planos': typeof AuthenticatedAppPlanosRoute
   '/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
+  '/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
 }
@@ -192,6 +201,7 @@ export interface FileRoutesById {
   '/_authenticated/app/pessoas': typeof AuthenticatedAppPessoasRoute
   '/_authenticated/app/planos': typeof AuthenticatedAppPlanosRoute
   '/_authenticated/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
+  '/_authenticated/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
 }
@@ -214,6 +224,7 @@ export interface FileRouteTypes {
     | '/app/pessoas'
     | '/app/planos'
     | '/app/relatorios'
+    | '/app/trial-expirado'
     | '/app/'
     | '/app/historico/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -233,6 +244,7 @@ export interface FileRouteTypes {
     | '/app/pessoas'
     | '/app/planos'
     | '/app/relatorios'
+    | '/app/trial-expirado'
     | '/app'
     | '/app/historico/$id'
   id:
@@ -254,6 +266,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/pessoas'
     | '/_authenticated/app/planos'
     | '/_authenticated/app/relatorios'
+    | '/_authenticated/app/trial-expirado'
     | '/_authenticated/app/'
     | '/_authenticated/app/historico/$id'
   fileRoutesById: FileRoutesById
@@ -299,6 +312,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/app/'
       preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/trial-expirado': {
+      id: '/_authenticated/app/trial-expirado'
+      path: '/trial-expirado'
+      fullPath: '/app/trial-expirado'
+      preLoaderRoute: typeof AuthenticatedAppTrialExpiradoRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/relatorios': {
@@ -430,6 +450,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppPessoasRoute: typeof AuthenticatedAppPessoasRoute
   AuthenticatedAppPlanosRoute: typeof AuthenticatedAppPlanosRoute
   AuthenticatedAppRelatoriosRoute: typeof AuthenticatedAppRelatoriosRoute
+  AuthenticatedAppTrialExpiradoRoute: typeof AuthenticatedAppTrialExpiradoRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
 }
 
@@ -447,6 +468,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppPessoasRoute: AuthenticatedAppPessoasRoute,
   AuthenticatedAppPlanosRoute: AuthenticatedAppPlanosRoute,
   AuthenticatedAppRelatoriosRoute: AuthenticatedAppRelatoriosRoute,
+  AuthenticatedAppTrialExpiradoRoute: AuthenticatedAppTrialExpiradoRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
 }
 
