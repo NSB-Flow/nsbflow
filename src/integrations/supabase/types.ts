@@ -31,6 +31,7 @@ export type Database = {
           tags: string[]
           title: string | null
           updated_at: string
+          workspace_id: string | null
         }
         Insert: {
           agent: string
@@ -48,6 +49,7 @@ export type Database = {
           tags?: string[]
           title?: string | null
           updated_at?: string
+          workspace_id?: string | null
         }
         Update: {
           agent?: string
@@ -65,6 +67,7 @@ export type Database = {
           tags?: string[]
           title?: string | null
           updated_at?: string
+          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -72,6 +75,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_runs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
@@ -107,6 +117,7 @@ export type Database = {
           path: string
           run_id: string | null
           size: number | null
+          workspace_id: string | null
         }
         Insert: {
           created_at?: string
@@ -117,6 +128,7 @@ export type Database = {
           path: string
           run_id?: string | null
           size?: number | null
+          workspace_id?: string | null
         }
         Update: {
           created_at?: string
@@ -127,6 +139,7 @@ export type Database = {
           path?: string
           run_id?: string | null
           size?: number | null
+          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -134,6 +147,13 @@ export type Database = {
             columns: ["run_id"]
             isOneToOne: false
             referencedRelation: "agent_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attachments_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
@@ -146,6 +166,7 @@ export type Database = {
           id: string
           razao_social: string
           updated_at: string
+          workspace_id: string | null
         }
         Insert: {
           cnpj?: string | null
@@ -154,6 +175,7 @@ export type Database = {
           id?: string
           razao_social: string
           updated_at?: string
+          workspace_id?: string | null
         }
         Update: {
           cnpj?: string | null
@@ -161,6 +183,163 @@ export type Database = {
           created_by?: string | null
           id?: string
           razao_social?: string
+          updated_at?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "companies_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          active: boolean
+          amount_off_cents: number | null
+          code: string
+          created_at: string
+          currency: string | null
+          id: string
+          max_redemptions: number | null
+          percent_off: number | null
+          redeemed_count: number
+          valid_until: string | null
+        }
+        Insert: {
+          active?: boolean
+          amount_off_cents?: number | null
+          code: string
+          created_at?: string
+          currency?: string | null
+          id?: string
+          max_redemptions?: number | null
+          percent_off?: number | null
+          redeemed_count?: number
+          valid_until?: string | null
+        }
+        Update: {
+          active?: boolean
+          amount_off_cents?: number | null
+          code?: string
+          created_at?: string
+          currency?: string | null
+          id?: string
+          max_redemptions?: number | null
+          percent_off?: number | null
+          redeemed_count?: number
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
+      enterprise_module_grants: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          feature_key: string
+          id: string
+          subscription_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          feature_key: string
+          id?: string
+          subscription_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          feature_key?: string
+          id?: string
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enterprise_module_grants_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_features: {
+        Row: {
+          enabled: boolean
+          feature_key: string
+          id: string
+          plan_id: string
+          quota: number | null
+        }
+        Insert: {
+          enabled?: boolean
+          feature_key: string
+          id?: string
+          plan_id: string
+          quota?: number | null
+        }
+        Update: {
+          enabled?: boolean
+          feature_key?: string
+          id?: string
+          plan_id?: string
+          quota?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_features_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plans: {
+        Row: {
+          active: boolean
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          max_users: number | null
+          name: string
+          price_monthly_cents: number
+          price_yearly_cents: number
+          sort_order: number
+          tier: Database["public"]["Enums"]["plan_tier"]
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          max_users?: number | null
+          name: string
+          price_monthly_cents?: number
+          price_yearly_cents?: number
+          sort_order?: number
+          tier: Database["public"]["Enums"]["plan_tier"]
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          max_users?: number | null
+          name?: string
+          price_monthly_cents?: number
+          price_yearly_cents?: number
+          sort_order?: number
+          tier?: Database["public"]["Enums"]["plan_tier"]
           updated_at?: string
         }
         Relationships: []
@@ -192,6 +371,119 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_invoices: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          id: string
+          paid_at: string | null
+          pdf_url: string | null
+          provider_invoice_id: string | null
+          status: string
+          subscription_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          currency?: string
+          id?: string
+          paid_at?: string | null
+          pdf_url?: string | null
+          provider_invoice_id?: string | null
+          status?: string
+          subscription_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          paid_at?: string | null
+          pdf_url?: string | null
+          provider_invoice_id?: string | null
+          status?: string
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_invoices_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          billing_cycle: Database["public"]["Enums"]["billing_cycle"]
+          cancel_at_period_end: boolean
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string
+          id: string
+          plan_id: string
+          provider: Database["public"]["Enums"]["payment_provider"]
+          provider_customer_id: string | null
+          provider_subscription_id: string | null
+          seats: number
+          status: Database["public"]["Enums"]["subscription_status"]
+          trial_ends_at: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          billing_cycle?: Database["public"]["Enums"]["billing_cycle"]
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string
+          id?: string
+          plan_id: string
+          provider?: Database["public"]["Enums"]["payment_provider"]
+          provider_customer_id?: string | null
+          provider_subscription_id?: string | null
+          seats?: number
+          status?: Database["public"]["Enums"]["subscription_status"]
+          trial_ends_at?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          billing_cycle?: Database["public"]["Enums"]["billing_cycle"]
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string
+          id?: string
+          plan_id?: string
+          provider?: Database["public"]["Enums"]["payment_provider"]
+          provider_customer_id?: string | null
+          provider_subscription_id?: string | null
+          seats?: number
+          status?: Database["public"]["Enums"]["subscription_status"]
+          trial_ends_at?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -213,6 +505,77 @@ export type Database = {
         }
         Relationships: []
       }
+      workspace_members: {
+        Row: {
+          active: boolean
+          id: string
+          invited_by: string | null
+          joined_at: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          active?: boolean
+          id?: string
+          invited_by?: string | null
+          joined_at?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          active?: boolean
+          id?: string
+          invited_by?: string | null
+          joined_at?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_members_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspaces: {
+        Row: {
+          created_at: string
+          id: string
+          is_personal: boolean
+          logo_url: string | null
+          name: string
+          owner_user_id: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_personal?: boolean
+          logo_url?: string | null
+          name: string
+          owner_user_id: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_personal?: boolean
+          logo_url?: string | null
+          name?: string
+          owner_user_id?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -223,6 +586,15 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_workspace_admin: {
+        Args: { _user_id: string; _workspace_id: string }
+        Returns: boolean
+      }
+      is_workspace_member: {
+        Args: { _user_id: string; _workspace_id: string }
         Returns: boolean
       }
     }
@@ -239,6 +611,20 @@ export type Database = {
         | "super_admin"
         | "admin_empresa"
         | "cliente"
+      billing_cycle: "monthly" | "yearly"
+      payment_provider:
+        | "stripe"
+        | "mercadopago"
+        | "asaas"
+        | "pagseguro"
+        | "manual"
+      plan_tier: "smart" | "pro" | "enterprise"
+      subscription_status:
+        | "trialing"
+        | "active"
+        | "past_due"
+        | "canceled"
+        | "expired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -378,6 +764,22 @@ export const Constants = {
         "super_admin",
         "admin_empresa",
         "cliente",
+      ],
+      billing_cycle: ["monthly", "yearly"],
+      payment_provider: [
+        "stripe",
+        "mercadopago",
+        "asaas",
+        "pagseguro",
+        "manual",
+      ],
+      plan_tier: ["smart", "pro", "enterprise"],
+      subscription_status: [
+        "trialing",
+        "active",
+        "past_due",
+        "canceled",
+        "expired",
       ],
     },
   },
