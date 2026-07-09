@@ -1,9 +1,11 @@
-import { createFileRoute, Outlet, Link, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, useRouterState, Navigate } from "@tanstack/react-router";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Fragment } from "react";
+import { useEntitlements } from "@/lib/entitlements";
+
 
 export const Route = createFileRoute("/_authenticated/app")({
   component: AppLayout,
