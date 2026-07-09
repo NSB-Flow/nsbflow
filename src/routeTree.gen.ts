@@ -24,6 +24,7 @@ import { Route as AuthenticatedAppDeapAssessmentRouteImport } from './routes/_au
 import { Route as AuthenticatedAppConfiguracoesRouteImport } from './routes/_authenticated/app.configuracoes'
 import { Route as AuthenticatedAppCheckoutRouteImport } from './routes/_authenticated/app.checkout'
 import { Route as AuthenticatedAppBibliotecaRouteImport } from './routes/_authenticated/app.biblioteca'
+import { Route as AuthenticatedAppAssinaturaRouteImport } from './routes/_authenticated/app.assinatura'
 import { Route as AuthenticatedAppAjudaRouteImport } from './routes/_authenticated/app.ajuda'
 import { Route as AuthenticatedAppAcademyRouteImport } from './routes/_authenticated/app.academy'
 import { Route as AuthenticatedAppHistoricoIdRouteImport } from './routes/_authenticated/app.historico.$id'
@@ -110,6 +111,12 @@ const AuthenticatedAppBibliotecaRoute =
     path: '/biblioteca',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAssinaturaRoute =
+  AuthenticatedAppAssinaturaRouteImport.update({
+    id: '/assinatura',
+    path: '/assinatura',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAjudaRoute = AuthenticatedAppAjudaRouteImport.update({
   id: '/ajuda',
   path: '/ajuda',
@@ -133,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/app/academy': typeof AuthenticatedAppAcademyRoute
   '/app/ajuda': typeof AuthenticatedAppAjudaRoute
+  '/app/assinatura': typeof AuthenticatedAppAssinaturaRoute
   '/app/biblioteca': typeof AuthenticatedAppBibliotecaRoute
   '/app/checkout': typeof AuthenticatedAppCheckoutRoute
   '/app/configuracoes': typeof AuthenticatedAppConfiguracoesRoute
@@ -151,6 +159,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/app/academy': typeof AuthenticatedAppAcademyRoute
   '/app/ajuda': typeof AuthenticatedAppAjudaRoute
+  '/app/assinatura': typeof AuthenticatedAppAssinaturaRoute
   '/app/biblioteca': typeof AuthenticatedAppBibliotecaRoute
   '/app/checkout': typeof AuthenticatedAppCheckoutRoute
   '/app/configuracoes': typeof AuthenticatedAppConfiguracoesRoute
@@ -172,6 +181,7 @@ export interface FileRoutesById {
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/_authenticated/app/academy': typeof AuthenticatedAppAcademyRoute
   '/_authenticated/app/ajuda': typeof AuthenticatedAppAjudaRoute
+  '/_authenticated/app/assinatura': typeof AuthenticatedAppAssinaturaRoute
   '/_authenticated/app/biblioteca': typeof AuthenticatedAppBibliotecaRoute
   '/_authenticated/app/checkout': typeof AuthenticatedAppCheckoutRoute
   '/_authenticated/app/configuracoes': typeof AuthenticatedAppConfiguracoesRoute
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/academy'
     | '/app/ajuda'
+    | '/app/assinatura'
     | '/app/biblioteca'
     | '/app/checkout'
     | '/app/configuracoes'
@@ -211,6 +222,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app/academy'
     | '/app/ajuda'
+    | '/app/assinatura'
     | '/app/biblioteca'
     | '/app/checkout'
     | '/app/configuracoes'
@@ -231,6 +243,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app'
     | '/_authenticated/app/academy'
     | '/_authenticated/app/ajuda'
+    | '/_authenticated/app/assinatura'
     | '/_authenticated/app/biblioteca'
     | '/_authenticated/app/checkout'
     | '/_authenticated/app/configuracoes'
@@ -358,6 +371,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppBibliotecaRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/assinatura': {
+      id: '/_authenticated/app/assinatura'
+      path: '/assinatura'
+      fullPath: '/app/assinatura'
+      preLoaderRoute: typeof AuthenticatedAppAssinaturaRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/ajuda': {
       id: '/_authenticated/app/ajuda'
       path: '/ajuda'
@@ -399,6 +419,7 @@ const AuthenticatedAppHistoricoRouteWithChildren =
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAcademyRoute: typeof AuthenticatedAppAcademyRoute
   AuthenticatedAppAjudaRoute: typeof AuthenticatedAppAjudaRoute
+  AuthenticatedAppAssinaturaRoute: typeof AuthenticatedAppAssinaturaRoute
   AuthenticatedAppBibliotecaRoute: typeof AuthenticatedAppBibliotecaRoute
   AuthenticatedAppCheckoutRoute: typeof AuthenticatedAppCheckoutRoute
   AuthenticatedAppConfiguracoesRoute: typeof AuthenticatedAppConfiguracoesRoute
@@ -415,6 +436,7 @@ interface AuthenticatedAppRouteChildren {
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAcademyRoute: AuthenticatedAppAcademyRoute,
   AuthenticatedAppAjudaRoute: AuthenticatedAppAjudaRoute,
+  AuthenticatedAppAssinaturaRoute: AuthenticatedAppAssinaturaRoute,
   AuthenticatedAppBibliotecaRoute: AuthenticatedAppBibliotecaRoute,
   AuthenticatedAppCheckoutRoute: AuthenticatedAppCheckoutRoute,
   AuthenticatedAppConfiguracoesRoute: AuthenticatedAppConfiguracoesRoute,
