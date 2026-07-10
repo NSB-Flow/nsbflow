@@ -72,21 +72,21 @@ export const MODULE_ACCESS: Record<AppRole, ModuleKey[] | "*"> = {
   ],
   coordenador: [
     "dashboard", "deap-meeting", "deap-assessment", "empresas", "pessoas",
-    "biblioteca", "academy", "relatorios", "historico", "workspaces", "ajuda",
+    "biblioteca", "academy", "relatorios", "historico", "workspaces", "ajuda", "indicacoes",
   ],
   consultor: [
     "dashboard", "deap-meeting", "deap-assessment", "empresas", "biblioteca",
-    "academy", "historico", "workspaces", "ajuda",
+    "academy", "historico", "workspaces", "ajuda", "indicacoes",
   ],
   vendedor: [
     "dashboard", "deap-meeting", "empresas", "biblioteca", "academy",
-    "historico", "workspaces", "ajuda",
+    "historico", "workspaces", "ajuda", "indicacoes",
   ],
   sdr: [
     "dashboard", "deap-meeting", "empresas", "biblioteca", "academy",
-    "historico", "workspaces", "ajuda",
+    "historico", "workspaces", "ajuda", "indicacoes",
   ],
-  cliente: ["dashboard", "historico", "ajuda"],
+  cliente: ["dashboard", "historico", "ajuda", "indicacoes"],
 };
 
 export function canAccess(roles: AppRole[], module: ModuleKey): boolean {
