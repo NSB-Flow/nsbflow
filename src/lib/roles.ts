@@ -55,7 +55,8 @@ export type ModuleKey =
   | "planos"
   | "workspaces"
   | "ajuda"
-  | "admin";
+  | "admin"
+  | "indicacoes";
 
 /** Módulos visíveis por perfil. Roles administrativos: tudo. */
 export const MODULE_ACCESS: Record<AppRole, ModuleKey[] | "*"> = {
@@ -67,7 +68,7 @@ export const MODULE_ACCESS: Record<AppRole, ModuleKey[] | "*"> = {
   gerente: [
     "dashboard", "deap-meeting", "deap-assessment", "empresas", "pessoas",
     "biblioteca", "academy", "relatorios", "historico", "equipe",
-    "assinatura", "planos", "workspaces", "ajuda",
+    "assinatura", "planos", "workspaces", "ajuda", "indicacoes",
   ],
   coordenador: [
     "dashboard", "deap-meeting", "deap-assessment", "empresas", "pessoas",
