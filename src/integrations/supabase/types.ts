@@ -235,6 +235,36 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          kind: string
+          reference_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          kind: string
+          reference_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          kind?: string
+          reference_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       enterprise_module_grants: {
         Row: {
           created_at: string
@@ -350,6 +380,7 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          referral_code: string | null
           sector: string | null
           updated_at: string
         }
@@ -358,6 +389,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          referral_code?: string | null
           sector?: string | null
           updated_at?: string
         }
@@ -366,8 +398,45 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          referral_code?: string | null
           sector?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          code: string
+          converted_at: string | null
+          created_at: string
+          credits_awarded: number
+          id: string
+          referred_user_id: string | null
+          referrer_user_id: string
+          signed_up_at: string | null
+          status: string
+        }
+        Insert: {
+          code: string
+          converted_at?: string | null
+          created_at?: string
+          credits_awarded?: number
+          id?: string
+          referred_user_id?: string | null
+          referrer_user_id: string
+          signed_up_at?: string | null
+          status?: string
+        }
+        Update: {
+          code?: string
+          converted_at?: string | null
+          created_at?: string
+          credits_awarded?: number
+          id?: string
+          referred_user_id?: string | null
+          referrer_user_id?: string
+          signed_up_at?: string | null
+          status?: string
         }
         Relationships: []
       }
@@ -483,6 +552,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_credits: {
+        Row: {
+          balance: number
+          created_at: string
+          lifetime_earned: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          lifetime_earned?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          lifetime_earned?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
