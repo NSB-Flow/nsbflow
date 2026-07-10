@@ -42,6 +42,7 @@ const ITEMS: Item[] = [
   { key: "equipe", title: "Equipe", url: "/app/equipe", icon: Users, group: "billing" },
   { key: "assinatura", title: "Minha Assinatura", url: "/app/assinatura", icon: CreditCard, group: "billing" },
   { key: "planos", title: "Planos", url: "/app/planos", icon: Sparkles, group: "billing" },
+  { key: "indicacoes", title: "Indicações", url: "/app/indicacoes", icon: Gift, group: "billing" },
 
   { key: "configuracoes", title: "Configurações", url: "/app/configuracoes", icon: Settings, group: "sistema" },
   { key: "ajuda", title: "Ajuda", url: "/app/ajuda", icon: HelpCircle, group: "sistema", soon: true },
