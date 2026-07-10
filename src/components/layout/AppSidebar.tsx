@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, MessagesSquare, ClipboardCheck, Building2, Users, BookOpen,
   GraduationCap, BarChart3, History, Settings, HelpCircle, LogOut,
-  CreditCard, Sparkles, ChevronsUpDown, Check, Plus, Shield,
+  CreditCard, Sparkles, ChevronsUpDown, Check, Plus, Shield, Gift,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
