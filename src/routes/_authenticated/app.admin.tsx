@@ -263,14 +263,15 @@ function CouponsTab() {
 
   const create = async () => {
     if (!form.code.trim()) return toast.error("Informe o código");
-    const { error } = await supabase.from("coupons").insert({
+    const payload: any = {
       code: form.code.trim().toUpperCase(),
-      discount_type: form.discount_type,
-      discount_value: form.discount_value,
       max_redemptions: form.max_redemptions || null,
       valid_until: form.valid_until || null,
       active: true,
-    });
+    };
+    if (form.discount_type === "percent") payload.percent_off = form.discount_value;
+    else payload.amount_off_cents = form.discount_value;
+    const { error } = await supabase.from("coupons").insert(payload);
     if (error) return toast.error(error.message);
     toast.success("Cupom criado");
     setOpen(false);
@@ -296,7 +297,7 @@ function CouponsTab() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Tipo</Label>
-                  <select className="w-full border rounded-md h-9 px-2 bg-background" value={form.discount_type} onChange={(e) => setForm({ ...form, discount_type: e.target.value as any })}>
+                  <select className="w-full border rounded-md h-9 px-2 bg-background" value={form.discount_type} onChange={(e) => setForm({ ...form, discount_type: e.target.value as "percent" | "fixed" })}>
                     <option value="percent">Percentual</option>
                     <option value="fixed">Valor fixo (centavos)</option>
                   </select>
@@ -323,8 +324,8 @@ function CouponsTab() {
               {coupons.map((c: any) => (
                 <TableRow key={c.id}>
                   <TableCell className="font-mono">{c.code}</TableCell>
-                  <TableCell>{c.discount_type === "percent" ? `${c.discount_value}%` : fmtBRL(c.discount_value)}</TableCell>
-                  <TableCell>{c.times_redeemed ?? 0} / {c.max_redemptions ?? "∞"}</TableCell>
+                  <TableCell>{c.percent_off != null ? `${c.percent_off}%` : fmtBRL(c.amount_off_cents)}</TableCell>
+                  <TableCell>{c.redeemed_count ?? 0} / {c.max_redemptions ?? "∞"}</TableCell>
                   <TableCell>{fmtDate(c.valid_until)}</TableCell>
                   <TableCell>{c.active ? <Badge>Ativo</Badge> : <Badge variant="secondary">Inativo</Badge>}</TableCell>
                   <TableCell><Button size="sm" variant="ghost" onClick={() => toggle(c)}>{c.active ? "Desativar" : "Ativar"}</Button></TableCell>
