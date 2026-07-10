@@ -179,8 +179,8 @@ export function AppSidebar() {
               ))}
               {isSuperAdmin && (
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Super Admin">
-                    <Link to="/app/configuracoes" className="flex items-center gap-2">
+                  <SidebarMenuButton asChild tooltip="Super Admin" isActive={isActive("/app/admin")}>
+                    <Link to="/app/admin" className="flex items-center gap-2">
                       <Shield className="h-4 w-4 text-gold" />
                       {!collapsed && <span className="text-gold">Super Admin</span>}
                     </Link>
