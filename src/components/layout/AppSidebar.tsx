@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, MessagesSquare, ClipboardCheck, Building2, Users, BookOpen,
   GraduationCap, BarChart3, History, Settings, HelpCircle, LogOut,
-  CreditCard, Sparkles, ChevronsUpDown, Check, Plus, Shield,
+  CreditCard, Sparkles, ChevronsUpDown, Check, Plus, Shield, Gift,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
@@ -42,6 +42,7 @@ const ITEMS: Item[] = [
   { key: "equipe", title: "Equipe", url: "/app/equipe", icon: Users, group: "billing" },
   { key: "assinatura", title: "Minha Assinatura", url: "/app/assinatura", icon: CreditCard, group: "billing" },
   { key: "planos", title: "Planos", url: "/app/planos", icon: Sparkles, group: "billing" },
+  { key: "indicacoes", title: "Indicações", url: "/app/indicacoes", icon: Gift, group: "billing" },
 
   { key: "configuracoes", title: "Configurações", url: "/app/configuracoes", icon: Settings, group: "sistema" },
   { key: "ajuda", title: "Ajuda", url: "/app/ajuda", icon: HelpCircle, group: "sistema", soon: true },
@@ -178,8 +179,8 @@ export function AppSidebar() {
               ))}
               {isSuperAdmin && (
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Super Admin">
-                    <Link to="/app/configuracoes" className="flex items-center gap-2">
+                  <SidebarMenuButton asChild tooltip="Super Admin" isActive={isActive("/app/admin")}>
+                    <Link to="/app/admin" className="flex items-center gap-2">
                       <Shield className="h-4 w-4 text-gold" />
                       {!collapsed && <span className="text-gold">Super Admin</span>}
                     </Link>
