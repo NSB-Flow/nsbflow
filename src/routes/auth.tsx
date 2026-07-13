@@ -74,7 +74,7 @@ function AuthPage() {
         </div>
         <div className="flex-1 flex items-center justify-center">
           <div className="w-full max-w-sm">
-            <Tabs defaultValue={mode === "signup" ? "signup" : mode === "reset" ? "reset" : "signin"}>
+            <Tabs defaultValue={ref ? "signup" : mode === "signup" ? "signup" : mode === "reset" ? "reset" : "signin"}>
               <TabsList className="grid grid-cols-3 w-full">
                 <TabsTrigger value="signin">Entrar</TabsTrigger>
                 <TabsTrigger value="signup">Cadastro</TabsTrigger>
