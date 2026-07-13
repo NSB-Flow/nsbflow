@@ -128,7 +128,7 @@ function SignIn() {
   );
 }
 
-function SignUp() {
+function SignUp({ refCode }: { refCode?: string }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
@@ -139,12 +139,13 @@ function SignUp() {
       onSubmit={async (e) => {
         e.preventDefault();
         setLoading(true);
+        const normalizedRef = refCode?.trim().toUpperCase() || undefined;
         const { error } = await supabase.auth.signUp({
           email,
           password: pass,
           options: {
             emailRedirectTo: window.location.origin + "/app",
-            data: { full_name: name },
+            data: { full_name: name, ...(normalizedRef ? { ref_code: normalizedRef } : {}) },
           },
         });
         setLoading(false);
