@@ -13,6 +13,7 @@ import { toast } from "sonner";
 
 const search = z.object({
   mode: z.enum(["signin", "signup", "reset"]).optional(),
+  ref: z.string().trim().min(1).max(32).optional(),
 });
 
 export const Route = createFileRoute("/auth")({
