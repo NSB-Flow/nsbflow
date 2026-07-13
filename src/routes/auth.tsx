@@ -81,7 +81,7 @@ function AuthPage() {
                 <TabsTrigger value="reset">Recuperar</TabsTrigger>
               </TabsList>
               <TabsContent value="signin"><SignIn /></TabsContent>
-              <TabsContent value="signup"><SignUp /></TabsContent>
+              <TabsContent value="signup"><SignUp refCode={ref} /></TabsContent>
               <TabsContent value="reset"><Reset /></TabsContent>
             </Tabs>
             <p className="text-xs text-muted-foreground text-center mt-8">
