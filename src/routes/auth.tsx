@@ -154,7 +154,11 @@ function SignUp({ refCode }: { refCode?: string }) {
       }}
     >
       <h2 className="font-display text-2xl font-semibold">Criar conta</h2>
-      <div className="space-y-2">
+      {refCode && (
+        <div className="text-xs rounded-md border border-gold/40 bg-gold/10 text-foreground px-3 py-2">
+          Você foi indicado com o código <strong className="font-mono">{refCode.toUpperCase()}</strong>. Seu indicador receberá créditos após o cadastro.
+        </div>
+      )}
         <Label>Nome completo</Label>
         <Input required value={name} onChange={(e) => setName(e.target.value)} />
       </div>
