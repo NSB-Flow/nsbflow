@@ -159,6 +159,7 @@ function SignUp({ refCode }: { refCode?: string }) {
           Você foi indicado com o código <strong className="font-mono">{refCode.toUpperCase()}</strong>. Seu indicador receberá créditos após o cadastro.
         </div>
       )}
+      <div className="space-y-2">
         <Label>Nome completo</Label>
         <Input required value={name} onChange={(e) => setName(e.target.value)} />
       </div>
