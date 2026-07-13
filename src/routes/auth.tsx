@@ -29,7 +29,7 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const { mode } = Route.useSearch();
+  const { mode, ref } = Route.useSearch();
   const navigate = useNavigate();
 
   useEffect(() => {
