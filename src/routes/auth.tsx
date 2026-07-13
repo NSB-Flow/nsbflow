@@ -13,6 +13,7 @@ import { toast } from "sonner";
 
 const search = z.object({
   mode: z.enum(["signin", "signup", "reset"]).optional(),
+  ref: z.string().trim().min(1).max(32).optional(),
 });
 
 export const Route = createFileRoute("/auth")({
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const { mode } = Route.useSearch();
+  const { mode, ref } = Route.useSearch();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -73,14 +74,14 @@ function AuthPage() {
         </div>
         <div className="flex-1 flex items-center justify-center">
           <div className="w-full max-w-sm">
-            <Tabs defaultValue={mode === "signup" ? "signup" : mode === "reset" ? "reset" : "signin"}>
+            <Tabs defaultValue={ref ? "signup" : mode === "signup" ? "signup" : mode === "reset" ? "reset" : "signin"}>
               <TabsList className="grid grid-cols-3 w-full">
                 <TabsTrigger value="signin">Entrar</TabsTrigger>
                 <TabsTrigger value="signup">Cadastro</TabsTrigger>
                 <TabsTrigger value="reset">Recuperar</TabsTrigger>
               </TabsList>
               <TabsContent value="signin"><SignIn /></TabsContent>
-              <TabsContent value="signup"><SignUp /></TabsContent>
+              <TabsContent value="signup"><SignUp refCode={ref} /></TabsContent>
               <TabsContent value="reset"><Reset /></TabsContent>
             </Tabs>
             <p className="text-xs text-muted-foreground text-center mt-8">
@@ -127,7 +128,7 @@ function SignIn() {
   );
 }
 
-function SignUp() {
+function SignUp({ refCode }: { refCode?: string }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
@@ -138,12 +139,13 @@ function SignUp() {
       onSubmit={async (e) => {
         e.preventDefault();
         setLoading(true);
+        const normalizedRef = refCode?.trim().toUpperCase() || undefined;
         const { error } = await supabase.auth.signUp({
           email,
           password: pass,
           options: {
             emailRedirectTo: window.location.origin + "/app",
-            data: { full_name: name },
+            data: { full_name: name, ...(normalizedRef ? { ref_code: normalizedRef } : {}) },
           },
         });
         setLoading(false);
@@ -152,6 +154,11 @@ function SignUp() {
       }}
     >
       <h2 className="font-display text-2xl font-semibold">Criar conta</h2>
+      {refCode && (
+        <div className="text-xs rounded-md border border-gold/40 bg-gold/10 text-foreground px-3 py-2">
+          Você foi indicado com o código <strong className="font-mono">{refCode.toUpperCase()}</strong>. Seu indicador receberá créditos após o cadastro.
+        </div>
+      )}
       <div className="space-y-2">
         <Label>Nome completo</Label>
         <Input required value={name} onChange={(e) => setName(e.target.value)} />
