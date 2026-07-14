@@ -133,19 +133,50 @@ function SignUp({ refCode }: { refCode?: string }) {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [loading, setLoading] = useState(false);
+  const normalizedRef = refCode?.trim().toUpperCase() || undefined;
+  const [refStatus, setRefStatus] = useState<"idle" | "checking" | "valid" | "invalid">(
+    normalizedRef ? "checking" : "idle",
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!normalizedRef) {
+      setRefStatus("idle");
+      return;
+    }
+    setRefStatus("checking");
+    (async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("referral_code", normalizedRef)
+        .maybeSingle();
+      if (cancelled) return;
+      if (error || !data) setRefStatus("invalid");
+      else setRefStatus("valid");
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [normalizedRef]);
+
   return (
     <form
       className="space-y-4 mt-6"
       onSubmit={async (e) => {
         e.preventDefault();
+        if (normalizedRef && refStatus !== "valid") {
+          toast.error("Código de indicação inválido. Remova o código ou use um válido para continuar.");
+          return;
+        }
         setLoading(true);
-        const normalizedRef = refCode?.trim().toUpperCase() || undefined;
+        const includeRef = normalizedRef && refStatus === "valid";
         const { error } = await supabase.auth.signUp({
           email,
           password: pass,
           options: {
             emailRedirectTo: window.location.origin + "/app",
-            data: { full_name: name, ...(normalizedRef ? { ref_code: normalizedRef } : {}) },
+            data: { full_name: name, ...(includeRef ? { ref_code: normalizedRef } : {}) },
           },
         });
         setLoading(false);
@@ -154,9 +185,19 @@ function SignUp({ refCode }: { refCode?: string }) {
       }}
     >
       <h2 className="font-display text-2xl font-semibold">Criar conta</h2>
-      {refCode && (
+      {normalizedRef && refStatus === "checking" && (
+        <div className="text-xs rounded-md border border-border bg-muted/40 text-muted-foreground px-3 py-2">
+          Validando código de indicação <strong className="font-mono">{normalizedRef}</strong>…
+        </div>
+      )}
+      {normalizedRef && refStatus === "valid" && (
         <div className="text-xs rounded-md border border-gold/40 bg-gold/10 text-foreground px-3 py-2">
-          Você foi indicado com o código <strong className="font-mono">{refCode.toUpperCase()}</strong>. Seu indicador receberá créditos após o cadastro.
+          Você foi indicado com o código <strong className="font-mono">{normalizedRef}</strong>. Seu indicador receberá créditos após o cadastro.
+        </div>
+      )}
+      {normalizedRef && refStatus === "invalid" && (
+        <div className="text-xs rounded-md border border-destructive/50 bg-destructive/10 text-destructive px-3 py-2">
+          Código de indicação <strong className="font-mono">{normalizedRef}</strong> não encontrado. Você pode continuar o cadastro sem indicação removendo <code>?ref=</code> da URL, ou usar um código válido.
         </div>
       )}
       <div className="space-y-2">
@@ -171,7 +212,7 @@ function SignUp({ refCode }: { refCode?: string }) {
         <Label>Senha</Label>
         <Input type="password" required minLength={6} value={pass} onChange={(e) => setPass(e.target.value)} />
       </div>
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button type="submit" className="w-full" disabled={loading || refStatus === "checking" || (!!normalizedRef && refStatus === "invalid")}>
         {loading ? "Criando..." : "Criar conta"}
       </Button>
       <p className="text-xs text-muted-foreground">
@@ -180,6 +221,7 @@ function SignUp({ refCode }: { refCode?: string }) {
     </form>
   );
 }
+
 
 function Reset() {
   const [email, setEmail] = useState("");
