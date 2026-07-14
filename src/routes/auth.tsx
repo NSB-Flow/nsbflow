@@ -128,11 +128,20 @@ function SignIn() {
   );
 }
 
+type PostSignup = {
+  refCode?: string;
+  refApplied: boolean;
+  creditsAwarded: number;
+  verified: boolean;
+  needsEmailConfirm: boolean;
+};
+
 function SignUp({ refCode }: { refCode?: string }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState<PostSignup | null>(null);
   const normalizedRef = refCode?.trim().toUpperCase() || undefined;
   const [refStatus, setRefStatus] = useState<"idle" | "checking" | "valid" | "invalid">(
     normalizedRef ? "checking" : "idle",
@@ -156,6 +165,49 @@ function SignUp({ refCode }: { refCode?: string }) {
     };
   }, [normalizedRef]);
 
+  if (done) {
+    return (
+      <div className="space-y-4 mt-6">
+        <h2 className="font-display text-2xl font-semibold">Conta criada 🎉</h2>
+        {done.needsEmailConfirm && (
+          <div className="text-xs rounded-md border border-border bg-muted/40 text-muted-foreground px-3 py-2">
+            Enviamos um link de confirmação para <strong>{email}</strong>. Confirme para acessar a plataforma.
+          </div>
+        )}
+
+        {done.refCode ? (
+          done.refApplied ? (
+            <div className="text-sm rounded-md border border-gold/40 bg-gold/10 text-foreground px-3 py-3 space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-xs uppercase tracking-wider text-gold font-medium">Indicação confirmada</span>
+              </div>
+              <div>
+                Código <strong className="font-mono">{done.refCode}</strong> aplicado com sucesso.
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {done.verified
+                  ? `Seu indicador recebeu +${done.creditsAwarded} créditos.`
+                  : `Seu indicador receberá +${done.creditsAwarded} créditos assim que a conta for confirmada.`}
+              </div>
+            </div>
+          ) : (
+            <div className="text-xs rounded-md border border-destructive/50 bg-destructive/10 text-destructive px-3 py-2">
+              O código <strong className="font-mono">{done.refCode}</strong> não pôde ser aplicado. Nenhum crédito foi lançado.
+            </div>
+          )
+        ) : (
+          <div className="text-xs rounded-md border border-border bg-muted/40 text-muted-foreground px-3 py-2">
+            Nenhum código de indicação foi utilizado neste cadastro.
+          </div>
+        )}
+
+        <Button className="w-full" onClick={() => (window.location.href = "/app")}>
+          Ir para a plataforma
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <form
       className="space-y-4 mt-6"
@@ -167,7 +219,7 @@ function SignUp({ refCode }: { refCode?: string }) {
         }
         setLoading(true);
         const includeRef = normalizedRef && refStatus === "valid";
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password: pass,
           options: {
@@ -175,9 +227,37 @@ function SignUp({ refCode }: { refCode?: string }) {
             data: { full_name: name, ...(includeRef ? { ref_code: normalizedRef } : {}) },
           },
         });
+        if (error) {
+          setLoading(false);
+          return toast.error(error.message);
+        }
+
+        const newUserId = data.user?.id;
+        const hasSession = !!data.session;
+        let verified = false;
+        let creditsAwarded = 100;
+
+        if (includeRef && newUserId && hasSession) {
+          const { data: ref } = await supabase
+            .from("referrals")
+            .select("credits_awarded, status")
+            .eq("referred_user_id", newUserId)
+            .maybeSingle();
+          if (ref) {
+            verified = true;
+            creditsAwarded = ref.credits_awarded ?? 100;
+          }
+        }
+
         setLoading(false);
-        if (error) return toast.error(error.message);
-        toast.success("Conta criada. Verifique seu e-mail se solicitado.");
+        setDone({
+          refCode: normalizedRef,
+          refApplied: !!includeRef,
+          creditsAwarded,
+          verified,
+          needsEmailConfirm: !hasSession,
+        });
+        toast.success("Conta criada com sucesso!");
       }}
     >
       <h2 className="font-display text-2xl font-semibold">Criar conta</h2>
