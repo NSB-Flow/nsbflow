@@ -690,6 +690,7 @@ export type Database = {
         Args: { _user_id: string; _workspace_id: string }
         Returns: boolean
       }
+      referral_code_exists: { Args: { _code: string }; Returns: boolean }
     }
     Enums: {
       app_role:
