@@ -146,11 +146,7 @@ function SignUp({ refCode }: { refCode?: string }) {
     }
     setRefStatus("checking");
     (async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("referral_code", normalizedRef)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc("referral_code_exists", { _code: normalizedRef });
       if (cancelled) return;
       if (error || !data) setRefStatus("invalid");
       else setRefStatus("valid");
