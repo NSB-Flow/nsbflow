@@ -12,13 +12,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Plataforma enterprise da NSB: briefings de conta, análise de reuniões e desenvolvimento organizacional com o DEAP Method™.",
+          "Plataforma da NSB: briefings de conta, análise de reuniões e desenvolvimento organizacional com o DEAP Method™.",
       },
-      { property: "og:title", content: "NSB Flow — Inteligência Comercial que acelera decisões" },
+      { property: "og:title", content: "NSB Flow — Inteligência Comercial com DEAP Method™" },
       {
         property: "og:description",
         content:
-          "Briefings executivos, ata automática de reuniões e planos de follow-up com o DEAP Method™ da NSB.",
+          "Plataforma da NSB: briefings de conta, análise de reuniões e desenvolvimento organizacional com o DEAP Method™.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://nsbflow.lovable.app/" },
