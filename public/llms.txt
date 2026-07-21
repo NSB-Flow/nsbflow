@@ -1,0 +1,9 @@
+# NSB Flow
+
+> Plataforma enterprise da NSB para inteligência comercial: briefings executivos de conta, análise de reuniões e desenvolvimento organizacional com o DEAP Method™.
+
+NSB Flow transforma reuniões, contas e oportunidades em movimento comercial mensurável. Combina o DEAP Briefing AI (briefings de conta em minutos) com o DEAP Meeting Intelligence (ata automática, qualidade da reunião, oportunidades perdidas e plano de follow-up), com controle de acesso por perfil e exportação em PDF corporativo.
+
+## Pages
+
+- [Home](/): Visão geral da plataforma, DEAP Method™ e principais módulos.
