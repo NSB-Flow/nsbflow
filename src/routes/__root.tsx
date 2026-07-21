@@ -14,6 +14,8 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "../lib/auth-context";
 import { Toaster } from "../components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { PwaBoot } from "@/components/pwa/PwaBoot";
+import { SplashScreen } from "@/components/pwa/SplashScreen";
 
 function NotFoundComponent() {
   return (
