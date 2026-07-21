@@ -77,18 +77,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "NSB Flow — Plataforma de Inteligência Comercial" },
-      {
-        name: "description",
-        content:
-          "NSB Flow: plataforma de inteligência comercial e desenvolvimento organizacional da NSB — Growth by Method.",
-      },
-      { property: "og:title", content: "NSB Flow — Inteligência Comercial" },
-      {
-        property: "og:description",
-        content: "Briefings de conta e análise de reuniões com o DEAP Method™.",
-      },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "NSB Flow" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [

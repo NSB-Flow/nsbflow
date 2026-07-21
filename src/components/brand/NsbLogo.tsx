@@ -11,7 +11,7 @@ export function NsbLogo({ collapsed = false, className }: { collapsed?: boolean;
       <div className="h-9 w-9 rounded-md overflow-hidden shrink-0 shadow-sm ring-1 ring-border/40">
         <img
           src={logoAsset.url}
-          alt="NSB"
+          alt="NSB Flow - Inteligência Comercial"
           className="h-full w-full object-cover"
           draggable={false}
         />
