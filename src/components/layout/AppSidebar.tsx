@@ -178,14 +178,24 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               ))}
               {isSuperAdmin && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Super Admin" isActive={isActive("/app/admin")}>
-                    <Link to="/app/admin" className="flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-gold" />
-                      {!collapsed && <span className="text-gold">Super Admin</span>}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                <>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild tooltip="Super Admin" isActive={isActive("/app/admin")}>
+                      <Link to="/app/admin" className="flex items-center gap-2">
+                        <Shield className="h-4 w-4 text-gold" />
+                        {!collapsed && <span className="text-gold">Super Admin</span>}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild tooltip="Auditoria" isActive={isActive("/app/admin-security")}>
+                      <Link to="/app/admin-security" className="flex items-center gap-2">
+                        <Shield className="h-4 w-4 text-gold" />
+                        {!collapsed && <span className="text-gold">Auditoria</span>}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
               )}
             </SidebarMenu>
           </SidebarGroupContent>
