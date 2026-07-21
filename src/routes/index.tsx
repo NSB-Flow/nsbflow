@@ -2,8 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles, ShieldCheck, LineChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { NsbLogo } from "@/components/brand/NsbLogo";
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { PageLayout, PageMain } from "@/components/layout/PageLayout";
+import { MarketingHeader } from "@/components/layout/MarketingHeader";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -54,23 +54,10 @@ export const Route = createFileRoute("/")({
 
 function Landing() {
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <header className="h-16 border-b flex items-center justify-between px-6">
-        <NsbLogo />
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <Button asChild variant="ghost">
-            <Link to="/auth">Entrar</Link>
-          </Button>
-          <Button asChild>
-            <Link to="/auth" search={{ mode: "signup" }}>
-              Criar conta
-            </Link>
-          </Button>
-        </div>
-      </header>
+    <PageLayout>
+      <MarketingHeader sticky={false} />
 
-      <main className="flex-1">
+      <PageMain>
         <section className="max-w-6xl mx-auto px-6 py-20 lg:py-28">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
