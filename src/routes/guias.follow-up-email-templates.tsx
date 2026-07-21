@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Copy, Mail, Clock, Target, CheckCircle2, ArrowRight } from "lucide-react";
+import { Copy, Mail, Clock, Target, CheckCircle2, ArrowRight, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NsbLogo } from "@/components/brand/NsbLogo";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
@@ -329,12 +329,27 @@ function FollowUpGuide() {
             <h1 className="text-4xl lg:text-5xl font-bold tracking-tight mb-4">
               Follow-up Email Templates: 12 modelos prontos para vendas B2B
             </h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">
+            <p className="text-lg text-muted-foreground leading-relaxed mb-6">
               Um guia prático com 12 templates de follow-up email, cadência recomendada
               e boas práticas para aumentar sua taxa de resposta em vendas consultivas
               B2B. Copie, adapte às suas variáveis e envie.
             </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button asChild size="lg" className="gap-2">
+                <a
+                  href="/downloads/nsb-flow-follow-up-email-templates.pdf"
+                  download="NSB-Flow-Follow-up-Email-Templates.pdf"
+                >
+                  <Download className="w-4 h-4" />
+                  Baixar guia em PDF
+                </a>
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                PDF · 8 páginas · sem cadastro
+              </span>
+            </div>
           </div>
+
 
           <nav aria-label="Sumário" className="border rounded-xl p-5 mb-12 bg-muted/30">
             <div className="text-sm font-semibold mb-3">Neste guia</div>
