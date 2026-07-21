@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, Link, useRouterState, Navigate } from "@tansta
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Fragment } from "react";
 import { useEntitlements } from "@/lib/entitlements";
@@ -47,7 +48,7 @@ function AppLayout() {
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="min-h-14 border-b flex items-center gap-3 px-4 safe-top safe-x sticky top-0 bg-background/80 backdrop-blur z-10">
+          <PageHeader size="sm">
             <SidebarTrigger />
             <Breadcrumb>
               <BreadcrumbList>
@@ -70,7 +71,7 @@ function AppLayout() {
             <div className="ml-auto flex items-center gap-1">
               <ThemeToggle />
             </div>
-          </header>
+          </PageHeader>
           <main className="flex-1">
             <Outlet />
           </main>
