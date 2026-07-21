@@ -36,7 +36,7 @@ describe("companies — workspace-scoped RLS", () => {
   it("owner can insert a company scoped to their own workspace", async () => {
     const { data, error } = await alice.client
       .from("companies")
-      .insert({ name: "Alice Corp", workspace_id: alice.workspaceId, created_by: alice.id })
+      .insert({ razao_social: "Alice Corp", workspace_id: alice.workspaceId, created_by: alice.id })
       .select()
       .single();
     expect(error).toBeNull();
@@ -46,14 +46,14 @@ describe("companies — workspace-scoped RLS", () => {
   it("insert with created_by spoofing another user is rejected", async () => {
     const { error } = await alice.client
       .from("companies")
-      .insert({ name: "Spoofed", workspace_id: alice.workspaceId, created_by: bob.id });
+      .insert({ razao_social: "Spoofed", workspace_id: alice.workspaceId, created_by: bob.id });
     expect(error).not.toBeNull();
   });
 
   it("cross-tenant SELECT does not leak alice's companies to bob", async () => {
     const res = await bob.client
       .from("companies")
-      .select("id, name, workspace_id")
+      .select("id, razao_social, workspace_id")
       .eq("workspace_id", alice.workspaceId);
     expect(isDenied(res)).toBe(true);
   });
@@ -61,7 +61,7 @@ describe("companies — workspace-scoped RLS", () => {
   it("owner sees their own companies", async () => {
     const { data, error } = await alice.client
       .from("companies")
-      .select("id, name")
+      .select("id, razao_social")
       .eq("workspace_id", alice.workspaceId);
     expect(error).toBeNull();
     expect((data ?? []).length).toBeGreaterThan(0);
@@ -76,14 +76,14 @@ describe("companies — workspace-scoped RLS", () => {
       .single();
     const res = await bob.client
       .from("companies")
-      .update({ name: "Hijacked" })
+      .update({ razao_social: "Hijacked" })
       .eq("id", target!.id)
       .select();
     expect(isDenied(res)).toBe(true);
 
     const admin = adminClient();
-    const { data: check } = await admin.from("companies").select("name").eq("id", target!.id).single();
-    expect(check?.name).not.toBe("Hijacked");
+    const { data: check } = await admin.from("companies").select("razao_social").eq("id", target!.id).single();
+    expect(check?.razao_social).not.toBe("Hijacked");
   });
 });
 
