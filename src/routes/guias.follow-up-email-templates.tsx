@@ -494,11 +494,11 @@ function FollowUpGuide() {
             </Button>
           </section>
         </article>
-      </main>
+      </PageMain>
 
       <footer className="border-t py-8 text-center text-sm text-muted-foreground">
         © {new Date().getFullYear()} NSB Flow — Inteligência Comercial com DEAP Method™
       </footer>
-    </div>
+    </PageLayout>
   );
 }
