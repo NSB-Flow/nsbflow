@@ -14,6 +14,8 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "../lib/auth-context";
 import { Toaster } from "../components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { PwaBoot } from "@/components/pwa/PwaBoot";
+import { SplashScreen } from "@/components/pwa/SplashScreen";
 
 function NotFoundComponent() {
   return (
@@ -76,7 +78,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { name: "theme-color", content: "#0A2540" },
+      { name: "color-scheme", content: "light dark" },
+      { name: "application-name", content: "NSB Flow" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "NSB Flow" },
+      { name: "format-detection", content: "telephone=no" },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "NSB Flow" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -91,6 +101,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32.png" },
+      { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16.png" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
+      { rel: "mask-icon", href: "/icons/maskable-512.png", color: "#0A2540" },
     ],
   }),
   shellComponent: RootShell,
@@ -134,7 +150,9 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <SplashScreen />
         <Outlet />
+        <PwaBoot />
         <Toaster richColors position="top-right" />
       </AuthProvider>
     </QueryClientProvider>
