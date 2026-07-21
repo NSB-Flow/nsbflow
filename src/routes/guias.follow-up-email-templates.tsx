@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Copy, Mail, Clock, Target, CheckCircle2, ArrowRight, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { NsbLogo } from "@/components/brand/NsbLogo";
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { PageLayout, PageMain } from "@/components/layout/PageLayout";
+import { MarketingHeader } from "@/components/layout/MarketingHeader";
 
 const CANONICAL = "https://nsbflow.lovable.app/guias/follow-up-email-templates";
 
@@ -299,25 +299,10 @@ const BEST_PRACTICES = [
 
 function FollowUpGuide() {
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <header className="min-h-16 border-b flex items-center justify-between px-6 safe-top safe-x sticky top-0 bg-background/80 backdrop-blur z-10">
-        <Link to="/">
-          <NsbLogo />
-        </Link>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <Button asChild variant="ghost">
-            <Link to="/auth">Entrar</Link>
-          </Button>
-          <Button asChild>
-            <Link to="/auth" search={{ mode: "signup" }}>
-              Criar conta
-            </Link>
-          </Button>
-        </div>
-      </header>
+    <PageLayout>
+      <MarketingHeader />
 
-      <main className="flex-1">
+      <PageMain>
         <article className="max-w-4xl mx-auto px-6 py-12 lg:py-16">
           <div className="mb-10">
             <div className="text-sm text-muted-foreground mb-3">
@@ -509,11 +494,11 @@ function FollowUpGuide() {
             </Button>
           </section>
         </article>
-      </main>
+      </PageMain>
 
       <footer className="border-t py-8 text-center text-sm text-muted-foreground">
         © {new Date().getFullYear()} NSB Flow — Inteligência Comercial com DEAP Method™
       </footer>
-    </div>
+    </PageLayout>
   );
 }

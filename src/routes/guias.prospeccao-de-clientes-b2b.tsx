@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Target, Users, Search, MessageSquare, TrendingUp, CheckCircle2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { NsbLogo } from "@/components/brand/NsbLogo";
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { PageLayout, PageMain } from "@/components/layout/PageLayout";
+import { MarketingHeader } from "@/components/layout/MarketingHeader";
 
 const CANONICAL = "https://nsbflow.lovable.app/guias/prospeccao-de-clientes-b2b";
 
@@ -155,25 +155,10 @@ const METRICS = [
 
 function Guide() {
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <header className="h-16 border-b flex items-center justify-between px-6">
-        <Link to="/">
-          <NsbLogo />
-        </Link>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <Button asChild variant="ghost">
-            <Link to="/auth">Entrar</Link>
-          </Button>
-          <Button asChild>
-            <Link to="/auth" search={{ mode: "signup" }}>
-              Testar grátis
-            </Link>
-          </Button>
-        </div>
-      </header>
+    <PageLayout>
+      <MarketingHeader ctaLabel="Testar grátis" sticky={false} />
 
-      <main className="flex-1">
+      <PageMain>
         <article className="max-w-4xl mx-auto px-6 py-12 lg:py-16">
           <div className="mb-10">
             <div className="text-sm text-muted-foreground mb-3">
@@ -388,12 +373,12 @@ function Guide() {
             </Button>
           </section>
         </article>
-      </main>
+      </PageMain>
 
       <footer className="border-t py-6 px-6 text-xs text-muted-foreground flex items-center justify-between">
         <span>© {new Date().getFullYear()} NSB · Growth by Method</span>
         <span>DEAP Method™ · Confidencial</span>
       </footer>
-    </div>
+    </PageLayout>
   );
 }
