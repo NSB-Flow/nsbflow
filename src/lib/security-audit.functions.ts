@@ -28,8 +28,8 @@ export const getSecurityEvents = createServerFn({ method: "GET" })
       supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 }),
       supabaseAdmin
         .from("workspace_members")
-        .select("user_id, workspace_id, role, active, created_at, updated_at")
-        .order("updated_at", { ascending: false })
+        .select("user_id, workspace_id, role, active, joined_at, invited_by")
+        .order("joined_at", { ascending: false })
         .limit(200),
       supabaseAdmin
         .from("user_roles")
@@ -71,13 +71,12 @@ export const getSecurityEvents = createServerFn({ method: "GET" })
     }
 
     for (const m of membersRes.data ?? []) {
-      const changed = m.updated_at !== m.created_at;
       events.push({
-        ts: m.updated_at ?? m.created_at,
+        ts: m.joined_at,
         category: "membership",
         actor: who(m.user_id),
         target: m.workspace_id,
-        detail: `${changed ? "atualizado" : "adicionado"} — role=${m.role} active=${m.active}`,
+        detail: `role=${m.role} active=${m.active}${m.invited_by ? ` (por ${who(m.invited_by)})` : ""}`,
         ip: null,
       });
     }
