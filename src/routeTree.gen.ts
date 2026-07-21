@@ -13,6 +13,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as GuiasFollowUpEmailTemplatesRouteImport } from './routes/guias.follow-up-email-templates'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as ApiPublicReferralCheckRouteImport } from './routes/api/public/referral-check'
@@ -55,6 +56,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuiasFollowUpEmailTemplatesRoute =
+  GuiasFollowUpEmailTemplatesRouteImport.update({
+    id: '/guias/follow-up-email-templates',
+    path: '/guias/follow-up-email-templates',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   id: '/app',
   path: '/app',
@@ -184,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
+  '/guias/follow-up-email-templates': typeof GuiasFollowUpEmailTemplatesRoute
   '/app/academy': typeof AuthenticatedAppAcademyRoute
   '/app/admin': typeof AuthenticatedAppAdminRoute
   '/app/ajuda': typeof AuthenticatedAppAjudaRoute
@@ -210,6 +218,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/guias/follow-up-email-templates': typeof GuiasFollowUpEmailTemplatesRoute
   '/app/academy': typeof AuthenticatedAppAcademyRoute
   '/app/admin': typeof AuthenticatedAppAdminRoute
   '/app/ajuda': typeof AuthenticatedAppAjudaRoute
@@ -239,6 +248,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/guias/follow-up-email-templates': typeof GuiasFollowUpEmailTemplatesRoute
   '/_authenticated/app/academy': typeof AuthenticatedAppAcademyRoute
   '/_authenticated/app/admin': typeof AuthenticatedAppAdminRoute
   '/_authenticated/app/ajuda': typeof AuthenticatedAppAjudaRoute
@@ -268,6 +278,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/app'
+    | '/guias/follow-up-email-templates'
     | '/app/academy'
     | '/app/admin'
     | '/app/ajuda'
@@ -294,6 +305,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/sitemap.xml'
+    | '/guias/follow-up-email-templates'
     | '/app/academy'
     | '/app/admin'
     | '/app/ajuda'
@@ -322,6 +334,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/_authenticated/app'
+    | '/guias/follow-up-email-templates'
     | '/_authenticated/app/academy'
     | '/_authenticated/app/admin'
     | '/_authenticated/app/ajuda'
@@ -350,6 +363,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  GuiasFollowUpEmailTemplatesRoute: typeof GuiasFollowUpEmailTemplatesRoute
   ApiPublicReferralCheckRoute: typeof ApiPublicReferralCheckRoute
 }
 
@@ -381,6 +395,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guias/follow-up-email-templates': {
+      id: '/guias/follow-up-email-templates'
+      path: '/guias/follow-up-email-templates'
+      fullPath: '/guias/follow-up-email-templates'
+      preLoaderRoute: typeof GuiasFollowUpEmailTemplatesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/app': {
@@ -617,6 +638,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  GuiasFollowUpEmailTemplatesRoute: GuiasFollowUpEmailTemplatesRoute,
   ApiPublicReferralCheckRoute: ApiPublicReferralCheckRoute,
 }
 export const routeTree = rootRouteImport
