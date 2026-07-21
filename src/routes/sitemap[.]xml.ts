@@ -13,9 +13,12 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
+        // Public, indexable routes only.
+        // Intentionally excluded: /auth (noindex, login page) and /app/* (authenticated app surfaces).
         const entries: SitemapEntry[] = [
           { path: "/", changefreq: "weekly", priority: "1.0" },
           { path: "/guias/follow-up-email-templates", changefreq: "monthly", priority: "0.8" },
+          { path: "/guias/prospeccao-de-clientes-b2b", changefreq: "monthly", priority: "0.8" },
         ];
 
         const urls = entries.map((e) =>
