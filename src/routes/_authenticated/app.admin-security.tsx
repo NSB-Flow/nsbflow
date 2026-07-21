@@ -155,6 +155,44 @@ function AdminSecurityPage() {
               />
             </div>
           </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {PRESETS.map((p) => (
+              <Button
+                key={p.key}
+                size="sm"
+                variant={preset === p.key ? "default" : "outline"}
+                className="h-8"
+                onClick={() => applyPreset(p.key)}
+              >
+                {p.label}
+              </Button>
+            ))}
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <label className="text-xs text-muted-foreground">De</label>
+                <Input
+                  type="datetime-local"
+                  value={from}
+                  onChange={(e) => { setFrom(e.target.value); setPreset("custom"); }}
+                  className="h-8 w-[180px] text-xs"
+                />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <label className="text-xs text-muted-foreground">Até</label>
+                <Input
+                  type="datetime-local"
+                  value={to}
+                  onChange={(e) => { setTo(e.target.value); setPreset("custom"); }}
+                  className="h-8 w-[180px] text-xs"
+                />
+              </div>
+              {(from || to) && (
+                <Button size="sm" variant="ghost" className="h-8" onClick={() => applyPreset("all")}>
+                  Limpar
+                </Button>
+              )}
+            </div>
+          </div>
           <Tabs value={cat} onValueChange={(v) => setCat(v as any)}>
             <TabsList>
               {CATEGORIES.map((c) => (
