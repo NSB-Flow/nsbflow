@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Copy, Mail, Clock, Target, CheckCircle2, ArrowRight } from "lucide-react";
+import { Copy, Mail, Clock, Target, CheckCircle2, ArrowRight, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NsbLogo } from "@/components/brand/NsbLogo";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
