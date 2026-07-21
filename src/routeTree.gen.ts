@@ -13,6 +13,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as GuiasProspeccaoDeClientesB2bRouteImport } from './routes/guias.prospeccao-de-clientes-b2b'
 import { Route as GuiasFollowUpEmailTemplatesRouteImport } from './routes/guias.follow-up-email-templates'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
@@ -56,6 +57,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuiasProspeccaoDeClientesB2bRoute =
+  GuiasProspeccaoDeClientesB2bRouteImport.update({
+    id: '/guias/prospeccao-de-clientes-b2b',
+    path: '/guias/prospeccao-de-clientes-b2b',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const GuiasFollowUpEmailTemplatesRoute =
   GuiasFollowUpEmailTemplatesRouteImport.update({
     id: '/guias/follow-up-email-templates',
@@ -192,6 +199,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/guias/follow-up-email-templates': typeof GuiasFollowUpEmailTemplatesRoute
+  '/guias/prospeccao-de-clientes-b2b': typeof GuiasProspeccaoDeClientesB2bRoute
   '/app/academy': typeof AuthenticatedAppAcademyRoute
   '/app/admin': typeof AuthenticatedAppAdminRoute
   '/app/ajuda': typeof AuthenticatedAppAjudaRoute
@@ -219,6 +227,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/guias/follow-up-email-templates': typeof GuiasFollowUpEmailTemplatesRoute
+  '/guias/prospeccao-de-clientes-b2b': typeof GuiasProspeccaoDeClientesB2bRoute
   '/app/academy': typeof AuthenticatedAppAcademyRoute
   '/app/admin': typeof AuthenticatedAppAdminRoute
   '/app/ajuda': typeof AuthenticatedAppAjudaRoute
@@ -249,6 +258,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/guias/follow-up-email-templates': typeof GuiasFollowUpEmailTemplatesRoute
+  '/guias/prospeccao-de-clientes-b2b': typeof GuiasProspeccaoDeClientesB2bRoute
   '/_authenticated/app/academy': typeof AuthenticatedAppAcademyRoute
   '/_authenticated/app/admin': typeof AuthenticatedAppAdminRoute
   '/_authenticated/app/ajuda': typeof AuthenticatedAppAjudaRoute
@@ -279,6 +289,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/app'
     | '/guias/follow-up-email-templates'
+    | '/guias/prospeccao-de-clientes-b2b'
     | '/app/academy'
     | '/app/admin'
     | '/app/ajuda'
@@ -306,6 +317,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/guias/follow-up-email-templates'
+    | '/guias/prospeccao-de-clientes-b2b'
     | '/app/academy'
     | '/app/admin'
     | '/app/ajuda'
@@ -335,6 +347,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/_authenticated/app'
     | '/guias/follow-up-email-templates'
+    | '/guias/prospeccao-de-clientes-b2b'
     | '/_authenticated/app/academy'
     | '/_authenticated/app/admin'
     | '/_authenticated/app/ajuda'
@@ -364,6 +377,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   GuiasFollowUpEmailTemplatesRoute: typeof GuiasFollowUpEmailTemplatesRoute
+  GuiasProspeccaoDeClientesB2bRoute: typeof GuiasProspeccaoDeClientesB2bRoute
   ApiPublicReferralCheckRoute: typeof ApiPublicReferralCheckRoute
 }
 
@@ -395,6 +409,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guias/prospeccao-de-clientes-b2b': {
+      id: '/guias/prospeccao-de-clientes-b2b'
+      path: '/guias/prospeccao-de-clientes-b2b'
+      fullPath: '/guias/prospeccao-de-clientes-b2b'
+      preLoaderRoute: typeof GuiasProspeccaoDeClientesB2bRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/guias/follow-up-email-templates': {
@@ -639,6 +660,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   GuiasFollowUpEmailTemplatesRoute: GuiasFollowUpEmailTemplatesRoute,
+  GuiasProspeccaoDeClientesB2bRoute: GuiasProspeccaoDeClientesB2bRoute,
   ApiPublicReferralCheckRoute: ApiPublicReferralCheckRoute,
 }
 export const routeTree = rootRouteImport
