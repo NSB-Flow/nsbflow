@@ -150,7 +150,9 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <SplashScreen />
         <Outlet />
+        <PwaBoot />
         <Toaster richColors position="top-right" />
       </AuthProvider>
     </QueryClientProvider>
