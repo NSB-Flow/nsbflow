@@ -34,6 +34,7 @@ import { Route as AuthenticatedAppCheckoutRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAppBibliotecaRouteImport } from './routes/_authenticated/app.biblioteca'
 import { Route as AuthenticatedAppAssinaturaRouteImport } from './routes/_authenticated/app.assinatura'
 import { Route as AuthenticatedAppAjudaRouteImport } from './routes/_authenticated/app.ajuda'
+import { Route as AuthenticatedAppAdminSecurityRouteImport } from './routes/_authenticated/app.admin-security'
 import { Route as AuthenticatedAppAdminRouteImport } from './routes/_authenticated/app.admin'
 import { Route as AuthenticatedAppAcademyRouteImport } from './routes/_authenticated/app.academy'
 import { Route as AuthenticatedAppHistoricoIdRouteImport } from './routes/_authenticated/app.historico.$id'
@@ -176,6 +177,12 @@ const AuthenticatedAppAjudaRoute = AuthenticatedAppAjudaRouteImport.update({
   path: '/ajuda',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppAdminSecurityRoute =
+  AuthenticatedAppAdminSecurityRouteImport.update({
+    id: '/admin-security',
+    path: '/admin-security',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAdminRoute = AuthenticatedAppAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -202,6 +209,7 @@ export interface FileRoutesByFullPath {
   '/guias/prospeccao-de-clientes-b2b': typeof GuiasProspeccaoDeClientesB2bRoute
   '/app/academy': typeof AuthenticatedAppAcademyRoute
   '/app/admin': typeof AuthenticatedAppAdminRoute
+  '/app/admin-security': typeof AuthenticatedAppAdminSecurityRoute
   '/app/ajuda': typeof AuthenticatedAppAjudaRoute
   '/app/assinatura': typeof AuthenticatedAppAssinaturaRoute
   '/app/biblioteca': typeof AuthenticatedAppBibliotecaRoute
@@ -230,6 +238,7 @@ export interface FileRoutesByTo {
   '/guias/prospeccao-de-clientes-b2b': typeof GuiasProspeccaoDeClientesB2bRoute
   '/app/academy': typeof AuthenticatedAppAcademyRoute
   '/app/admin': typeof AuthenticatedAppAdminRoute
+  '/app/admin-security': typeof AuthenticatedAppAdminSecurityRoute
   '/app/ajuda': typeof AuthenticatedAppAjudaRoute
   '/app/assinatura': typeof AuthenticatedAppAssinaturaRoute
   '/app/biblioteca': typeof AuthenticatedAppBibliotecaRoute
@@ -261,6 +270,7 @@ export interface FileRoutesById {
   '/guias/prospeccao-de-clientes-b2b': typeof GuiasProspeccaoDeClientesB2bRoute
   '/_authenticated/app/academy': typeof AuthenticatedAppAcademyRoute
   '/_authenticated/app/admin': typeof AuthenticatedAppAdminRoute
+  '/_authenticated/app/admin-security': typeof AuthenticatedAppAdminSecurityRoute
   '/_authenticated/app/ajuda': typeof AuthenticatedAppAjudaRoute
   '/_authenticated/app/assinatura': typeof AuthenticatedAppAssinaturaRoute
   '/_authenticated/app/biblioteca': typeof AuthenticatedAppBibliotecaRoute
@@ -292,6 +302,7 @@ export interface FileRouteTypes {
     | '/guias/prospeccao-de-clientes-b2b'
     | '/app/academy'
     | '/app/admin'
+    | '/app/admin-security'
     | '/app/ajuda'
     | '/app/assinatura'
     | '/app/biblioteca'
@@ -320,6 +331,7 @@ export interface FileRouteTypes {
     | '/guias/prospeccao-de-clientes-b2b'
     | '/app/academy'
     | '/app/admin'
+    | '/app/admin-security'
     | '/app/ajuda'
     | '/app/assinatura'
     | '/app/biblioteca'
@@ -350,6 +362,7 @@ export interface FileRouteTypes {
     | '/guias/prospeccao-de-clientes-b2b'
     | '/_authenticated/app/academy'
     | '/_authenticated/app/admin'
+    | '/_authenticated/app/admin-security'
     | '/_authenticated/app/ajuda'
     | '/_authenticated/app/assinatura'
     | '/_authenticated/app/biblioteca'
@@ -558,6 +571,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAjudaRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin-security': {
+      id: '/_authenticated/app/admin-security'
+      path: '/admin-security'
+      fullPath: '/app/admin-security'
+      preLoaderRoute: typeof AuthenticatedAppAdminSecurityRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/admin': {
       id: '/_authenticated/app/admin'
       path: '/admin'
@@ -599,6 +619,7 @@ const AuthenticatedAppHistoricoRouteWithChildren =
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAcademyRoute: typeof AuthenticatedAppAcademyRoute
   AuthenticatedAppAdminRoute: typeof AuthenticatedAppAdminRoute
+  AuthenticatedAppAdminSecurityRoute: typeof AuthenticatedAppAdminSecurityRoute
   AuthenticatedAppAjudaRoute: typeof AuthenticatedAppAjudaRoute
   AuthenticatedAppAssinaturaRoute: typeof AuthenticatedAppAssinaturaRoute
   AuthenticatedAppBibliotecaRoute: typeof AuthenticatedAppBibliotecaRoute
@@ -621,6 +642,7 @@ interface AuthenticatedAppRouteChildren {
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAcademyRoute: AuthenticatedAppAcademyRoute,
   AuthenticatedAppAdminRoute: AuthenticatedAppAdminRoute,
+  AuthenticatedAppAdminSecurityRoute: AuthenticatedAppAdminSecurityRoute,
   AuthenticatedAppAjudaRoute: AuthenticatedAppAjudaRoute,
   AuthenticatedAppAssinaturaRoute: AuthenticatedAppAssinaturaRoute,
   AuthenticatedAppBibliotecaRoute: AuthenticatedAppBibliotecaRoute,
