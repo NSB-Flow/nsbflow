@@ -76,7 +76,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { name: "theme-color", content: "#0A2540" },
+      { name: "color-scheme", content: "light dark" },
+      { name: "application-name", content: "NSB Flow" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "NSB Flow" },
+      { name: "format-detection", content: "telephone=no" },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "NSB Flow" },
       { name: "twitter:card", content: "summary_large_image" },
