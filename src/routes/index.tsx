@@ -115,12 +115,12 @@ function Landing() {
             ))}
           </div>
         </section>
-      </main>
+      </PageMain>
 
       <footer className="border-t py-6 px-6 text-xs text-muted-foreground flex items-center justify-between">
         <span>© {new Date().getFullYear()} NSB · Growth by Method</span>
         <span>DEAP Method™ · Confidencial</span>
       </footer>
-    </div>
+    </PageLayout>
   );
 }
