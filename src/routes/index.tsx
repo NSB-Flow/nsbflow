@@ -122,7 +122,7 @@ function Landing() {
             ].map((f) => (
               <div key={f.title} className="nsb-card p-6">
                 <f.icon className="h-5 w-5 text-accent" />
-                <h3 className="font-display font-semibold mt-4">{f.title}</h3>
+                <h2 className="font-display font-semibold text-base mt-4">{f.title}</h2>
                 <p className="text-sm text-muted-foreground mt-1.5">{f.desc}</p>
               </div>
             ))}

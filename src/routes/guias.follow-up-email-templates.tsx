@@ -9,7 +9,7 @@ const CANONICAL = "https://nsbflow.lovable.app/guias/follow-up-email-templates";
 export const Route = createFileRoute("/guias/follow-up-email-templates")({
   head: () => ({
     meta: [
-      { title: "Follow-up Email Templates: 12 Modelos Prontos para Vendas B2B" },
+      { title: "Follow-up Email Templates: 12 Modelos B2B" },
       {
         name: "description",
         content:
