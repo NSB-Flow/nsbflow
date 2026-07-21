@@ -98,8 +98,8 @@ describe("plans / plan_features — public catalog exposes only active rows", ()
         tier: "smart",
         name: "RLS Test Inactive Plan",
         active: false,
-        price_monthly: 0,
-        price_yearly: 0,
+        price_monthly_cents: 0,
+        price_yearly_cents: 0,
       })
       .select("id")
       .single();
@@ -133,7 +133,7 @@ describe("plans / plan_features — public catalog exposes only active rows", ()
   it("non-super-admin cannot write to plans", async () => {
     const { error } = await alice.client
       .from("plans")
-      .insert({ tier: "smart", name: "Rogue", active: true, price_monthly: 1, price_yearly: 1 });
+      .insert({ tier: "smart", name: "Rogue", active: true, price_monthly_cents: 100, price_yearly_cents: 100 });
     expect(error).not.toBeNull();
   });
 
