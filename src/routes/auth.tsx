@@ -20,10 +20,20 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Entrar — NSB Flow" },
-      { name: "description", content: "Acesse a plataforma NSB Flow." },
+      {
+        name: "description",
+        content:
+          "Acesse a plataforma NSB Flow para gerir briefings de conta, análises de reunião e planos de follow-up com o DEAP Method™.",
+      },
+      { property: "og:title", content: "Entrar — NSB Flow" },
+      {
+        property: "og:description",
+        content: "Login da plataforma NSB Flow — inteligência comercial com o DEAP Method™.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
+
   validateSearch: (s) => search.parse(s),
   component: AuthPage,
 });

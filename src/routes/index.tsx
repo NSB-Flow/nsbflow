@@ -8,14 +8,47 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "NSB Flow — Inteligência Comercial e Desenvolvimento Organizacional" },
+      { title: "NSB Flow — Inteligência Comercial com DEAP Method™" },
       {
         name: "description",
         content:
-          "Plataforma enterprise da NSB para inteligência comercial: briefings de conta, análise de reuniões e desenvolvimento organizacional com o DEAP Method™.",
+          "Plataforma enterprise da NSB: briefings de conta, análise de reuniões e desenvolvimento organizacional com o DEAP Method™.",
+      },
+      { property: "og:title", content: "NSB Flow — Inteligência Comercial que acelera decisões" },
+      {
+        property: "og:description",
+        content:
+          "Briefings executivos, ata automática de reuniões e planos de follow-up com o DEAP Method™ da NSB.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://nsbflow.lovable.app/" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+    links: [{ rel: "canonical", href: "https://nsbflow.lovable.app/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "NSB Flow",
+          url: "https://nsbflow.lovable.app/",
+          description:
+            "Plataforma enterprise da NSB para inteligência comercial, análise de reuniões e desenvolvimento organizacional com o DEAP Method™.",
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "NSB Flow",
+          url: "https://nsbflow.lovable.app/",
+        }),
       },
     ],
   }),
+
   component: Landing,
 });
 
