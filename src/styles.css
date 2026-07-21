@@ -170,12 +170,9 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
-    /* Paint background into the notch/home-indicator areas */
+    /* Fill viewport including notch/home-indicator; components opt into
+       safe-area padding via .safe-top / .safe-x / .safe-bottom utilities. */
     min-height: 100dvh;
-    padding-top: env(safe-area-inset-top);
-    padding-right: env(safe-area-inset-right);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
     overscroll-behavior-y: none;
   }
   h1, h2, h3, h4, .font-display { font-family: var(--font-display); letter-spacing: -0.01em; }
