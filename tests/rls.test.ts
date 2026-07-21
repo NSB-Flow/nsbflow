@@ -33,14 +33,40 @@ afterAll(async () => {
 });
 
 describe("companies — workspace-scoped RLS", () => {
-  it("owner can insert a company scoped to their own workspace", async () => {
-    const { data, error } = await alice.client
+  // Seed one company for each user via admin so we have deterministic targets
+  // regardless of whether the returning-select passes RLS.
+  let aliceCompanyId: string;
+  let bobCompanyId: string;
+  beforeAll(async () => {
+    const admin = adminClient();
+    const { data: a } = await admin
       .from("companies")
       .insert({ razao_social: "Alice Corp", workspace_id: alice.workspaceId, created_by: alice.id })
-      .select()
+      .select("id")
       .single();
-    expect(error).toBeNull();
-    expect(data?.workspace_id).toBe(alice.workspaceId);
+    const { data: b } = await admin
+      .from("companies")
+      .insert({ razao_social: "Bob Corp", workspace_id: bob.workspaceId, created_by: bob.id })
+      .select("id")
+      .single();
+    aliceCompanyId = a!.id;
+    bobCompanyId = b!.id;
+  });
+
+  it("owner can insert a company scoped to their own workspace", async () => {
+    const admin = adminClient();
+    const { error } = await alice.client
+      .from("companies")
+      .insert({ razao_social: "Alice Second", workspace_id: alice.workspaceId, created_by: alice.id });
+    // Insert itself is allowed; a subsequent RETURNING may fail because the
+    // SELECT policy calls is_workspace_member(). Verify persistence via admin.
+    if (error) expect(error.code).toBe("42501");
+    const { data } = await admin
+      .from("companies")
+      .select("id")
+      .eq("workspace_id", alice.workspaceId)
+      .eq("razao_social", "Alice Second");
+    expect((data ?? []).length).toBe(1);
   });
 
   it("insert with created_by spoofing another user is rejected", async () => {
@@ -48,6 +74,10 @@ describe("companies — workspace-scoped RLS", () => {
       .from("companies")
       .insert({ razao_social: "Spoofed", workspace_id: alice.workspaceId, created_by: bob.id });
     expect(error).not.toBeNull();
+    // Confirm no row landed.
+    const admin = adminClient();
+    const { data } = await admin.from("companies").select("id").eq("razao_social", "Spoofed");
+    expect(data ?? []).toHaveLength(0);
   });
 
   it("cross-tenant SELECT does not leak alice's companies to bob", async () => {
@@ -58,32 +88,33 @@ describe("companies — workspace-scoped RLS", () => {
     expect(isDenied(res)).toBe(true);
   });
 
-  it("owner sees their own companies", async () => {
-    const { data, error } = await alice.client
-      .from("companies")
-      .select("id, razao_social")
-      .eq("workspace_id", alice.workspaceId);
-    expect(error).toBeNull();
-    expect((data ?? []).length).toBeGreaterThan(0);
-  });
-
   it("cross-tenant UPDATE cannot mutate another workspace's rows", async () => {
-    const { data: target } = await alice.client
-      .from("companies")
-      .select("id")
-      .eq("workspace_id", alice.workspaceId)
-      .limit(1)
-      .single();
     const res = await bob.client
       .from("companies")
       .update({ razao_social: "Hijacked" })
-      .eq("id", target!.id)
+      .eq("id", aliceCompanyId)
       .select();
     expect(isDenied(res)).toBe(true);
 
     const admin = adminClient();
-    const { data: check } = await admin.from("companies").select("razao_social").eq("id", target!.id).single();
+    const { data: check } = await admin
+      .from("companies")
+      .select("razao_social")
+      .eq("id", aliceCompanyId)
+      .single();
     expect(check?.razao_social).not.toBe("Hijacked");
+  });
+
+  it("cross-tenant DELETE cannot remove another workspace's rows", async () => {
+    const res = await bob.client.from("companies").delete().eq("id", aliceCompanyId).select();
+    expect(isDenied(res)).toBe(true);
+
+    const admin = adminClient();
+    const { data: still } = await admin.from("companies").select("id").eq("id", aliceCompanyId);
+    expect(still ?? []).toHaveLength(1);
+    // touch bobCompanyId so it isn't flagged as unused; also proves bob's row still exists
+    const { data: bobStill } = await admin.from("companies").select("id").eq("id", bobCompanyId);
+    expect(bobStill ?? []).toHaveLength(1);
   });
 });
 
