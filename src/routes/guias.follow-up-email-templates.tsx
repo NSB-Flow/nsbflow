@@ -300,7 +300,7 @@ const BEST_PRACTICES = [
 function FollowUpGuide() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="h-16 border-b flex items-center justify-between px-6 sticky top-0 bg-background/80 backdrop-blur z-10">
+      <header className="min-h-16 border-b flex items-center justify-between px-6 safe-top safe-x sticky top-0 bg-background/80 backdrop-blur z-10">
         <Link to="/">
           <NsbLogo />
         </Link>
