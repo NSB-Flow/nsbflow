@@ -26,6 +26,19 @@ const CATEGORIES: { key: SecurityEvent["category"] | "all"; label: string }[] = 
   { key: "referral", label: "Indicações" },
 ];
 
+type PresetKey = "24h" | "7d" | "30d" | "all" | "custom";
+const PRESETS: { key: PresetKey; label: string; hours: number | null }[] = [
+  { key: "24h", label: "Últimas 24h", hours: 24 },
+  { key: "7d", label: "7 dias", hours: 24 * 7 },
+  { key: "30d", label: "30 dias", hours: 24 * 30 },
+  { key: "all", label: "Tudo", hours: null },
+];
+
+function toLocalInput(d: Date) {
+  const off = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - off).toISOString().slice(0, 16);
+}
+
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleString("pt-BR");
 }
@@ -55,15 +68,37 @@ function AdminSecurityPage() {
 
   const [cat, setCat] = useState<(typeof CATEGORIES)[number]["key"]>("all");
   const [q, setQ] = useState("");
+  const [preset, setPreset] = useState<PresetKey>("7d");
+  const [from, setFrom] = useState<string>("");
+  const [to, setTo] = useState<string>("");
+
+  const applyPreset = (key: PresetKey) => {
+    setPreset(key);
+    const now = new Date();
+    const p = PRESETS.find((x) => x.key === key);
+    if (!p || p.hours === null) {
+      setFrom("");
+      setTo("");
+      return;
+    }
+    const start = new Date(now.getTime() - p.hours * 3600_000);
+    setFrom(toLocalInput(start));
+    setTo(toLocalInput(now));
+  };
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
+    const fromMs = from ? new Date(from).getTime() : null;
+    const toMs = to ? new Date(to).getTime() : null;
     return data.filter((r) => {
       if (cat !== "all" && r.category !== cat) return false;
+      const ts = new Date(r.ts).getTime();
+      if (fromMs !== null && ts < fromMs) return false;
+      if (toMs !== null && ts > toMs) return false;
       if (!term) return true;
       return [r.actor, r.target, r.detail].some((v) => v?.toLowerCase().includes(term));
     });
-  }, [data, cat, q]);
+  }, [data, cat, q, from, to]);
 
   const exportCsv = () => {
     const blob = new Blob([toCsv(filtered)], { type: "text/csv;charset=utf-8" });
@@ -118,6 +153,44 @@ function AdminSecurityPage() {
                 placeholder="Buscar por usuário, workspace, detalhe…"
                 className="pl-7 h-9 w-72"
               />
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {PRESETS.map((p) => (
+              <Button
+                key={p.key}
+                size="sm"
+                variant={preset === p.key ? "default" : "outline"}
+                className="h-8"
+                onClick={() => applyPreset(p.key)}
+              >
+                {p.label}
+              </Button>
+            ))}
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <label className="text-xs text-muted-foreground">De</label>
+                <Input
+                  type="datetime-local"
+                  value={from}
+                  onChange={(e) => { setFrom(e.target.value); setPreset("custom"); }}
+                  className="h-8 w-[180px] text-xs"
+                />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <label className="text-xs text-muted-foreground">Até</label>
+                <Input
+                  type="datetime-local"
+                  value={to}
+                  onChange={(e) => { setTo(e.target.value); setPreset("custom"); }}
+                  className="h-8 w-[180px] text-xs"
+                />
+              </div>
+              {(from || to) && (
+                <Button size="sm" variant="ghost" className="h-8" onClick={() => applyPreset("all")}>
+                  Limpar
+                </Button>
+              )}
             </div>
           </div>
           <Tabs value={cat} onValueChange={(v) => setCat(v as any)}>
