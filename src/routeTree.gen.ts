@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
+import { Route as ApiPublicReferralCheckRouteImport } from './routes/api/public/referral-check'
 import { Route as AuthenticatedAppWorkspacesRouteImport } from './routes/_authenticated/app.workspaces'
 import { Route as AuthenticatedAppTrialExpiradoRouteImport } from './routes/_authenticated/app.trial-expirado'
 import { Route as AuthenticatedAppRelatoriosRouteImport } from './routes/_authenticated/app.relatorios'
@@ -57,6 +58,11 @@ const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const ApiPublicReferralCheckRoute = ApiPublicReferralCheckRouteImport.update({
+  id: '/api/public/referral-check',
+  path: '/api/public/referral-check',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAppWorkspacesRoute =
   AuthenticatedAppWorkspacesRouteImport.update({
@@ -189,6 +195,7 @@ export interface FileRoutesByFullPath {
   '/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
   '/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
   '/app/workspaces': typeof AuthenticatedAppWorkspacesRoute
+  '/api/public/referral-check': typeof ApiPublicReferralCheckRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
 }
@@ -213,6 +220,7 @@ export interface FileRoutesByTo {
   '/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
   '/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
   '/app/workspaces': typeof AuthenticatedAppWorkspacesRoute
+  '/api/public/referral-check': typeof ApiPublicReferralCheckRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
 }
@@ -240,6 +248,7 @@ export interface FileRoutesById {
   '/_authenticated/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
   '/_authenticated/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
   '/_authenticated/app/workspaces': typeof AuthenticatedAppWorkspacesRoute
+  '/api/public/referral-check': typeof ApiPublicReferralCheckRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
 }
@@ -267,6 +276,7 @@ export interface FileRouteTypes {
     | '/app/relatorios'
     | '/app/trial-expirado'
     | '/app/workspaces'
+    | '/api/public/referral-check'
     | '/app/'
     | '/app/historico/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -291,6 +301,7 @@ export interface FileRouteTypes {
     | '/app/relatorios'
     | '/app/trial-expirado'
     | '/app/workspaces'
+    | '/api/public/referral-check'
     | '/app'
     | '/app/historico/$id'
   id:
@@ -317,6 +328,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/relatorios'
     | '/_authenticated/app/trial-expirado'
     | '/_authenticated/app/workspaces'
+    | '/api/public/referral-check'
     | '/_authenticated/app/'
     | '/_authenticated/app/historico/$id'
   fileRoutesById: FileRoutesById
@@ -325,6 +337,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicReferralCheckRoute: typeof ApiPublicReferralCheckRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -363,6 +376,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
       parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/api/public/referral-check': {
+      id: '/api/public/referral-check'
+      path: '/api/public/referral-check'
+      fullPath: '/api/public/referral-check'
+      preLoaderRoute: typeof ApiPublicReferralCheckRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/app/workspaces': {
       id: '/_authenticated/app/workspaces'
@@ -576,6 +596,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicReferralCheckRoute: ApiPublicReferralCheckRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
