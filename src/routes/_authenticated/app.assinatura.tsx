@@ -127,6 +127,77 @@ function AssinaturaPage() {
         </Card>
 
         <Card>
+          <CardHeader>
+            <CardTitle className="font-display flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-gold" /> Créditos de agentes
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {credits.unlimited ? (
+              <div className="flex items-center gap-2 text-lg font-display">
+                <InfinityIcon className="h-5 w-5 text-gold" /> Ilimitado (Enterprise)
+              </div>
+            ) : (
+              <>
+                <div>
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground">Pool do workspace</div>
+                  <div className="font-display text-3xl font-bold text-gold">{credits.workspaceBalance}</div>
+                  {credits.monthlyAllotment != null && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {credits.monthlyAllotment} × {credits.seats} ={" "}
+                      <strong>{credits.monthlyAllotment * credits.seats}</strong> créditos/mês
+                      {ent.planTier === "pro" ? " (com rollover)" : " (sem rollover)"}
+                    </p>
+                  )}
+                </div>
+                <div className="border-t pt-3">
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground">Saldo pessoal (indicações)</div>
+                  <div className="font-display text-xl font-semibold">{credits.userBalance}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Consumido após o pool do workspace {credits.userEligible ? "" : "(indisponível durante o trial)"}.
+                  </p>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {isPJ && ent.planTier !== "enterprise" && (
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="font-display flex items-center gap-2">
+                <Users className="h-4 w-4" /> Assentos contratados
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-end gap-3 flex-wrap">
+                <div>
+                  <Label htmlFor="seats-edit">Assentos</Label>
+                  <Input
+                    id="seats-edit"
+                    type="number"
+                    min={1}
+                    max={10000}
+                    value={seats}
+                    onChange={(e) => setSeats(Math.max(1, Number(e.target.value) || 1))}
+                    className="w-32 mt-1"
+                  />
+                </div>
+                <Button onClick={saveSeats} disabled={savingSeats || seats === ent.seatsTotal}>
+                  {savingSeats ? "Salvando..." : "Atualizar assentos"}
+                </Button>
+                {credits.monthlyAllotment != null && (
+                  <p className="text-xs text-muted-foreground">
+                    Novo pool: <strong>{credits.monthlyAllotment * seats}</strong> créditos/mês.
+                    Ajustes valem na próxima reposição.
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card>
           <CardHeader><CardTitle className="font-display flex items-center gap-2"><Receipt className="h-4 w-4" /> Histórico</CardTitle></CardHeader>
           <CardContent>
             {invoices.length === 0 ? (
