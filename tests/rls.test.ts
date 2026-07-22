@@ -260,3 +260,130 @@ describe("workspace_members — privilege escalation blocked", () => {
     expect(isDenied(res)).toBe(true);
   });
 });
+
+describe("agent_runs — workspace-scoped RLS", () => {
+  let aliceRunId: string;
+  let bobRunId: string;
+
+  beforeAll(async () => {
+    const admin = adminClient();
+    const { data: a } = await admin
+      .from("agent_runs")
+      .insert({
+        agent: "deap.meeting.briefing",
+        workspace_id: alice.workspaceId,
+        created_by: alice.id,
+        payload: {},
+        status: "success",
+      })
+      .select("id")
+      .single();
+    const { data: b } = await admin
+      .from("agent_runs")
+      .insert({
+        agent: "deap.meeting.briefing",
+        workspace_id: bob.workspaceId,
+        created_by: bob.id,
+        payload: {},
+        status: "success",
+      })
+      .select("id")
+      .single();
+    aliceRunId = a!.id;
+    bobRunId = b!.id;
+  });
+
+  it("bob cannot read alice's agent_runs", async () => {
+    const res = await bob.client.from("agent_runs").select("id").eq("id", aliceRunId);
+    expect(isDenied(res)).toBe(true);
+  });
+
+  it("bob cannot update alice's agent_runs", async () => {
+    const res = await bob.client
+      .from("agent_runs")
+      .update({ title: "Hijacked" })
+      .eq("id", aliceRunId)
+      .select();
+    expect(isDenied(res)).toBe(true);
+    const admin = adminClient();
+    const { data } = await admin.from("agent_runs").select("title").eq("id", aliceRunId).single();
+    expect(data?.title).not.toBe("Hijacked");
+  });
+
+  it("bob cannot delete alice's agent_runs", async () => {
+    const res = await bob.client.from("agent_runs").delete().eq("id", aliceRunId).select();
+    expect(isDenied(res)).toBe(true);
+    const admin = adminClient();
+    const { data } = await admin.from("agent_runs").select("id").eq("id", aliceRunId);
+    expect(data ?? []).toHaveLength(1);
+    // touch bobRunId
+    const { data: bobStill } = await admin.from("agent_runs").select("id").eq("id", bobRunId);
+    expect(bobStill ?? []).toHaveLength(1);
+  });
+
+  it("insert into another workspace is rejected even when created_by matches self", async () => {
+    const { error } = await bob.client.from("agent_runs").insert({
+      agent: "deap.meeting.briefing",
+      workspace_id: alice.workspaceId,
+      created_by: bob.id,
+      payload: {},
+      status: "success",
+    });
+    expect(error).not.toBeNull();
+  });
+
+  it("owner can read their own agent_runs", async () => {
+    const res = await alice.client.from("agent_runs").select("id").eq("id", aliceRunId);
+    expect(res.error).toBeNull();
+    expect((res.data ?? []).length).toBe(1);
+  });
+});
+
+describe("attachments — workspace-scoped RLS", () => {
+  let aliceAttId: string;
+  let bobAttId: string;
+
+  beforeAll(async () => {
+    const admin = adminClient();
+    const { data: a } = await admin
+      .from("attachments")
+      .insert({ workspace_id: alice.workspaceId, created_by: alice.id, path: "alice/a.pdf" })
+      .select("id")
+      .single();
+    const { data: b } = await admin
+      .from("attachments")
+      .insert({ workspace_id: bob.workspaceId, created_by: bob.id, path: "bob/b.pdf" })
+      .select("id")
+      .single();
+    aliceAttId = a!.id;
+    bobAttId = b!.id;
+  });
+
+  it("bob cannot read alice's attachments", async () => {
+    const res = await bob.client.from("attachments").select("id").eq("id", aliceAttId);
+    expect(isDenied(res)).toBe(true);
+  });
+
+  it("bob cannot insert into alice's workspace", async () => {
+    const { error } = await bob.client
+      .from("attachments")
+      .insert({ workspace_id: alice.workspaceId, created_by: bob.id, path: "spoof.pdf" });
+    expect(error).not.toBeNull();
+  });
+
+  it("bob cannot delete alice's attachments", async () => {
+    const res = await bob.client.from("attachments").delete().eq("id", aliceAttId).select();
+    expect(isDenied(res)).toBe(true);
+    const admin = adminClient();
+    const { data } = await admin.from("attachments").select("id").eq("id", aliceAttId);
+    expect(data ?? []).toHaveLength(1);
+    const { data: bobStill } = await admin.from("attachments").select("id").eq("id", bobAttId);
+    expect(bobStill ?? []).toHaveLength(1);
+  });
+
+  it("owner can read their own attachments", async () => {
+    const res = await alice.client.from("attachments").select("id").eq("id", aliceAttId);
+    expect(res.error).toBeNull();
+    expect((res.data ?? []).length).toBe(1);
+  });
+});
