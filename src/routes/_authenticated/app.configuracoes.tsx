@@ -6,12 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 import { useAuth } from "@/lib/auth-context";
 import { ROLE_LABELS } from "@/lib/roles";
 import { supabase } from "@/integrations/supabase/client";
 import { getWebhookUrlFn, saveWebhookUrlFn } from "@/lib/agent-service.functions";
+import { useAlertPrefs } from "@/lib/alert-prefs";
 import { toast } from "sonner";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2, ShieldCheck, BellRing } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/configuracoes")({
   head: () => ({ meta: [{ title: "Configurações — NSB Flow" }] }),
@@ -20,6 +23,7 @@ export const Route = createFileRoute("/_authenticated/app/configuracoes")({
 
 function Config() {
   const { user, roles, fullName, refresh } = useAuth();
+  const { prefs, update: updatePrefs, reset: resetPrefs } = useAlertPrefs(user?.id);
   const getUrl = useServerFn(getWebhookUrlFn);
   const saveUrl = useServerFn(saveWebhookUrlFn);
   const [name, setName] = useState(fullName ?? "");
@@ -101,6 +105,96 @@ function Config() {
       </Card>
 
       <Card>
+        <CardHeader>
+          <CardTitle className="font-display flex items-center gap-2">
+            <BellRing className="h-4 w-4 text-gold" /> Alertas in-app
+          </CardTitle>
+          <CardDescription>
+            Ajuste os limiares de aviso de saldo de créditos e escolha se quer receber notificações no aplicativo.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-0.5">
+              <Label className="text-sm">Receber avisos in-app</Label>
+              <p className="text-xs text-muted-foreground">
+                Toasts e notificações para saldo baixo, créditos esgotados e trial próximo do fim.
+              </p>
+            </div>
+            <Switch
+              checked={prefs.enabled}
+              onCheckedChange={(v) => updatePrefs({ enabled: v })}
+            />
+          </div>
+
+          <div className={prefs.enabled ? "space-y-6" : "space-y-6 opacity-50 pointer-events-none"}>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Alerta amarelo (saldo baixo)</Label>
+                <span className="text-sm font-medium tabular-nums">{prefs.warnPct}%</span>
+              </div>
+              <Slider
+                min={5}
+                max={50}
+                step={5}
+                value={[prefs.warnPct]}
+                onValueChange={([v]) =>
+                  updatePrefs({
+                    warnPct: v,
+                    criticalPct: Math.min(prefs.criticalPct, v - 5),
+                  })
+                }
+              />
+              <p className="text-xs text-muted-foreground">
+                Dispara quando o saldo restante fica igual ou abaixo deste percentual da cota mensal.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Alerta crítico</Label>
+                <span className="text-sm font-medium tabular-nums">{prefs.criticalPct}%</span>
+              </div>
+              <Slider
+                min={1}
+                max={Math.max(1, prefs.warnPct - 5)}
+                step={1}
+                value={[prefs.criticalPct]}
+                onValueChange={([v]) => updatePrefs({ criticalPct: v })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Notificação de alta severidade. Deve ser menor que o alerta amarelo.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Aviso do trial (dias antes)</Label>
+                <span className="text-sm font-medium tabular-nums">{prefs.trialWarnDays} dia(s)</span>
+              </div>
+              <Slider
+                min={1}
+                max={7}
+                step={1}
+                value={[prefs.trialWarnDays]}
+                onValueChange={([v]) => updatePrefs({ trialWarnDays: v })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Aviso disparado com esta antecedência. Nas últimas 24h o alerta vira crítico automaticamente.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <Button variant="outline" size="sm" onClick={resetPrefs}>
+              Restaurar padrões
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+
         <CardHeader>
           <CardTitle className="font-display flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-gold" /> Integração n8n (Agent Service)
