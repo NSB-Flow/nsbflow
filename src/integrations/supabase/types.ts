@@ -580,6 +580,56 @@ export type Database = {
         }
         Relationships: []
       }
+      user_notifications: {
+        Row: {
+          action_url: string | null
+          body: string | null
+          created_at: string
+          dedupe_key: string
+          id: string
+          kind: string
+          read_at: string | null
+          severity: string
+          title: string
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          action_url?: string | null
+          body?: string | null
+          created_at?: string
+          dedupe_key: string
+          id?: string
+          kind: string
+          read_at?: string | null
+          severity?: string
+          title: string
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          action_url?: string | null
+          body?: string | null
+          created_at?: string
+          dedupe_key?: string
+          id?: string
+          kind?: string
+          read_at?: string | null
+          severity?: string
+          title?: string
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_notifications_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
