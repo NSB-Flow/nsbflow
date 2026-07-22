@@ -294,8 +294,11 @@ describe("agent_runs — workspace-scoped RLS", () => {
   });
 
   it("bob cannot read alice's agent_runs", async () => {
+    const whoami = await bob.client.from("profiles").select("id, full_name");
+    const memCheck = await bob.client.rpc("is_workspace_member", { _user_id: bob.id, _workspace_id: alice.workspaceId });
+    const memAsAuth = await bob.client.rpc("is_workspace_member", { _user_id: bob.id, _workspace_id: bob.workspaceId });
     const res = await bob.client.from("agent_runs").select("id, workspace_id, created_by").eq("id", aliceRunId);
-    console.log("[dbg agent_runs]", JSON.stringify({ aliceWs: alice.workspaceId, bobWs: bob.workspaceId, aliceRunId, aliceId: alice.id, bobId: bob.id, res }));
+    console.log("[dbg agent_runs]", JSON.stringify({ whoami, memCheckAlice: memCheck.data, memCheckSelf: memAsAuth.data, res }));
     expect(isDenied(res)).toBe(true);
   });
 
