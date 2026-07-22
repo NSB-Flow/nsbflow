@@ -18,6 +18,7 @@ import { Loader2, FileText, Sparkles, Upload, FileAudio, Save, Star, Copy, FileD
 import { useDropzone } from "react-dropzone";
 import { generateReportPdf, downloadBlob } from "@/lib/pdf-report";
 import { useAuth } from "@/lib/auth-context";
+import { useWorkspace } from "@/lib/workspace-context";
 import { Progress } from "@/components/ui/progress";
 
 export const Route = createFileRoute("/_authenticated/app/deap-meeting")({
@@ -61,6 +62,7 @@ function DeapMeeting() {
 
 function BriefingTab() {
   const runAgent = useServerFn(runAgentFn);
+  const { workspaceId } = useWorkspace();
   const [form, setForm] = useState<BriefingForm>({
     company: "",
     cnpj: "",
@@ -80,7 +82,8 @@ function BriefingTab() {
     setLoading(true);
     setResult(null);
     try {
-      const r = await runAgent({ data: { agent: "briefing", payload: parsed.data } });
+      if (!workspaceId) throw new Error("Workspace não selecionado.");
+      const r = await runAgent({ data: { agent: "briefing", workspaceId, payload: parsed.data } });
       if (r.status === "error") {
         setResult({ runId: r.runId, error: r.error ?? "Erro" });
         toast.error(r.error ?? "Falha ao gerar briefing");
@@ -150,6 +153,7 @@ const ACCEPT = {
 function MeetingTab() {
   const runAgent = useServerFn(runAgentFn);
   const { user } = useAuth();
+  const { workspaceId } = useWorkspace();
   const [form, setForm] = useState<MeetingForm>({
     company: "",
     cnpj: "",
@@ -211,7 +215,8 @@ function MeetingTab() {
     setLoading(true);
     setResult(null);
     try {
-      const r = await runAgent({ data: { agent: "meeting", payload: parsed.data } });
+      if (!workspaceId) throw new Error("Workspace não selecionado.");
+      const r = await runAgent({ data: { agent: "meeting", workspaceId, payload: parsed.data } });
       if (r.status === "error") {
         setResult({ runId: r.runId, error: r.error ?? "Erro" });
         toast.error(r.error ?? "Falha ao analisar reunião");
