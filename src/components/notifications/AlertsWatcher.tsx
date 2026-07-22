@@ -6,10 +6,12 @@ import { useWorkspace } from "@/lib/workspace-context";
 import { useEntitlements } from "@/lib/entitlements";
 import { useWorkspaceCredits } from "@/lib/workspace-credits";
 import { recordNotification, type NotificationSeverity } from "@/lib/notifications";
+import { useAlertPrefs } from "@/lib/alert-prefs";
 
 /**
  * Monitora saldo de créditos e trial. Dispara toast + registra notificação no banco.
  * Dedupe por dia (créditos) e por data de expiração (trial), evitando spam.
+ * Limiares e opt-in são configuráveis em /app/configuracoes.
  */
 export function AlertsWatcher() {
   const { user } = useAuth();
@@ -17,10 +19,11 @@ export function AlertsWatcher() {
   const ent = useEntitlements();
   const credits = useWorkspaceCredits();
   const qc = useQueryClient();
+  const { prefs, hydrated } = useAlertPrefs(user?.id);
   const firedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    if (!user || ent.loading || credits.loading) return;
+    if (!user || ent.loading || credits.loading || !hydrated || !prefs.enabled) return;
 
     const today = new Date().toISOString().slice(0, 10);
 
@@ -63,13 +66,13 @@ export function AlertsWatcher() {
           dedupeKey: `trial:1d:${endTag}`,
           actionUrl: "/app/planos",
         });
-      } else if (ent.trialDaysLeft <= 2) {
+      } else if (ent.trialDaysLeft <= prefs.trialWarnDays) {
         fire({
           kind: "trial.expiring",
           severity: "warning",
           title: `Trial termina em ${ent.trialDaysLeft} dias`,
           body: "Ative um plano para manter suas execuções sem interrupção.",
-          dedupeKey: `trial:2d:${endTag}`,
+          dedupeKey: `trial:${prefs.trialWarnDays}d:${endTag}`,
           actionUrl: "/app/planos",
         });
       }
@@ -89,7 +92,9 @@ export function AlertsWatcher() {
     if (!credits.unlimited && workspaceId) {
       const total = credits.totalAvailable ?? 0;
       const allotment = credits.monthlyAllotment ?? 100;
-      const pct = allotment > 0 ? total / allotment : 0;
+      const pct = allotment > 0 ? (total / allotment) * 100 : 0;
+      const warnPct = prefs.warnPct;
+      const criticalPct = prefs.criticalPct;
 
       if (total <= 0) {
         fire({
@@ -100,22 +105,22 @@ export function AlertsWatcher() {
           dedupeKey: `credits:empty:${workspaceId}:${today}`,
           actionUrl: "/app/assinatura",
         });
-      } else if (total <= 10 || pct <= 0.1) {
+      } else if (pct <= criticalPct) {
         fire({
           kind: "credits.low",
           severity: "critical",
           title: `Apenas ${total} créditos restantes`,
-          body: "Considere fazer upgrade do plano para evitar interrupções.",
-          dedupeKey: `credits:critical:${workspaceId}:${today}`,
+          body: `Você está abaixo de ${criticalPct}% da cota. Considere fazer upgrade do plano.`,
+          dedupeKey: `credits:critical:${workspaceId}:${criticalPct}:${today}`,
           actionUrl: "/app/assinatura",
         });
-      } else if (pct <= 0.2) {
+      } else if (pct <= warnPct) {
         fire({
           kind: "credits.low",
           severity: "warning",
           title: `Saldo baixo: ${total} créditos`,
-          body: `Você usou mais de 80% da cota mensal do plano ${ent.planName}.`,
-          dedupeKey: `credits:low:${workspaceId}:${today}`,
+          body: `Você atingiu ${warnPct}% da cota mensal do plano ${ent.planName}.`,
+          dedupeKey: `credits:low:${workspaceId}:${warnPct}:${today}`,
           actionUrl: "/app/assinatura",
         });
       }
@@ -133,6 +138,11 @@ export function AlertsWatcher() {
     credits.unlimited,
     credits.totalAvailable,
     credits.monthlyAllotment,
+    hydrated,
+    prefs.enabled,
+    prefs.warnPct,
+    prefs.criticalPct,
+    prefs.trialWarnDays,
     qc,
   ]);
 
