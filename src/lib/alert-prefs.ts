@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 
 export interface AlertPrefs {
   enabled: boolean;
+  emailEnabled: boolean; // envio dos mesmos alertas por e-mail
   warnPct: number;      // %: aviso amarelo
   criticalPct: number;  // %: aviso crítico
   trialWarnDays: number; // dias antes do trial expirar
@@ -9,6 +10,7 @@ export interface AlertPrefs {
 
 export const DEFAULT_ALERT_PREFS: AlertPrefs = {
   enabled: true,
+  emailEnabled: false,
   warnPct: 20,
   criticalPct: 10,
   trialWarnDays: 2,

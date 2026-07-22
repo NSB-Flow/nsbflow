@@ -127,6 +127,21 @@ function Config() {
             />
           </div>
 
+          <div className="flex items-start justify-between gap-4 border-t border-border/60 pt-4">
+            <div className="space-y-0.5">
+              <Label className="text-sm">Também enviar por e-mail</Label>
+              <p className="text-xs text-muted-foreground">
+                Recebe os mesmos avisos de saldo baixo, créditos esgotados e trial expirando em <strong>{user?.email}</strong>.
+                Requer um domínio de e-mail verificado no projeto.
+              </p>
+            </div>
+            <Switch
+              checked={prefs.emailEnabled}
+              disabled={!prefs.enabled}
+              onCheckedChange={(v) => updatePrefs({ emailEnabled: v })}
+            />
+          </div>
+
           <div className={prefs.enabled ? "space-y-6" : "space-y-6 opacity-50 pointer-events-none"}>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
