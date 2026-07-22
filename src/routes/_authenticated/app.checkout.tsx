@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,8 +10,9 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { useWorkspace } from "@/lib/workspace-context";
+import { applyReferralPaidFn } from "@/lib/credits.functions";
 import { toast } from "sonner";
-import { CreditCard, Lock, Loader2 } from "lucide-react";
+import { CreditCard, Lock, Loader2, Users as UsersIcon } from "lucide-react";
 import { z } from "zod";
 
 const searchSchema = z.object({
@@ -31,11 +33,14 @@ function formatBRL(cents: number) {
 function CheckoutPage() {
   const search = Route.useSearch();
   const nav = useNavigate();
-  const { workspaceId } = useWorkspace();
+  const { workspaceId, workspace } = useWorkspace();
   const [cycle, setCycle] = useState<"monthly" | "yearly">(search.cycle ?? "monthly");
   const [coupon, setCoupon] = useState("");
   const [couponApplied, setCouponApplied] = useState<{ code: string; percent: number } | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [seats, setSeats] = useState<number>(1);
+  const applyReferralPaid = useServerFn(applyReferralPaidFn);
+  const isPersonal = workspace?.is_personal ?? true;
 
   const { data: plan } = useQuery({
     queryKey: ["checkout-plan", search.plan],
@@ -67,17 +72,25 @@ function CheckoutPage() {
 
   const subscribe = async () => {
     if (!plan || !workspaceId) return;
+    // Gate: PF só Smart/Pro; PJ só Pro/Enterprise
+    if (isPersonal && plan.tier === "enterprise") {
+      toast.error("Enterprise disponível apenas para workspaces de empresa.");
+      return;
+    }
+    if (!isPersonal && plan.tier === "smart") {
+      toast.error("Smart disponível apenas para uso pessoal.");
+      return;
+    }
     setProcessing(true);
     try {
-      // Mock checkout: apenas atualiza a subscription para 'active' com o plano escolhido.
-      // Integração real com Stripe/MP/Asaas será plugada via provider adapter.
+      const effectiveSeats = isPersonal ? 1 : Math.max(1, seats);
       const { error } = await supabase
         .from("subscriptions")
         .update({
           plan_id: plan.id,
           status: "active",
           billing_cycle: cycle,
-          seats: plan.max_users ?? 999,
+          seats: effectiveSeats,
           current_period_start: new Date().toISOString(),
           current_period_end: new Date(Date.now() + (cycle === "yearly" ? 365 : 30) * 86400000).toISOString(),
           trial_ends_at: null,
@@ -87,7 +100,6 @@ function CheckoutPage() {
 
       if (error) throw error;
 
-      // Registra fatura simbólica
       const { data: sub } = await supabase.from("subscriptions").select("id").eq("workspace_id", workspaceId).maybeSingle();
       if (sub) {
         await supabase.from("subscription_invoices").insert({
@@ -98,6 +110,9 @@ function CheckoutPage() {
           paid_at: new Date().toISOString(),
         });
       }
+
+      // Dispara bônus de indicação (idempotente no servidor)
+      try { await applyReferralPaid(); } catch { /* noop */ }
 
       toast.success("Assinatura ativada!");
       nav({ to: "/app/assinatura" });
