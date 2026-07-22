@@ -267,6 +267,15 @@ describe("agent_runs — workspace-scoped RLS", () => {
 
   beforeAll(async () => {
     const admin = adminClient();
+    // Ensure bob is not carried over as a member of alice's workspace from
+    // the workspace_members describe's seed. Cross-tenant tests must run
+    // against fresh isolation.
+    await admin
+      .from("workspace_members")
+      .delete()
+      .eq("workspace_id", alice.workspaceId)
+      .eq("user_id", bob.id);
+
     const { data: a } = await admin
       .from("agent_runs")
       .insert({
@@ -294,11 +303,7 @@ describe("agent_runs — workspace-scoped RLS", () => {
   });
 
   it("bob cannot read alice's agent_runs", async () => {
-    const whoami = await bob.client.from("profiles").select("id, full_name");
-    const memCheck = await bob.client.rpc("is_workspace_member", { _user_id: bob.id, _workspace_id: alice.workspaceId });
-    const memAsAuth = await bob.client.rpc("is_workspace_member", { _user_id: bob.id, _workspace_id: bob.workspaceId });
-    const res = await bob.client.from("agent_runs").select("id, workspace_id, created_by").eq("id", aliceRunId);
-    console.log("[dbg agent_runs]", JSON.stringify({ whoami, memCheckAlice: memCheck.data, memCheckSelf: memAsAuth.data, res }));
+    const res = await bob.client.from("agent_runs").select("id").eq("id", aliceRunId);
     expect(isDenied(res)).toBe(true);
   });
 
