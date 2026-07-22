@@ -29,12 +29,15 @@ export const Route = createFileRoute("/_authenticated/app/deap-meeting")({
 function DeapMeeting() {
   return (
     <div className="p-6 md:p-8 max-w-6xl mx-auto">
-      <div className="mb-6">
-        <div className="text-xs uppercase tracking-wider text-gold font-medium">DEAP Method™</div>
-        <h1 className="font-display text-3xl font-bold mt-1">DEAP Meeting</h1>
-        <p className="text-muted-foreground mt-1">
-          Briefings executivos e análise inteligente de reuniões.
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <div className="text-xs uppercase tracking-wider text-gold font-medium">DEAP Method™</div>
+          <h1 className="font-display text-3xl font-bold mt-1">DEAP Meeting</h1>
+          <p className="text-muted-foreground mt-1">
+            Briefings executivos e análise inteligente de reuniões.
+          </p>
+        </div>
+        <CreditsBadge />
       </div>
 
       <Tabs defaultValue="briefing">
