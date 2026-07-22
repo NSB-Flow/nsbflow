@@ -111,6 +111,8 @@ export async function createTestUser(label: string): Promise<TestUser> {
 export async function cleanupAll() {
   const admin = adminClient();
   if (createdWorkspaceIds.length) {
+    await admin.from("attachments").delete().in("workspace_id", createdWorkspaceIds);
+    await admin.from("agent_runs").delete().in("workspace_id", createdWorkspaceIds);
     await admin.from("companies").delete().in("workspace_id", createdWorkspaceIds);
     await admin.from("workspace_members").delete().in("workspace_id", createdWorkspaceIds);
     await admin.from("subscriptions").delete().in("workspace_id", createdWorkspaceIds);

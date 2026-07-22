@@ -1,174 +1,94 @@
-# NSB Flow — Módulo Billing, Planos, Trial, Workspaces & Logo Oficial
+## Objetivo
 
-Complemento ao MVP existente. **Não altera** a arquitetura atual (Agent Service, DEAP Meeting, PDF, renderer dinâmico). Adiciona camadas de RBAC + Feature Flags + Multi-tenant.
-
----
-
-## 1. Logo oficial NSB (quick win)
-
-- Copiar `user-uploads://Photo_Perfil_-_NSB.png` para `src/assets/nsb-logo.png` (via `lovable-assets` para virar CDN).
-- Substituir wordmark tipográfico em `src/components/brand/NsbLogo.tsx` pela imagem oficial (variantes: `collapsed` mostra apenas o quadrado; `full` mostra logo + tagline).
-- Atualizar capa do PDF (`src/lib/pdf-report.tsx`) para usar a imagem via `<Image src="...">` do `@react-pdf/renderer`.
-- Ajustar favicon (`public/favicon.png` + `__root.tsx` links) e OG image.
+Auditoria de conformidade da fundação SaaS (sem mudar arquitetura). Abaixo o **relatório de divergências reais** encontrado a partir do schema, das policies e do código atual, seguido do **plano de correções mínimas** e da lista de placeholders.
 
 ---
 
-## 2. Modelo de dados (Lovable Cloud / Supabase)
+## 1. Relatório de divergências
 
-Nova migração — **não mexe** nas tabelas existentes exceto adicionar coluna `workspace_id`.
+### 1.1 Isolamento multiempresa (RLS por `workspace_id`)
 
-### Enums novos
-- `app_role`: adicionar `super_admin`, `admin_empresa`, `cliente` (mantém os 8 já existentes).
-- `plan_tier`: `smart` | `pro` | `enterprise`.
-- `subscription_status`: `trialing` | `active` | `past_due` | `canceled` | `expired`.
-- `billing_cycle`: `monthly` | `yearly`.
-- `payment_provider`: `stripe` | `mercadopago` | `asaas` | `pagseguro` | `manual`.
+Tabelas com `workspace_id` e RLS ativas: `agent_runs`, `attachments`, `companies`, `subscriptions`, `workspace_members`, mais `workspaces` (id próprio). Corretamente sem `workspace_id`: `profiles`, `user_roles`, `user_credits`, `credit_transactions`, `referrals` (user-scoped), `plans`, `plan_features`, `coupons`, `app_settings`, `enterprise_module_grants`, `subscription_invoices` (globais/derivadas).
 
-### Tabelas novas
-| Tabela | Campos-chave |
-|---|---|
-| `workspaces` | id, name, slug, owner_user_id, logo_url, created_at |
-| `workspace_members` | workspace_id, user_id, role (app_role), invited_by, joined_at, active |
-| `plans` | id, tier, name, description, price_monthly_cents, price_yearly_cents, max_users (null=∞), features jsonb, active, sort_order |
-| `plan_features` | plan_id, feature_key (ex: `deap.meeting`, `deap.assessment.leadership`, `pdf.export`, `dashboard.executive`), enabled, quota (null=∞) |
-| `subscriptions` | id, workspace_id, plan_id, status, billing_cycle, trial_ends_at, current_period_start, current_period_end, provider, provider_customer_id, provider_subscription_id, seats, cancel_at_period_end |
-| `subscription_invoices` | id, subscription_id, amount_cents, currency, status, paid_at, provider_invoice_id, pdf_url |
-| `enterprise_module_grants` | subscription_id, feature_key, enabled (override customizado do Enterprise) |
-| `coupons` | code, percent_off, amount_off_cents, valid_until, max_redemptions, redeemed_count |
+**Divergências reais nas policies:**
 
-### Alterações em tabelas existentes
-- `agent_runs`, `attachments`, `companies`, `profiles`: adicionar `workspace_id uuid` (nullable no início; backfill = workspace pessoal do owner).
-- `user_roles`: adicionar `workspace_id uuid` (roles passam a ser por workspace).
+- **`agent_runs`** — SELECT/UPDATE/DELETE usam `created_by = auth.uid() OR has_role(admin|ceo|diretor)`. Não checam `is_workspace_member(auth.uid(), workspace_id)`. Consequências:
+  - Um `admin` / `ceo` / `diretor` de qualquer workspace enxerga runs de **todos** os workspaces (vazamento cross-tenant).
+  - Membros normais do mesmo workspace não conseguem ler runs de colegas, mesmo quando o produto sugere compartilhamento por empresa.
+- **`attachments`** — uma única policy `ALL` com `created_by = auth.uid() OR has_role(admin)`. Mesmo problema: admin global lê/edita anexos de qualquer tenant; ninguém do mesmo workspace lê anexos do colega.
+- **`companies`** — SELECT já é `is_workspace_member(..., workspace_id)` ✓. Mas **UPDATE/DELETE** ainda são `created_by = auth.uid() OR has_role(admin)`, sem checar o workspace. Um `admin` global edita/apaga empresas de outro tenant; e um `admin_empresa` do próprio workspace não consegue editar empresa criada por outro colega.
+- **`subscriptions.subs_insert`** e **`workspaces.ws_insert`** — INSERT policies sem `WITH CHECK` restritivo (a criação de workspace hoje é feita pelo trigger `handle_new_user` e pelo fluxo manual em `app.workspaces.tsx`). Item a confirmar no fix (não é bug funcional agora, é hardening).
 
-### RLS
-- Todas as tabelas de dados: policies `workspace_id IN (SELECT workspace_id FROM workspace_members WHERE user_id = auth.uid() AND active)`.
-- `super_admin`: bypass via função `is_super_admin(auth.uid())`.
-- Trigger `handle_new_user` atualizado: cria workspace pessoal + membership `admin_empresa` + subscription `trialing` (3 dias, plano SMART) automaticamente.
+### 1.2 Trial de 3 dias e bloqueio pós-expiração
 
-### GRANTs — obrigatórios em toda tabela nova (authenticated + service_role).
+- Trigger `handle_new_user` cria assinatura `trialing` com `trial_ends_at = now()+3d` ✓
+- `useEntitlements` calcula `isTrialExpired` corretamente ✓
+- `_authenticated/app.tsx` faz `<Navigate to="/app/trial-expirado" />` com whitelist para `planos/checkout/assinatura/configuracoes/workspaces/ajuda/trial-expirado` ✓
+- Página `app.trial-expirado.tsx` existe e leva ao fluxo de planos ✓
+- **Sem divergência funcional.**
 
----
+### 1.3 Switcher de workspace
 
-## 3. Camada de permissões (RBAC + Feature Flags)
+- `WorkspaceProvider.switchWorkspace()` persiste em `localStorage` e chama `qc.clear()`, forçando refetch de todas as queries com o novo `workspaceId` ✓
+- Rotas usam `useWorkspace()` como key das queries ✓
+- **Sem divergência.** (Observação menor: `qc.clear()` derruba caches globais também — aceitável, é o modo mais seguro contra vazamento entre tenants.)
 
-Arquivo novo `src/lib/entitlements.ts`:
-- `FEATURE_KEYS` = catálogo central (`deap.meeting.briefing`, `deap.meeting.intelligence`, `deap.assessment.sales`, `deap.assessment.leadership`, `deap.assessment.process`, `deap.assessment.executive`, `dashboard.executive`, `reports`, `pdf.export`, `history`, `workspace.admin`, `platform.admin`).
-- `useEntitlements()` hook: lê subscription + plan_features + enterprise_module_grants do workspace ativo → retorna `{ has(feature), quotaOf(feature), seatsUsed, seatsTotal, planTier, trialDaysLeft, isTrialExpired }`.
-- `<FeatureGate feature="...">` component: renderiza children ou fallback (upgrade CTA).
-- `roles.ts` estendido: mapa role → array de features **complementar** ao plano (plano define o teto; role define o subset dentro do workspace).
+### 1.4 Convite de membro (Equipe)
 
-Sidebar (`AppSidebar.tsx`) e rotas passam a filtrar por `has(feature)` **além** de `canAccess(role, module)`.
+- `app.equipe.tsx` linha 68-74: função `invite()` **é um stub** — apenas mostra `toast.info("Convite por e-mail em preparação…")` e não cria nada. Não há tabela `workspace_invites`, não há token, não há envio de e-mail, não há aceite. O texto instrui o usuário a se cadastrar com o mesmo e-mail, mas isso na verdade cria um **workspace pessoal novo** (o trigger `handle_new_user` sempre cria um workspace próprio) e não adiciona ao workspace de origem.
+- **Divergência confirmada:** convite por token + expiração **não existe**.
+
+### 1.5 Outros achados menores
+
+- `handle_new_user` faz `INSERT INTO public.subscriptions` diretamente — funciona porque o trigger é `SECURITY DEFINER`, mas a policy `subs_insert` está aberta (sem `WITH CHECK`). Hardening opcional.
+- Rota `/app/pessoas` está listada em `MODULE_ACCESS` e no sidebar, mas o arquivo é `ComingSoon`. Não há tabela `contacts/pessoas` no schema.
 
 ---
 
-## 4. Workspaces multi-tenant
+## 2. Correções propostas (esforço + impacto)
 
-- **Workspace Switcher** no topo do sidebar (dropdown estilo Slack): lista workspaces do usuário + "Criar novo workspace" + "Convidar para workspace".
-- Contexto React `WorkspaceProvider` guarda `activeWorkspaceId` (persistido em localStorage + validado no server).
-- Todas as queries do frontend passam `workspace_id` implícito via RLS (usuário só vê o que pertence ao workspace ativo).
-- Trocar workspace = `router.invalidate()` + `queryClient.clear()`.
+Ordem por risco/impacto. Cada item é uma migração RLS pequena e cirúrgica; **nenhum ALTER TABLE, nenhuma quebra de contrato**. Espero sua aprovação antes de aplicar.
 
----
+### Fix A — `agent_runs` cross-tenant (alto impacto, baixo esforço)
+Nova migration ajustando as 4 policies para usar `is_workspace_member(auth.uid(), workspace_id)` (SELECT) e `is_workspace_admin(auth.uid(), workspace_id)` (UPDATE/DELETE) em vez do bypass por role global. `super_admin` continua com bypass via `is_super_admin`. Manter o dono (`created_by`) com acesso próprio.
 
-## 5. Trial de 3 dias
+### Fix B — `attachments` cross-tenant (alto impacto, baixo esforço)
+Substituir a policy `ALL` única por SELECT/INSERT/UPDATE/DELETE explícitas, escopadas em `workspace_id`, seguindo o mesmo padrão de A.
 
-- Ao criar conta: trigger cria subscription `status='trialing'`, `plan=smart`, `trial_ends_at = now() + 3 days`.
-- `useEntitlements` calcula `isTrialExpired` e `trialDaysLeft`.
-- Banner global (`<TrialBanner />` no `_authenticated/app.tsx`): "Faltam X dias no seu teste. [Escolher Plano]".
-- Quando expira: middleware de rota redireciona todas as rotas de agentes para `/app/planos` com tela elegante "Seu teste expirou".
+### Fix C — `companies` UPDATE/DELETE (médio impacto, baixo esforço)
+Trocar a base de autorização de "created_by ou admin global" para `is_workspace_admin(auth.uid(), workspace_id) OR created_by = auth.uid() OR is_super_admin(auth.uid())`. SELECT já está correto.
 
----
+### Fix D — Hardening de `INSERT` policies (baixo impacto, baixo esforço)
+Adicionar `WITH CHECK` a `subs_insert`, `ws_insert`, `wm_insert` (esta última já foi endurecida em migração anterior, revalidar), `companies auth insert` e `runs owner insert` para exigir consistência de `workspace_id`/`created_by` = usuário atual. Isso impede spoof direto pelo cliente.
 
-## 6. Novas rotas
+### Fix E — Testes de RLS
+Ampliar `tests/rls.test.ts` cobrindo os novos casos: usuário A não lê `agent_runs`/`attachments` de B; `admin` de A não escreve em `companies` de B.
 
-```
-src/routes/_authenticated/
-  app.planos.tsx              → tabela comparativa dos 3 planos + CTA
-  app.checkout.tsx            → resumo + ciclo + cupom + método (placeholder gateway)
-  app.assinatura.tsx          → Minha Assinatura (plano, licenças, histórico, upgrade/cancelar)
-  app.equipe.tsx              → Gestão de Usuários do workspace (admin_empresa)
-  app.workspaces.tsx          → Listar/criar workspaces
-  app.trial-expirado.tsx      → Tela de bloqueio pós-trial
-  admin/                      → subtree exclusivo super_admin
-    admin.index.tsx           → dashboard global (# empresas, MRR, churn)
-    admin.empresas.tsx        → todas as empresas
-    admin.usuarios.tsx        → todos os usuários
-    admin.assinaturas.tsx     → todas as subscriptions
-    admin.planos.tsx          → CRUD de planos e features
-```
+### Fix F — Convite de membro por token (novo, decidir depois)
+Requer:
+- Tabela `workspace_invites` (workspace_id, email, role, token, invited_by, expires_at, accepted_at, status) + RLS.
+- Server function que gera token e (opcionalmente) dispara e-mail via Lovable Cloud.
+- Página `/app/invite/$token` que valida e insere em `workspace_members`.
+- Ajuste em `handle_new_user` para respeitar convite pendente (não criar workspace pessoal se o cadastro veio de um invite).
 
-Gate `beforeLoad` em `/admin/*`: `has_role(super_admin)` senão redirect.
+**Este é o único item que muda estrutura.** Não farei sem seu OK explícito. Estimativa: 1 tabela + 1 migração + 2-3 arquivos de código.
 
 ---
 
-## 7. Checkout e integração de pagamentos
+## 3. Placeholders (ainda `ComingSoon`)
 
-**MVP**: gateway = `manual` (sem cobrança real). Arquitetura pronta para plugar.
+Precisam de conteúdo real quando você quiser priorizar:
 
-- `src/lib/payment-providers/` — interface `PaymentProvider { createCheckoutSession, createPortalSession, handleWebhook }`.
-- Implementações stub: `stripe.ts`, `mercadopago.ts`, `asaas.ts`, `pagseguro.ts` (assinatura pronta, corpo com `throw new Error("Configure API keys")`).
-- Server function `createCheckoutFn` escolhe provider conforme `settings.payment_provider`.
-- Webhook público em `src/routes/api/public/billing.webhook.$provider.tsx` — verifica assinatura HMAC do provider, atualiza `subscriptions`, insere `subscription_invoices`.
-- Tela checkout: seletor mensal/anual (economia ~17%), campo cupom, resumo, botão "Assinar" → chama server fn → redireciona pra URL do provider (ou tela de confirmação no modo manual).
-
-Setup real de gateway: apenas o admin insere keys em `/app/configuracoes` depois. Nada codificado.
+- `/app/pessoas` — sem tabela no schema
+- `/app/biblioteca` — sem tabela no schema
+- `/app/academy` — sem tabela no schema
+- `/app/relatorios` — sem agregações; poderia rodar sobre `agent_runs`/`companies`
+- `/app/ajuda` — verificar se é conteúdo estático real ou stub
 
 ---
 
-## 8. Planos comerciais (seed via migration)
+## 4. Escopo desta etapa
 
-| Plano | Preço mensal (BRL) | Anual | Seats | Features |
-|---|---|---|---|---|
-| SMART | 197 | 1970 | 1 | meeting.briefing, meeting.intelligence, history, pdf.export |
-| PRO | 697 | 6970 | 5 | tudo do SMART + assessment.* (4 agentes) + dashboard.executive + reports |
-| ENTERPRISE | sob consulta | — | configurável | tudo, com `enterprise_module_grants` liberando features à la carte |
+Se você aprovar, eu executo **A, B, C, D, E** (todos são hardening de RLS + testes; sem mudar tabelas, sem mudar enum de roles, sem mudar semântica workspaces↔companies) e paro. **F (convite por token)** e placeholders ficam para etapas seguintes, sob sua decisão.
 
-Valores placeholder — admin edita depois em `/admin/planos`.
-
----
-
-## 9. Super Admin & Admin Empresa
-
-- `super_admin` (proprietário NSB): acesso ao subtree `/admin/*` — vê tudo, RLS via função `is_super_admin`.
-- `admin_empresa` (dentro do workspace): rota `/app/equipe` — convida, remove, altera role de membros, vê consumo de licenças.
-- Convite: e-mail (`equipe.convidar` server fn) gera link com token → cria `workspace_members` ao aceitar.
-
----
-
-## 10. Tela "Meus Planos" (design)
-
-Layout inspirado em Stripe/Notion:
-- Hero premium (navy + gold): "Escolha seu plano NSB Flow".
-- 3 cards lado a lado, PRO destacado com badge "Mais popular".
-- Toggle Mensal/Anual (mostra economia).
-- Tabela comparativa abaixo (checkmarks gold).
-- Enterprise: card final full-width com "Falar com Especialista" → mailto ou form.
-- Micro-animações framer-motion (fade-in staggered).
-
----
-
-## 11. Ordem de implementação (1 sessão, sequencial)
-
-1. Migração SQL (enums, tabelas, RLS, seed dos 3 planos, trigger atualizado).
-2. Logo oficial + PDF + favicon.
-3. `entitlements.ts` + `WorkspaceProvider` + workspace switcher.
-4. Trial banner + tela expirada + gate de rotas.
-5. Rotas de planos, checkout, assinatura, equipe.
-6. Subtree `/admin/*` (super admin).
-7. Stubs de payment providers + webhook route.
-8. Ajustar Sidebar e rotas existentes pra respeitar `has(feature)`.
-
----
-
-## Fora deste PR (próximas iterações)
-- Integração real com gateways (chaves e homologação por provider).
-- E-mail transacional de convite/cobrança.
-- Faturas em PDF.
-- Portal de billing self-service completo (proração).
-- Analytics avançado no dashboard super-admin.
-
----
-
-**Nenhuma alteração no motor de agentes, no renderer dinâmico ou no fluxo de execução do n8n.** Toda a nova camada é ortogonal.
-
-Confirma para eu implementar tudo isso na sequência?
+Confirma seguir com A–E?
