@@ -1,14 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useEntitlements } from "@/lib/entitlements";
 import { useWorkspace } from "@/lib/workspace-context";
+import { useWorkspaceCredits } from "@/lib/workspace-credits";
+import { updateSubscriptionSeatsFn } from "@/lib/credits.functions";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
-import { ArrowUpCircle, XCircle, Users, Calendar, Receipt } from "lucide-react";
+import { ArrowUpCircle, XCircle, Users, Calendar, Receipt, Sparkles, Infinity as InfinityIcon } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/assinatura")({
   head: () => ({ meta: [{ title: "Minha Assinatura — NSB Flow" }] }),
@@ -21,16 +27,24 @@ function formatBRL(cents: number) {
 
 function AssinaturaPage() {
   const ent = useEntitlements();
-  const { workspaceId } = useWorkspace();
+  const { workspaceId, workspace } = useWorkspace();
+  const credits = useWorkspaceCredits();
+  const qc = useQueryClient();
+  const updateSeats = useServerFn(updateSubscriptionSeatsFn);
+  const [seats, setSeats] = useState<number>(ent.seatsTotal ?? 1);
+  const [savingSeats, setSavingSeats] = useState(false);
+
+  useEffect(() => { setSeats(ent.seatsTotal ?? 1); }, [ent.seatsTotal]);
+
+  const isPersonal = workspace?.is_personal ?? true;
+  const isPJ = !isPersonal;
 
   const { data: invoices = [] } = useQuery({
     queryKey: ["invoices", ent.subscriptionId],
     enabled: !!ent.subscriptionId,
     queryFn: async () => {
       const { data } = await supabase
-        .from("subscription_invoices")
-        .select("*")
-        .eq("subscription_id", ent.subscriptionId!)
+        .from("subscription_invoices").select("*").eq("subscription_id", ent.subscriptionId!)
         .order("created_at", { ascending: false });
       return data ?? [];
     },
@@ -40,6 +54,20 @@ function AssinaturaPage() {
     if (!confirm("Cancelar sua assinatura ao final do período atual?")) return;
     await supabase.from("subscriptions").update({ cancel_at_period_end: true }).eq("workspace_id", workspaceId!);
     toast.success("Assinatura será cancelada ao final do período.");
+  };
+
+  const saveSeats = async () => {
+    if (!workspaceId || seats === ent.seatsTotal) return;
+    setSavingSeats(true);
+    try {
+      await updateSeats({ data: { workspaceId, seats } });
+      await qc.invalidateQueries();
+      toast.success("Assentos atualizados. O novo pool valerá na próxima reposição.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao atualizar assentos.");
+    } finally {
+      setSavingSeats(false);
+    }
   };
 
   if (ent.loading) return <div className="p-8">Carregando...</div>;
