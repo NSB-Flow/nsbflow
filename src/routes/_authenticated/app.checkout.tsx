@@ -167,6 +167,35 @@ function CheckoutPage() {
             </CardContent>
           </Card>
 
+          {!isPersonal && plan.tier !== "enterprise" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-display flex items-center gap-2">
+                  <UsersIcon className="h-4 w-4" /> Assentos contratados
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Label htmlFor="seats" className="w-40">Quantidade de assentos</Label>
+                  <Input
+                    id="seats"
+                    type="number"
+                    min={1}
+                    max={10000}
+                    value={seats}
+                    onChange={(e) => setSeats(Math.max(1, Number(e.target.value) || 1))}
+                    className="w-32"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Pool de créditos: <strong>{plan.tier === "pro" ? 250 : 100} × {seats} = {(plan.tier === "pro" ? 250 : 100) * seats}</strong> créditos/mês.
+                  Ajustes em assentos passam a valer na próxima reposição mensal.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+
           <Card>
             <CardHeader><CardTitle className="font-display">Cupom de desconto</CardTitle></CardHeader>
             <CardContent>
