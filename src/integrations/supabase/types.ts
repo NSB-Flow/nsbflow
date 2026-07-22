@@ -337,6 +337,7 @@ export type Database = {
           description: string | null
           id: string
           max_users: number | null
+          monthly_credits: number | null
           name: string
           price_monthly_cents: number
           price_yearly_cents: number
@@ -351,6 +352,7 @@ export type Database = {
           description?: string | null
           id?: string
           max_users?: number | null
+          monthly_credits?: number | null
           name: string
           price_monthly_cents?: number
           price_yearly_cents?: number
@@ -365,6 +367,7 @@ export type Database = {
           description?: string | null
           id?: string
           max_users?: number | null
+          monthly_credits?: number | null
           name?: string
           price_monthly_cents?: number
           price_yearly_cents?: number
@@ -598,6 +601,79 @@ export type Database = {
         }
         Relationships: []
       }
+      workspace_credit_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          kind: string
+          reference_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          kind: string
+          reference_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          kind?: string
+          reference_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_credit_transactions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_credits: {
+        Row: {
+          balance: number
+          created_at: string
+          period_start: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          period_start?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          period_start?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_credits_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_members: {
         Row: {
           active: boolean
@@ -674,6 +750,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_referral_paid: {
+        Args: { _referred_user_id: string }
+        Returns: Json
+      }
+      apply_workspace_allotment: {
+        Args: { _workspace_id: string }
+        Returns: undefined
+      }
+      has_active_paid_subscription: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -691,6 +779,15 @@ export type Database = {
         Returns: boolean
       }
       referral_code_exists: { Args: { _code: string }; Returns: boolean }
+      try_consume_agent_credit: {
+        Args: {
+          _description: string
+          _run_id: string
+          _user_id: string
+          _workspace_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role:
