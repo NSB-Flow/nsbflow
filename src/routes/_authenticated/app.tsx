@@ -6,6 +6,8 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Fragment } from "react";
 import { useEntitlements } from "@/lib/entitlements";
+import { AlertsWatcher } from "@/components/notifications/AlertsWatcher";
+import { NotificationsBell } from "@/components/notifications/NotificationsBell";
 
 
 export const Route = createFileRoute("/_authenticated/app")({
@@ -69,9 +71,11 @@ function AppLayout() {
               </BreadcrumbList>
             </Breadcrumb>
             <div className="ml-auto flex items-center gap-1">
+              <NotificationsBell />
               <ThemeToggle />
             </div>
           </PageHeader>
+          <AlertsWatcher />
           <main className="flex-1">
             <Outlet />
           </main>
