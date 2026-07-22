@@ -1,12 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useEntitlements } from "@/lib/entitlements";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Copy, Gift, Sparkles, Users } from "lucide-react";
+import { Copy, Gift, Sparkles, Users, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/app/indicacoes")({
@@ -14,10 +15,13 @@ export const Route = createFileRoute("/_authenticated/app/indicacoes")({
   component: IndicacoesPage,
 });
 
-const CREDITS_PER_REFERRAL = 100;
+const BONUS_SIGNUP = 5;
+const BONUS_CONVERSION = 50;
 
 function IndicacoesPage() {
   const { user } = useAuth();
+  const ent = useEntitlements();
+  const eligible = ent.status === "active";
 
   const { data: profile } = useQuery({
     queryKey: ["profile-referral", user?.id],
@@ -49,10 +53,8 @@ function IndicacoesPage() {
   const lifetime = credits?.lifetime_earned ?? 0;
 
   const copy = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success("Copiado!");
-    } catch { toast.error("Não foi possível copiar"); }
+    try { await navigator.clipboard.writeText(text); toast.success("Copiado!"); }
+    catch { toast.error("Não foi possível copiar"); }
   };
 
   return (
@@ -60,30 +62,54 @@ function IndicacoesPage() {
       <div className="mb-6">
         <div className="text-xs uppercase tracking-wider text-gold font-medium">Programa de Indicação</div>
         <h1 className="font-display text-3xl font-bold mt-1">Indique e ganhe créditos</h1>
-        <p className="text-muted-foreground mt-1">Cada novo cliente que se cadastrar pelo seu link te dá <strong>{CREDITS_PER_REFERRAL} créditos</strong>.</p>
+        <p className="text-muted-foreground mt-1">
+          <strong>{BONUS_SIGNUP} créditos</strong> quando o indicado se cadastra +{" "}
+          <strong>{BONUS_CONVERSION} créditos</strong> quando ele contrata um plano pago (Smart, Pro ou Enterprise).
+          Total de até <strong>{BONUS_SIGNUP + BONUS_CONVERSION} créditos</strong> por indicação convertida.
+        </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3 mb-6">
-        <Card className="border-gold/30">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground"><Sparkles className="h-3.5 w-3.5" /> Saldo</div>
-            <div className="font-display text-3xl font-bold mt-1 text-gold">{balance}</div>
-            <div className="text-xs text-muted-foreground">créditos disponíveis</div>
+      {!eligible && (
+        <Card className="mb-6 border-amber-500/40 bg-amber-500/5">
+          <CardContent className="pt-6 flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
+            <div className="flex-1">
+              <div className="font-medium">Disponível a partir do plano Smart</div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Créditos de indicação são concedidos apenas para quem está em plano ativo (Smart, Pro ou Enterprise).
+                Durante o trial, indicações não geram bônus — nem ficam pendentes para depois.
+              </p>
+              <Button asChild size="sm" className="mt-3">
+                <Link to="/app/planos">Escolher um plano</Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground"><Gift className="h-3.5 w-3.5" /> Total ganho</div>
-            <div className="font-display text-3xl font-bold mt-1">{lifetime}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground"><Users className="h-3.5 w-3.5" /> Indicações</div>
-            <div className="font-display text-3xl font-bold mt-1">{referrals.length}</div>
-          </CardContent>
-        </Card>
-      </div>
+      )}
+
+      {eligible && (
+        <div className="grid gap-4 md:grid-cols-3 mb-6">
+          <Card className="border-gold/30">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground"><Sparkles className="h-3.5 w-3.5" /> Saldo</div>
+              <div className="font-display text-3xl font-bold mt-1 text-gold">{balance}</div>
+              <div className="text-xs text-muted-foreground">créditos disponíveis</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground"><Gift className="h-3.5 w-3.5" /> Total ganho</div>
+              <div className="font-display text-3xl font-bold mt-1">{lifetime}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground"><Users className="h-3.5 w-3.5" /> Indicações</div>
+              <div className="font-display text-3xl font-bold mt-1">{referrals.length}</div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <Card className="mb-6">
         <CardHeader><CardTitle className="font-display text-base">Seu link exclusivo</CardTitle></CardHeader>
@@ -109,7 +135,7 @@ function IndicacoesPage() {
               <Table>
                 <TableHeader><TableRow><TableHead>Data</TableHead><TableHead>Status</TableHead><TableHead>Créditos</TableHead></TableRow></TableHeader>
                 <TableBody>
-                  {referrals.map((r: any) => (
+                  {referrals.map((r) => (
                     <TableRow key={r.id}>
                       <TableCell>{new Date(r.created_at).toLocaleDateString("pt-BR")}</TableCell>
                       <TableCell><Badge variant={r.status === "converted" ? "default" : "secondary"}>{r.status}</Badge></TableCell>
@@ -126,7 +152,7 @@ function IndicacoesPage() {
           <CardContent>
             {tx.length === 0 ? <p className="text-sm text-muted-foreground">Sem movimentações.</p> : (
               <div className="space-y-2">
-                {tx.map((t: any) => (
+                {tx.map((t) => (
                   <div key={t.id} className="flex items-center justify-between text-sm border-b last:border-0 pb-2 last:pb-0">
                     <div>
                       <div className="font-medium">{t.description ?? t.kind}</div>

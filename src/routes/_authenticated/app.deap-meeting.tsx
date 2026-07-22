@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -18,7 +18,30 @@ import { Loader2, FileText, Sparkles, Upload, FileAudio, Save, Star, Copy, FileD
 import { useDropzone } from "react-dropzone";
 import { generateReportPdf, downloadBlob } from "@/lib/pdf-report";
 import { useAuth } from "@/lib/auth-context";
+import { useWorkspace } from "@/lib/workspace-context";
+import { useWorkspaceCredits } from "@/lib/workspace-credits";
 import { Progress } from "@/components/ui/progress";
+import { Sparkles as SparklesIcon, Infinity as InfinityIcon } from "lucide-react";
+
+function CreditsBadge() {
+  const c = useWorkspaceCredits();
+  if (c.loading) return null;
+  return (
+    <Link
+      to="/app/assinatura"
+      className="border rounded-lg px-3 py-2 flex items-center gap-2 hover:bg-muted/40 transition"
+    >
+      <SparklesIcon className="h-4 w-4 text-gold" />
+      <div className="text-xs">
+        <div className="uppercase tracking-wider text-muted-foreground">Créditos</div>
+        <div className="font-display font-semibold text-sm flex items-center gap-1">
+          {c.unlimited ? (<><InfinityIcon className="h-3.5 w-3.5" /> Ilimitado</>)
+            : <>{c.workspaceBalance}{c.userEligible && c.userBalance > 0 ? ` + ${c.userBalance}` : ""}</>}
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/app/deap-meeting")({
   head: () => ({ meta: [{ title: "DEAP Meeting — NSB Flow" }] }),
@@ -28,12 +51,15 @@ export const Route = createFileRoute("/_authenticated/app/deap-meeting")({
 function DeapMeeting() {
   return (
     <div className="p-6 md:p-8 max-w-6xl mx-auto">
-      <div className="mb-6">
-        <div className="text-xs uppercase tracking-wider text-gold font-medium">DEAP Method™</div>
-        <h1 className="font-display text-3xl font-bold mt-1">DEAP Meeting</h1>
-        <p className="text-muted-foreground mt-1">
-          Briefings executivos e análise inteligente de reuniões.
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <div className="text-xs uppercase tracking-wider text-gold font-medium">DEAP Method™</div>
+          <h1 className="font-display text-3xl font-bold mt-1">DEAP Meeting</h1>
+          <p className="text-muted-foreground mt-1">
+            Briefings executivos e análise inteligente de reuniões.
+          </p>
+        </div>
+        <CreditsBadge />
       </div>
 
       <Tabs defaultValue="briefing">
@@ -61,6 +87,7 @@ function DeapMeeting() {
 
 function BriefingTab() {
   const runAgent = useServerFn(runAgentFn);
+  const { workspaceId } = useWorkspace();
   const [form, setForm] = useState<BriefingForm>({
     company: "",
     cnpj: "",
@@ -80,7 +107,8 @@ function BriefingTab() {
     setLoading(true);
     setResult(null);
     try {
-      const r = await runAgent({ data: { agent: "briefing", payload: parsed.data } });
+      if (!workspaceId) throw new Error("Workspace não selecionado.");
+      const r = await runAgent({ data: { agent: "briefing", workspaceId, payload: parsed.data } });
       if (r.status === "error") {
         setResult({ runId: r.runId, error: r.error ?? "Erro" });
         toast.error(r.error ?? "Falha ao gerar briefing");
@@ -150,6 +178,7 @@ const ACCEPT = {
 function MeetingTab() {
   const runAgent = useServerFn(runAgentFn);
   const { user } = useAuth();
+  const { workspaceId } = useWorkspace();
   const [form, setForm] = useState<MeetingForm>({
     company: "",
     cnpj: "",
@@ -211,7 +240,8 @@ function MeetingTab() {
     setLoading(true);
     setResult(null);
     try {
-      const r = await runAgent({ data: { agent: "meeting", payload: parsed.data } });
+      if (!workspaceId) throw new Error("Workspace não selecionado.");
+      const r = await runAgent({ data: { agent: "meeting", workspaceId, payload: parsed.data } });
       if (r.status === "error") {
         setResult({ runId: r.runId, error: r.error ?? "Erro" });
         toast.error(r.error ?? "Falha ao analisar reunião");
