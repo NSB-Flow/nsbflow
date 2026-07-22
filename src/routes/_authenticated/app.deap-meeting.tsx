@@ -19,7 +19,29 @@ import { useDropzone } from "react-dropzone";
 import { generateReportPdf, downloadBlob } from "@/lib/pdf-report";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/workspace-context";
+import { useWorkspaceCredits } from "@/lib/workspace-credits";
 import { Progress } from "@/components/ui/progress";
+import { Sparkles as SparklesIcon, Infinity as InfinityIcon } from "lucide-react";
+
+function CreditsBadge() {
+  const c = useWorkspaceCredits();
+  if (c.loading) return null;
+  return (
+    <Link
+      to="/app/assinatura"
+      className="border rounded-lg px-3 py-2 flex items-center gap-2 hover:bg-muted/40 transition"
+    >
+      <SparklesIcon className="h-4 w-4 text-gold" />
+      <div className="text-xs">
+        <div className="uppercase tracking-wider text-muted-foreground">Créditos</div>
+        <div className="font-display font-semibold text-sm flex items-center gap-1">
+          {c.unlimited ? (<><InfinityIcon className="h-3.5 w-3.5" /> Ilimitado</>)
+            : <>{c.workspaceBalance}{c.userEligible && c.userBalance > 0 ? ` + ${c.userBalance}` : ""}</>}
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/app/deap-meeting")({
   head: () => ({ meta: [{ title: "DEAP Meeting — NSB Flow" }] }),
