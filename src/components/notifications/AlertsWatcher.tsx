@@ -6,10 +6,12 @@ import { useWorkspace } from "@/lib/workspace-context";
 import { useEntitlements } from "@/lib/entitlements";
 import { useWorkspaceCredits } from "@/lib/workspace-credits";
 import { recordNotification, type NotificationSeverity } from "@/lib/notifications";
+import { useAlertPrefs } from "@/lib/alert-prefs";
 
 /**
  * Monitora saldo de créditos e trial. Dispara toast + registra notificação no banco.
  * Dedupe por dia (créditos) e por data de expiração (trial), evitando spam.
+ * Limiares e opt-in são configuráveis em /app/configuracoes.
  */
 export function AlertsWatcher() {
   const { user } = useAuth();
@@ -17,6 +19,7 @@ export function AlertsWatcher() {
   const ent = useEntitlements();
   const credits = useWorkspaceCredits();
   const qc = useQueryClient();
+  const { prefs, hydrated } = useAlertPrefs(user?.id);
   const firedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
