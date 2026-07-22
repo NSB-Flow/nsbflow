@@ -294,7 +294,8 @@ describe("agent_runs — workspace-scoped RLS", () => {
   });
 
   it("bob cannot read alice's agent_runs", async () => {
-    const res = await bob.client.from("agent_runs").select("id").eq("id", aliceRunId);
+    const res = await bob.client.from("agent_runs").select("id, workspace_id, created_by").eq("id", aliceRunId);
+    console.log("[dbg agent_runs]", JSON.stringify({ aliceWs: alice.workspaceId, bobWs: bob.workspaceId, aliceRunId, aliceId: alice.id, bobId: bob.id, res }));
     expect(isDenied(res)).toBe(true);
   });
 
