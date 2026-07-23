@@ -68,11 +68,11 @@ function PlanosPage() {
       </motion.div>
 
       <div className="grid gap-6 lg:grid-cols-3 mt-12">
-        {plans.map((p, i) => {
+        {plans.map((p: any, i: number) => {
           const Icon = icons[p.tier] ?? Sparkles;
           const highlighted = p.tier === "pro";
           const price = yearly ? p.price_yearly_cents : p.price_monthly_cents;
-          const enabled = new Set((p.plan_features ?? []).filter((f) => f.enabled).map((f) => f.feature_key));
+          const enabled = new Set((p.plan_features ?? []).filter((f: any) => f.enabled).map((f: any) => f.feature_key));
 
           return (
             <motion.div
