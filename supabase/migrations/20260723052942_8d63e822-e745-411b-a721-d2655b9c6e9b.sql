@@ -1,0 +1,1 @@
+CREATE POLICY "agent_uploads_update_own" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'agent-uploads' AND owner = auth.uid()) WITH CHECK (bucket_id = 'agent-uploads' AND owner = auth.uid());
