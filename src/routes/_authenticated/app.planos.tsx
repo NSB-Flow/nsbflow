@@ -1,14 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Check, Sparkles, Building2, Zap } from "lucide-react";
 import { FEATURE_LABELS, type FeatureKey } from "@/lib/entitlements";
+import { listPublicPlansWithFeaturesFn } from "@/lib/plans.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/app/planos")({
@@ -40,16 +41,10 @@ function formatBRL(cents: number) {
 function PlanosPage() {
   const [yearly, setYearly] = useState(false);
 
+  const listPlans = useServerFn(listPublicPlansWithFeaturesFn);
   const { data: plans = [] } = useQuery({
     queryKey: ["plans-with-features"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("plans")
-        .select("id, tier, name, description, price_monthly_cents, price_yearly_cents, max_users, sort_order, plan_features(feature_key, enabled)")
-        .eq("active", true)
-        .order("sort_order");
-      return data ?? [];
-    },
+    queryFn: () => listPlans(),
   });
 
   const icons: Record<string, typeof Sparkles> = { smart: Sparkles, pro: Zap, enterprise: Building2 };
@@ -73,11 +68,11 @@ function PlanosPage() {
       </motion.div>
 
       <div className="grid gap-6 lg:grid-cols-3 mt-12">
-        {plans.map((p, i) => {
+        {plans.map((p: any, i: number) => {
           const Icon = icons[p.tier] ?? Sparkles;
           const highlighted = p.tier === "pro";
           const price = yearly ? p.price_yearly_cents : p.price_monthly_cents;
-          const enabled = new Set((p.plan_features ?? []).filter((f) => f.enabled).map((f) => f.feature_key));
+          const enabled = new Set((p.plan_features ?? []).filter((f: any) => f.enabled).map((f: any) => f.feature_key));
 
           return (
             <motion.div
