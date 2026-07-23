@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { useWorkspace } from "@/lib/workspace-context";
 import { useAuth } from "@/lib/auth-context";
+import { createWorkspaceFn } from "@/lib/workspaces.functions";
 import { toast } from "sonner";
 import { Plus, Check, Building2 } from "lucide-react";
 
@@ -27,38 +27,16 @@ function WorkspacesPage() {
 
   const create = async () => {
     if (!name.trim() || !user) return;
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40) + "-" + Math.random().toString(36).slice(2, 6);
-    const { data: ws, error } = await supabase
-      .from("workspaces")
-      .insert({ name: name.trim(), slug, owner_user_id: user.id, is_personal: false })
-      .select()
-      .single();
-    if (error || !ws) {
-      toast.error(error?.message ?? "Falha ao criar workspace");
-      return;
+    try {
+      const ws = await createWorkspaceFn({ data: { name: name.trim() } });
+      toast.success(`Workspace ${ws.name} criado`);
+      await refresh();
+      qc.invalidateQueries();
+      setName("");
+      setOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao criar workspace");
     }
-    await supabase.from("workspace_members").insert({
-      workspace_id: ws.id,
-      user_id: user.id,
-      role: "admin_empresa",
-    });
-    // Seed subscription (trial 3d)
-    const { data: smart } = await supabase.from("plans").select("id").eq("tier", "smart").maybeSingle();
-    if (smart) {
-      await supabase.from("subscriptions").insert({
-        workspace_id: ws.id,
-        plan_id: smart.id,
-        status: "trialing",
-        trial_ends_at: new Date(Date.now() + 3 * 86400000).toISOString(),
-        current_period_end: new Date(Date.now() + 3 * 86400000).toISOString(),
-        seats: 1,
-      });
-    }
-    toast.success(`Workspace ${ws.name} criado`);
-    await refresh();
-    qc.invalidateQueries();
-    setName("");
-    setOpen(false);
   };
 
   return (
