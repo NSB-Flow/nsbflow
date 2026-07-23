@@ -57,7 +57,8 @@ function toCsv(rows: SecurityEvent[]) {
 }
 
 function AdminSecurityPage() {
-  const { roles } = useAuth();
+  const { roles, loading } = useAuth();
+  if (loading) return null;
   if (!roles.includes("super_admin")) return <Navigate to="/app" />;
 
   const fetchEvents = useServerFn(getSecurityEvents);
