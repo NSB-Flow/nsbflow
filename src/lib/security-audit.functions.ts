@@ -13,13 +13,14 @@ export type SecurityEvent = {
 export const getSecurityEvents = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<SecurityEvent[]> => {
-    const { data: isSuper, error: roleErr } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "super_admin",
-    });
-    if (roleErr || !isSuper) {
-      throw new Response("Forbidden", { status: 403 });
-    }
+    const { data: roleRow, error: roleErr } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "super_admin")
+      .maybeSingle();
+    if (roleErr) throw new Error(roleErr.message);
+    if (!roleRow) throw new Error("Forbidden: super admin only");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
