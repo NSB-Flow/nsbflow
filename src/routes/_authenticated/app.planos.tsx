@@ -41,16 +41,10 @@ function formatBRL(cents: number) {
 function PlanosPage() {
   const [yearly, setYearly] = useState(false);
 
+  const listPlans = useServerFn(listPublicPlansWithFeaturesFn);
   const { data: plans = [] } = useQuery({
     queryKey: ["plans-with-features"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("plans")
-        .select("id, tier, name, description, price_monthly_cents, price_yearly_cents, max_users, sort_order, plan_features(feature_key, enabled)")
-        .eq("active", true)
-        .order("sort_order");
-      return data ?? [];
-    },
+    queryFn: () => listPlans(),
   });
 
   const icons: Record<string, typeof Sparkles> = { smart: Sparkles, pro: Zap, enterprise: Building2 };
