@@ -22,54 +22,38 @@ export const getSecurityEvents = createServerFn({ method: "GET" })
     if (roleErr) throw new Error(roleErr.message);
     if (!roleRow) throw new Error("Forbidden: super admin only");
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Note: SUPABASE_SERVICE_ROLE_KEY is not available on Lovable Cloud,
+    // so we cannot call auth.admin.listUsers(). We source events from
+    // public tables (readable to super_admin via RLS) and resolve display
+    // names via public.profiles.
+    const sb = context.supabase;
 
-    // Pull recent activity from admin API + DB tables.
-    const [usersRes, membersRes, rolesRes, refsRes] = await Promise.all([
-      supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 }),
-      supabaseAdmin
+    const [membersRes, rolesRes, refsRes, profilesRes] = await Promise.all([
+      sb
         .from("workspace_members")
         .select("user_id, workspace_id, role, active, joined_at, invited_by")
         .order("joined_at", { ascending: false })
         .limit(200),
-      supabaseAdmin
+      sb
         .from("user_roles")
         .select("user_id, role, created_at")
         .order("created_at", { ascending: false })
         .limit(200),
-      supabaseAdmin
+      sb
         .from("referrals")
         .select("referrer_user_id, referred_user_id, code, status, credits_awarded, signed_up_at, created_at")
         .order("created_at", { ascending: false })
         .limit(200),
+      sb.from("profiles").select("id, full_name").limit(1000),
     ]);
 
-    const userMap = new Map<string, string>();
-    for (const u of usersRes.data?.users ?? []) userMap.set(u.id, u.email ?? u.id);
-    const who = (id: string | null | undefined) => (id ? userMap.get(id) ?? id : null);
+    const nameMap = new Map<string, string>();
+    for (const p of profilesRes.data ?? []) {
+      if (p.id) nameMap.set(p.id, p.full_name ?? p.id);
+    }
+    const who = (id: string | null | undefined) => (id ? nameMap.get(id) ?? id : null);
 
     const events: SecurityEvent[] = [];
-
-    for (const u of usersRes.data?.users ?? []) {
-      events.push({
-        ts: u.created_at,
-        category: "signup",
-        actor: u.email ?? u.id,
-        target: null,
-        detail: u.email_confirmed_at ? "email confirmado" : "aguardando confirmação",
-        ip: (u.user_metadata as any)?.ip ?? null,
-      });
-      if (u.last_sign_in_at) {
-        events.push({
-          ts: u.last_sign_in_at,
-          category: "login",
-          actor: u.email ?? u.id,
-          target: null,
-          detail: `provider: ${u.app_metadata?.provider ?? "email"}`,
-          ip: null,
-        });
-      }
-    }
 
     for (const m of membersRes.data ?? []) {
       events.push({
