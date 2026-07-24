@@ -80,6 +80,7 @@ function RoleAuditPage() {
   const { roles, loading } = useAuth();
 
   const fetchAudit = useServerFn(getRoleAuditFn);
+  const enqueueExport = useServerFn(enqueueAuditExportFn);
 
   const [q, setQ] = useState("");
   const [action, setAction] = useState<"all" | "granted" | "revoked">("all");
@@ -174,6 +175,30 @@ function RoleAuditPage() {
       toast.success(`Exportação ${format.toUpperCase()} concluída (${data.length} registros).`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao exportar.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const runAsyncExport = async () => {
+    setExporting(true);
+    try {
+      await enqueueExport({
+        data: {
+          kind: "role_audit",
+          filters: {
+            search: q,
+            action,
+            sortBy,
+            sortDir,
+            fromDate: fromISO,
+            toDate: toISO,
+          },
+        },
+      });
+      toast.success("Exportação enfileirada. Você será notificado quando estiver pronta.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao enfileirar exportação.");
     } finally {
       setExporting(false);
     }
