@@ -53,7 +53,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { roles, fullName, user } = useAuth();
-  const { workspace, workspaces, switchWorkspace } = useWorkspace();
+  const { workspace, workspaces, switchWorkspace, role: activeRole } = useWorkspace();
   const ent = useEntitlements();
 
   const visible = ITEMS.filter((it) => {
@@ -67,6 +67,9 @@ export function AppSidebar() {
 
   const isActive = (url: string) => (url === "/app" ? pathname === "/app" : pathname.startsWith(url));
   const isSuperAdmin = roles.includes("super_admin");
+  const isWorkspaceAdmin = ["super_admin", "admin", "admin_empresa", "ceo", "diretor"].includes(
+    (activeRole ?? "") as string,
+  );
 
   const initials = (fullName ?? user?.email ?? "N").split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
 
