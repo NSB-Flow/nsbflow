@@ -688,24 +688,30 @@ export type Database = {
           actor_user_id: string | null
           created_at: string
           id: string
+          ip: string | null
           role: Database["public"]["Enums"]["app_role"]
           target_user_id: string
+          user_agent: string | null
         }
         Insert: {
           action: string
           actor_user_id?: string | null
           created_at?: string
           id?: string
+          ip?: string | null
           role: Database["public"]["Enums"]["app_role"]
           target_user_id: string
+          user_agent?: string | null
         }
         Update: {
           action?: string
           actor_user_id?: string | null
           created_at?: string
           id?: string
+          ip?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           target_user_id?: string
+          user_agent?: string | null
         }
         Relationships: []
       }
