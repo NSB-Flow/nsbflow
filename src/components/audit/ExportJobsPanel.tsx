@@ -153,14 +153,53 @@ export function ExportJobsPanel(props: {
                 </span>
               )}
             </div>
-            {j.status === "completed" && (
-              <Button size="sm" variant="outline" className="h-7" onClick={() => handleDownload(j.id)}>
-                <Download className="h-3 w-3 mr-1" /> Baixar CSV
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {(j.status === "queued" || j.status === "processing") && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7"
+                  onClick={() => setConfirmId(j.id)}
+                  disabled={cancelingId === j.id}
+                >
+                  {cancelingId === j.id ? (
+                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                  ) : (
+                    <Ban className="h-3 w-3 mr-1" />
+                  )}
+                  Cancelar
+                </Button>
+              )}
+              {j.status === "completed" && (
+                <Button size="sm" variant="outline" className="h-7" onClick={() => handleDownload(j.id)}>
+                  <Download className="h-3 w-3 mr-1" /> Baixar CSV
+                </Button>
+              )}
+            </div>
           </div>
         ))}
       </CardContent>
+
+      <AlertDialog open={!!confirmId} onOpenChange={(v) => !v && setConfirmId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar exportação?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A geração do arquivo será interrompida na próxima verificação e o job ficará marcado
+              como cancelado. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={!!cancelingId}>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => confirmId && handleCancel(confirmId)}
+              disabled={!!cancelingId}
+            >
+              Cancelar exportação
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
