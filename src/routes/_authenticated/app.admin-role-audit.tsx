@@ -65,7 +65,7 @@ function RoleAuditPage() {
     return data.filter((r) => {
       if (action !== "all" && r.action !== action) return false;
       if (!term) return true;
-      return [r.role, r.targetEmail, r.targetUserId, r.actorEmail, r.actorUserId]
+      return [r.role, r.targetEmail, r.targetUserId, r.actorEmail, r.actorUserId, r.ip, r.userAgent]
         .some((v) => v?.toLowerCase().includes(term));
     });
   }, [data, q, action]);
