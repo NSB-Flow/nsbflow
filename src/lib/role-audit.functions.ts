@@ -10,6 +10,8 @@ export type RoleAuditEntry = {
   targetEmail: string | null;
   actorUserId: string | null;
   actorEmail: string | null;
+  ip: string | null;
+  userAgent: string | null;
 };
 
 export const getRoleAuditFn = createServerFn({ method: "GET" })
