@@ -96,7 +96,7 @@ function toCsv(rows: WorkspaceMemberAuditEntry[]) {
 
 function WorkspaceAuditPage() {
   const { roles, loading } = useAuth();
-  const { workspace } = useWorkspace();
+  const { workspace, role: activeRole } = useWorkspace();
 
   const listWs = useServerFn(listAuditableWorkspacesFn);
   const fetchAudit = useServerFn(getWorkspaceMemberAuditFn);

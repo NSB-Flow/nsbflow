@@ -34,6 +34,7 @@ import { Route as AuthenticatedAppCheckoutRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAppBibliotecaRouteImport } from './routes/_authenticated/app.biblioteca'
 import { Route as AuthenticatedAppAssinaturaRouteImport } from './routes/_authenticated/app.assinatura'
 import { Route as AuthenticatedAppAjudaRouteImport } from './routes/_authenticated/app.ajuda'
+import { Route as AuthenticatedAppAdminWorkspaceAuditRouteImport } from './routes/_authenticated/app.admin-workspace-audit'
 import { Route as AuthenticatedAppAdminSecurityRouteImport } from './routes/_authenticated/app.admin-security'
 import { Route as AuthenticatedAppAdminRoleAuditRouteImport } from './routes/_authenticated/app.admin-role-audit'
 import { Route as AuthenticatedAppAdminRouteImport } from './routes/_authenticated/app.admin'
@@ -178,6 +179,12 @@ const AuthenticatedAppAjudaRoute = AuthenticatedAppAjudaRouteImport.update({
   path: '/ajuda',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppAdminWorkspaceAuditRoute =
+  AuthenticatedAppAdminWorkspaceAuditRouteImport.update({
+    id: '/admin-workspace-audit',
+    path: '/admin-workspace-audit',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAdminSecurityRoute =
   AuthenticatedAppAdminSecurityRouteImport.update({
     id: '/admin-security',
@@ -218,6 +225,7 @@ export interface FileRoutesByFullPath {
   '/app/admin': typeof AuthenticatedAppAdminRoute
   '/app/admin-role-audit': typeof AuthenticatedAppAdminRoleAuditRoute
   '/app/admin-security': typeof AuthenticatedAppAdminSecurityRoute
+  '/app/admin-workspace-audit': typeof AuthenticatedAppAdminWorkspaceAuditRoute
   '/app/ajuda': typeof AuthenticatedAppAjudaRoute
   '/app/assinatura': typeof AuthenticatedAppAssinaturaRoute
   '/app/biblioteca': typeof AuthenticatedAppBibliotecaRoute
@@ -248,6 +256,7 @@ export interface FileRoutesByTo {
   '/app/admin': typeof AuthenticatedAppAdminRoute
   '/app/admin-role-audit': typeof AuthenticatedAppAdminRoleAuditRoute
   '/app/admin-security': typeof AuthenticatedAppAdminSecurityRoute
+  '/app/admin-workspace-audit': typeof AuthenticatedAppAdminWorkspaceAuditRoute
   '/app/ajuda': typeof AuthenticatedAppAjudaRoute
   '/app/assinatura': typeof AuthenticatedAppAssinaturaRoute
   '/app/biblioteca': typeof AuthenticatedAppBibliotecaRoute
@@ -281,6 +290,7 @@ export interface FileRoutesById {
   '/_authenticated/app/admin': typeof AuthenticatedAppAdminRoute
   '/_authenticated/app/admin-role-audit': typeof AuthenticatedAppAdminRoleAuditRoute
   '/_authenticated/app/admin-security': typeof AuthenticatedAppAdminSecurityRoute
+  '/_authenticated/app/admin-workspace-audit': typeof AuthenticatedAppAdminWorkspaceAuditRoute
   '/_authenticated/app/ajuda': typeof AuthenticatedAppAjudaRoute
   '/_authenticated/app/assinatura': typeof AuthenticatedAppAssinaturaRoute
   '/_authenticated/app/biblioteca': typeof AuthenticatedAppBibliotecaRoute
@@ -314,6 +324,7 @@ export interface FileRouteTypes {
     | '/app/admin'
     | '/app/admin-role-audit'
     | '/app/admin-security'
+    | '/app/admin-workspace-audit'
     | '/app/ajuda'
     | '/app/assinatura'
     | '/app/biblioteca'
@@ -344,6 +355,7 @@ export interface FileRouteTypes {
     | '/app/admin'
     | '/app/admin-role-audit'
     | '/app/admin-security'
+    | '/app/admin-workspace-audit'
     | '/app/ajuda'
     | '/app/assinatura'
     | '/app/biblioteca'
@@ -376,6 +388,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin'
     | '/_authenticated/app/admin-role-audit'
     | '/_authenticated/app/admin-security'
+    | '/_authenticated/app/admin-workspace-audit'
     | '/_authenticated/app/ajuda'
     | '/_authenticated/app/assinatura'
     | '/_authenticated/app/biblioteca'
@@ -584,6 +597,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAjudaRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin-workspace-audit': {
+      id: '/_authenticated/app/admin-workspace-audit'
+      path: '/admin-workspace-audit'
+      fullPath: '/app/admin-workspace-audit'
+      preLoaderRoute: typeof AuthenticatedAppAdminWorkspaceAuditRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/admin-security': {
       id: '/_authenticated/app/admin-security'
       path: '/admin-security'
@@ -641,6 +661,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminRoute: typeof AuthenticatedAppAdminRoute
   AuthenticatedAppAdminRoleAuditRoute: typeof AuthenticatedAppAdminRoleAuditRoute
   AuthenticatedAppAdminSecurityRoute: typeof AuthenticatedAppAdminSecurityRoute
+  AuthenticatedAppAdminWorkspaceAuditRoute: typeof AuthenticatedAppAdminWorkspaceAuditRoute
   AuthenticatedAppAjudaRoute: typeof AuthenticatedAppAjudaRoute
   AuthenticatedAppAssinaturaRoute: typeof AuthenticatedAppAssinaturaRoute
   AuthenticatedAppBibliotecaRoute: typeof AuthenticatedAppBibliotecaRoute
@@ -665,6 +686,8 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAdminRoute: AuthenticatedAppAdminRoute,
   AuthenticatedAppAdminRoleAuditRoute: AuthenticatedAppAdminRoleAuditRoute,
   AuthenticatedAppAdminSecurityRoute: AuthenticatedAppAdminSecurityRoute,
+  AuthenticatedAppAdminWorkspaceAuditRoute:
+    AuthenticatedAppAdminWorkspaceAuditRoute,
   AuthenticatedAppAjudaRoute: AuthenticatedAppAjudaRoute,
   AuthenticatedAppAssinaturaRoute: AuthenticatedAppAssinaturaRoute,
   AuthenticatedAppBibliotecaRoute: AuthenticatedAppBibliotecaRoute,
