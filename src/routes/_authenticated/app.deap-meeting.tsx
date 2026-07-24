@@ -237,10 +237,6 @@ function BriefingTab({ initialCompanyId }: { initialCompanyId: string | null }) 
       />
     </div>
   );
-
-  // Prefill via URL
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  void initialCompanyId;
 }
 
 // ---------- Meeting ----------
