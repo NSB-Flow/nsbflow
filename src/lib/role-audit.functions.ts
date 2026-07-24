@@ -34,8 +34,10 @@ const inputSchema = z.object({
   search: z.string().default(""),
   fromDate: z.string().datetime().optional(),
   toDate: z.string().datetime().optional(),
+  all: z.boolean().default(false),
 });
 
+const EXPORT_CAP = 5000;
 
 export const getRoleAuditFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -48,8 +50,8 @@ export const getRoleAuditFn = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const from = data.page * data.pageSize;
-    const to = from + data.pageSize - 1;
+    const from = data.all ? 0 : data.page * data.pageSize;
+    const to = data.all ? EXPORT_CAP - 1 : from + data.pageSize - 1;
 
     let q = supabaseAdmin
       .from("user_role_audit")
