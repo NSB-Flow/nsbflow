@@ -66,13 +66,22 @@ function RoleAuditPage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(50);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
+  const fromISO = fromDate ? new Date(`${fromDate}T00:00:00`).toISOString() : undefined;
+  const toISO = toDate ? new Date(`${toDate}T23:59:59.999`).toISOString() : undefined;
 
   const { data, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ["role-audit", { q, action, sortBy, sortDir, page, pageSize }],
-    queryFn: () => fetchAudit({ data: { search: q, action, sortBy, sortDir, page, pageSize } }),
+    queryKey: ["role-audit", { q, action, sortBy, sortDir, page, pageSize, fromISO, toISO }],
+    queryFn: () =>
+      fetchAudit({
+        data: { search: q, action, sortBy, sortDir, page, pageSize, fromDate: fromISO, toDate: toISO },
+      }),
     placeholderData: keepPreviousData,
     enabled: !loading && roles.includes("super_admin"),
   });
+
 
   if (loading) return null;
   if (!roles.includes("super_admin")) return <Navigate to="/app" />;
@@ -166,7 +175,46 @@ function RoleAuditPage() {
                 {k === "all" ? "Todos" : k === "granted" ? "Concedidos" : "Removidos"}
               </Button>
             ))}
+            <div className="ml-auto flex items-center gap-2 flex-wrap">
+              <label className="text-xs text-muted-foreground">De</label>
+              <Input
+                type="date"
+                value={fromDate}
+                max={toDate || undefined}
+                onChange={(e) => {
+                  setFromDate(e.target.value);
+                  setPage(0);
+                }}
+                className="h-8 w-40"
+              />
+              <label className="text-xs text-muted-foreground">Até</label>
+              <Input
+                type="date"
+                value={toDate}
+                min={fromDate || undefined}
+                onChange={(e) => {
+                  setToDate(e.target.value);
+                  setPage(0);
+                }}
+                className="h-8 w-40"
+              />
+              {(fromDate || toDate) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8"
+                  onClick={() => {
+                    setFromDate("");
+                    setToDate("");
+                    setPage(0);
+                  }}
+                >
+                  Limpar
+                </Button>
+              )}
+            </div>
           </div>
+
         </CardHeader>
         <CardContent>
           {isLoading && !data ? (

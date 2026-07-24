@@ -75,7 +75,10 @@ const auditInputSchema = z.object({
     .enum(["all", "added", "removed", "role_changed", "activated", "deactivated"])
     .default("all"),
   search: z.string().default(""),
+  fromDate: z.string().datetime().optional(),
+  toDate: z.string().datetime().optional(),
 });
+
 
 /** Retorna eventos de auditoria de um workspace, paginados e ordenados no servidor. */
 export const getWorkspaceMemberAuditFn = createServerFn({ method: "POST" })
@@ -96,6 +99,9 @@ export const getWorkspaceMemberAuditFn = createServerFn({ method: "POST" })
       .range(from, to);
 
     if (data.action !== "all") q = q.eq("action", data.action);
+    if (data.fromDate) q = q.gte("created_at", data.fromDate);
+    if (data.toDate) q = q.lte("created_at", data.toDate);
+
 
     const term = data.search.trim();
     if (term) {

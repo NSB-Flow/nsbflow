@@ -32,7 +32,10 @@ const inputSchema = z.object({
   sortDir: z.enum(["asc", "desc"]).default("desc"),
   action: z.enum(["all", "granted", "revoked"]).default("all"),
   search: z.string().default(""),
+  fromDate: z.string().datetime().optional(),
+  toDate: z.string().datetime().optional(),
 });
+
 
 export const getRoleAuditFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -58,13 +61,15 @@ export const getRoleAuditFn = createServerFn({ method: "POST" })
       .range(from, to);
 
     if (data.action !== "all") q = q.eq("action", data.action);
+    if (data.fromDate) q = q.gte("created_at", data.fromDate);
+    if (data.toDate) q = q.lte("created_at", data.toDate);
 
     const term = data.search.trim();
     if (term) {
-      // Search on server-side columns; email search is done client-side after join
       const like = `%${term}%`;
       q = q.or(`role.ilike.${like},ip.ilike.${like},user_agent.ilike.${like}`);
     }
+
 
     const { data: rows, error, count } = await q;
     if (error) throw new Error(error.message);
