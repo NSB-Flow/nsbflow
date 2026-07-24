@@ -17,6 +17,17 @@ function csvEscape(v: unknown): string {
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
+const CANCELED_SENTINEL = "__EXPORT_CANCELED__";
+
+async function assertNotCanceled(jobId: string): Promise<void> {
+  const { data } = await (supabaseAdmin as any)
+    .from("export_jobs")
+    .select("status")
+    .eq("id", jobId)
+    .maybeSingle();
+  if (data?.status === "canceled") throw new Error(CANCELED_SENTINEL);
+}
+
 type Filters = {
   search?: string;
   action?: string;
@@ -110,6 +121,7 @@ async function buildRoleAuditCsv(job: JobRow): Promise<{ csv: string; total: num
     await (supabaseAdmin as any).from("export_jobs")
       .update({ processed_rows: total })
       .eq("id", job.id);
+    await assertNotCanceled(job.id);
 
     if (rows.length < BATCH_SIZE) break;
   }
@@ -191,6 +203,7 @@ async function buildWorkspaceAuditCsv(job: JobRow): Promise<{ csv: string; total
     await (supabaseAdmin as any).from("export_jobs")
       .update({ processed_rows: total })
       .eq("id", job.id);
+    await assertNotCanceled(job.id);
 
     if (rows.length < BATCH_SIZE) break;
   }
@@ -223,7 +236,8 @@ async function processJob(job: JobRow): Promise<void> {
       });
     if (upErr) throw new Error(upErr.message);
 
-    await (supabaseAdmin as any).from("export_jobs")
+    await assertNotCanceled(job.id);
+    const { data: doneRow } = await (supabaseAdmin as any).from("export_jobs")
       .update({
         status: "completed",
         completed_at: new Date().toISOString(),
@@ -232,7 +246,11 @@ async function processJob(job: JobRow): Promise<void> {
         file_path: path,
         file_size_bytes: bytes.byteLength,
       })
-      .eq("id", job.id);
+      .eq("id", job.id)
+      .eq("status", "processing")
+      .select("id")
+      .maybeSingle();
+    if (!doneRow) return; // Was canceled at the last moment
 
     const label = job.kind === "role_audit" ? "Auditoria de Perfis" : "Auditoria de Workspace";
     await supabaseAdmin.from("user_notifications").upsert(
@@ -250,6 +268,23 @@ async function processJob(job: JobRow): Promise<void> {
     );
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
+    if (msg === CANCELED_SENTINEL) {
+      // Status was already set to 'canceled' by the user; leave it and drop a notification.
+      await supabaseAdmin.from("user_notifications").upsert(
+        {
+          user_id: job.user_id,
+          workspace_id: job.workspace_id,
+          kind: "export_failed",
+          severity: "info",
+          title: "Exportação cancelada",
+          body: "Você cancelou esta exportação antes da conclusão.",
+          action_url: null,
+          dedupe_key: `export_canceled:${job.id}`,
+        },
+        { onConflict: "user_id,dedupe_key", ignoreDuplicates: true },
+      );
+      return;
+    }
     await (supabaseAdmin as any).from("export_jobs")
       .update({
         status: "failed",

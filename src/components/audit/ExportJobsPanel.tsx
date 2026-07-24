@@ -1,14 +1,26 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Download, Loader2, CheckCircle2, XCircle, Clock, RefreshCw } from "lucide-react";
+import { Download, Loader2, CheckCircle2, XCircle, Clock, RefreshCw, Ban } from "lucide-react";
 import {
   listAuditExportJobsFn,
   getExportDownloadUrlFn,
+  cancelAuditExportFn,
   type ExportJob,
 } from "@/lib/audit-export-jobs.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
 const STATUS_LABEL: Record<ExportJob["status"], string> = {
@@ -30,6 +42,10 @@ export function ExportJobsPanel(props: {
 }) {
   const list = useServerFn(listAuditExportJobsFn);
   const download = useServerFn(getExportDownloadUrlFn);
+  const cancel = useServerFn(cancelAuditExportFn);
+  const qc = useQueryClient();
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [cancelingId, setCancelingId] = useState<string | null>(null);
 
   const { data, isFetching, refetch } = useQuery<ExportJob[]>({
     queryKey: ["export-jobs", props.kind, props.workspaceId ?? "-"],
@@ -62,6 +78,20 @@ export function ExportJobsPanel(props: {
       a.click();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao gerar link.");
+    }
+  };
+
+  const handleCancel = async (jobId: string) => {
+    setCancelingId(jobId);
+    try {
+      await cancel({ data: { jobId } });
+      toast.success("Exportação cancelada.");
+      await qc.invalidateQueries({ queryKey: ["export-jobs"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao cancelar.");
+    } finally {
+      setCancelingId(null);
+      setConfirmId(null);
     }
   };
 
@@ -123,14 +153,53 @@ export function ExportJobsPanel(props: {
                 </span>
               )}
             </div>
-            {j.status === "completed" && (
-              <Button size="sm" variant="outline" className="h-7" onClick={() => handleDownload(j.id)}>
-                <Download className="h-3 w-3 mr-1" /> Baixar CSV
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {(j.status === "queued" || j.status === "processing") && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7"
+                  onClick={() => setConfirmId(j.id)}
+                  disabled={cancelingId === j.id}
+                >
+                  {cancelingId === j.id ? (
+                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                  ) : (
+                    <Ban className="h-3 w-3 mr-1" />
+                  )}
+                  Cancelar
+                </Button>
+              )}
+              {j.status === "completed" && (
+                <Button size="sm" variant="outline" className="h-7" onClick={() => handleDownload(j.id)}>
+                  <Download className="h-3 w-3 mr-1" /> Baixar CSV
+                </Button>
+              )}
+            </div>
           </div>
         ))}
       </CardContent>
+
+      <AlertDialog open={!!confirmId} onOpenChange={(v) => !v && setConfirmId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar exportação?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A geração do arquivo será interrompida na próxima verificação e o job ficará marcado
+              como cancelado. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={!!cancelingId}>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => confirmId && handleCancel(confirmId)}
+              disabled={!!cancelingId}
+            >
+              Cancelar exportação
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
