@@ -476,6 +476,10 @@ function RoleAuditPage() {
         </CardContent>
       </Card>
 
+      <ExportJobsPanel kind="role_audit" />
+
+
+
       {(() => {
         const r = selected;
         const fields: AuditField[] = r
