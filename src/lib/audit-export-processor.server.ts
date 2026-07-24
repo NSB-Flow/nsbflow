@@ -236,7 +236,8 @@ async function processJob(job: JobRow): Promise<void> {
       });
     if (upErr) throw new Error(upErr.message);
 
-    await (supabaseAdmin as any).from("export_jobs")
+    await assertNotCanceled(job.id);
+    const { data: doneRow } = await (supabaseAdmin as any).from("export_jobs")
       .update({
         status: "completed",
         completed_at: new Date().toISOString(),
@@ -245,7 +246,11 @@ async function processJob(job: JobRow): Promise<void> {
         file_path: path,
         file_size_bytes: bytes.byteLength,
       })
-      .eq("id", job.id);
+      .eq("id", job.id)
+      .eq("status", "processing")
+      .select("id")
+      .maybeSingle();
+    if (!doneRow) return; // Was canceled at the last moment
 
     const label = job.kind === "role_audit" ? "Auditoria de Perfis" : "Auditoria de Workspace";
     await supabaseAdmin.from("user_notifications").upsert(
