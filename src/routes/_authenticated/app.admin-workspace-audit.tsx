@@ -51,6 +51,27 @@ const ACTION_VARIANT: Record<Action, "default" | "destructive" | "secondary"> = 
 const ACTION_KEYS = ["all", "added", "removed", "role_changed", "activated", "deactivated"] as const;
 const PAGE_SIZES = [25, 50, 100, 200];
 
+function applyQuickPeriod(
+  type: "7" | "30" | "month",
+  setFrom: (v: string) => void,
+  setTo: (v: string) => void,
+  setPage: (v: number) => void,
+) {
+  const today = new Date();
+  const to = today.toISOString().slice(0, 10);
+  let from: string;
+  if (type === "month") {
+    from = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-01`;
+  } else {
+    const d = new Date(today);
+    d.setDate(d.getDate() - Number(type));
+    from = d.toISOString().slice(0, 10);
+  }
+  setFrom(from);
+  setTo(to);
+  setPage(0);
+}
+
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleString("pt-BR");
 }
@@ -277,6 +298,23 @@ function WorkspaceAuditPage() {
               </Button>
             ))}
             <div className="ml-auto flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1 mr-1">
+                {([
+                  { key: "7", label: "Últimos 7 dias" },
+                  { key: "30", label: "Últimos 30 dias" },
+                  { key: "month", label: "Este mês" },
+                ] as const).map((p) => (
+                  <Button
+                    key={p.key}
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={() => applyQuickPeriod(p.key, setFromDate, setToDate, setPage)}
+                  >
+                    {p.label}
+                  </Button>
+                ))}
+              </div>
               <label className="text-xs text-muted-foreground">De</label>
               <Input
                 type="date"
