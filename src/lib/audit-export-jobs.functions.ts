@@ -191,3 +191,39 @@ export const getExportDownloadUrlFn = createServerFn({ method: "POST" })
     const label = job.kind === "role_audit" ? "role-audit" : "workspace-audit";
     return { url: signed.signedUrl, filename: `nsb-flow-${label}-${stamp}.csv` };
   });
+
+const cancelSchema = z.object({ jobId: z.string().uuid() });
+
+export const cancelAuditExportFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) => cancelSchema.parse(raw))
+  .handler(async ({ data, context }): Promise<ExportJob> => {
+    // Ownership check under RLS-scoped client
+    const { data: job, error } = await (context.supabase as any)
+      .from("export_jobs")
+      .select("id, user_id, status")
+      .eq("id", data.jobId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!job) throw new Error("Job não encontrado");
+    if (job.user_id !== context.userId) throw new Error("Forbidden");
+    if (job.status !== "queued" && job.status !== "processing") {
+      throw new Error("Este job já foi finalizado e não pode ser cancelado.");
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: updated, error: uErr } = await (supabaseAdmin as any)
+      .from("export_jobs")
+      .update({
+        status: "canceled",
+        completed_at: new Date().toISOString(),
+        error: "Cancelado pelo usuário",
+      })
+      .eq("id", data.jobId)
+      .in("status", ["queued", "processing"])
+      .select()
+      .single();
+    if (uErr || !updated) throw new Error(uErr?.message ?? "Falha ao cancelar");
+    return toJob(updated as RawRow);
+  });
+
