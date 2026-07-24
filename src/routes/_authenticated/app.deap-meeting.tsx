@@ -161,7 +161,9 @@ function SellerSectorField() {
 function BriefingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
   const runAgent = useServerFn(runAgentFn);
   const { workspaceId } = useWorkspace();
-  const [company, setCompany] = useState<Company | null>(null);
+  const [company, setCompany] = useState<Company | null>(
+    initialCompanyId ? { id: initialCompanyId, razao_social: "", cnpj: null } : null,
+  );
   const [form, setForm] = useState<Omit<BriefingForm, "company_id">>({
     objective: "",
     solutions: [],
