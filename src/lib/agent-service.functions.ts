@@ -176,7 +176,7 @@ export const runAgentFn = createServerFn({ method: "POST" })
         .update({ status: "done", result: json as never, error: null })
         .eq("id", runId);
 
-      return { runId, status: "done", result: json, creditSource: credit.source };
+      return { runId, status: "done", result: json, creditSource };
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro desconhecido";
       await supabase.from("agent_runs").update({ status: "error", error: msg }).eq("id", runId);
