@@ -195,6 +195,15 @@ export function AppSidebar() {
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild tooltip="Auditoria de Perfis" isActive={isActive("/app/admin-role-audit")}>
+                      <Link to="/app/admin-role-audit" className="flex items-center gap-2">
+                        <Shield className="h-4 w-4 text-gold" />
+                        {!collapsed && <span className="text-gold">Perfis</span>}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
                 </>
               )}
             </SidebarMenu>
