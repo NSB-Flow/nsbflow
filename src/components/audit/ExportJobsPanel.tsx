@@ -42,6 +42,10 @@ export function ExportJobsPanel(props: {
 }) {
   const list = useServerFn(listAuditExportJobsFn);
   const download = useServerFn(getExportDownloadUrlFn);
+  const cancel = useServerFn(cancelAuditExportFn);
+  const qc = useQueryClient();
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [cancelingId, setCancelingId] = useState<string | null>(null);
 
   const { data, isFetching, refetch } = useQuery<ExportJob[]>({
     queryKey: ["export-jobs", props.kind, props.workspaceId ?? "-"],
@@ -74,6 +78,20 @@ export function ExportJobsPanel(props: {
       a.click();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao gerar link.");
+    }
+  };
+
+  const handleCancel = async (jobId: string) => {
+    setCancelingId(jobId);
+    try {
+      await cancel({ data: { jobId } });
+      toast.success("Exportação cancelada.");
+      await qc.invalidateQueries({ queryKey: ["export-jobs"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao cancelar.");
+    } finally {
+      setCancelingId(null);
+      setConfirmId(null);
     }
   };
 
