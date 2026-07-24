@@ -182,7 +182,7 @@ function BriefingTab({ initialCompanyId }: { initialCompanyId: string | null }) 
       if (!workspaceId) throw new Error("Workspace não selecionado.");
       const r = await runAgent({
         data: {
-          agent: "briefing",
+          agent: "deap_briefing",
           workspaceId,
           companyId: company.id,
           payload: parsed.data,
@@ -316,7 +316,7 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
       if (!workspaceId) throw new Error("Workspace não selecionado.");
       const r = await runAgent({
         data: {
-          agent: "meeting",
+          agent: "deap_intelligence",
           workspaceId,
           companyId: company.id,
           payload: parsed.data,
