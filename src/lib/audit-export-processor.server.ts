@@ -17,6 +17,17 @@ function csvEscape(v: unknown): string {
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
+const CANCELED_SENTINEL = "__EXPORT_CANCELED__";
+
+async function assertNotCanceled(jobId: string): Promise<void> {
+  const { data } = await (supabaseAdmin as any)
+    .from("export_jobs")
+    .select("status")
+    .eq("id", jobId)
+    .maybeSingle();
+  if (data?.status === "canceled") throw new Error(CANCELED_SENTINEL);
+}
+
 type Filters = {
   search?: string;
   action?: string;
