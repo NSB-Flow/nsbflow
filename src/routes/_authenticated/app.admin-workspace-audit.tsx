@@ -2,7 +2,7 @@ import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ShieldCheck, Download, RefreshCw, Search, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ShieldCheck, Download, RefreshCw, Search, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, FileText, FileSpreadsheet, Loader2 } from "lucide-react";
 import {
   listAuditableWorkspacesFn,
   getWorkspaceMemberAuditFn,
@@ -23,8 +23,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AuditDetailSheet, type AuditField } from "@/components/audit/AuditDetailSheet";
+import { downloadCsv, downloadAuditPdf, type ExportColumn } from "@/lib/audit-export";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/app/admin-workspace-audit")({
   head: () => ({ meta: [{ title: "Auditoria de Workspace — NSB Flow" }] }),
