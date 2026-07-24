@@ -107,8 +107,7 @@ async function buildRoleAuditCsv(job: JobRow): Promise<{ csv: string; total: num
     total += rows.length;
     offset += rows.length;
     // Mark progress
-    await supabaseAdmin
-      .from("export_jobs")
+    await (supabaseAdmin as any).from("export_jobs")
       .update({ processed_rows: total })
       .eq("id", job.id);
 
@@ -189,8 +188,7 @@ async function buildWorkspaceAuditCsv(job: JobRow): Promise<{ csv: string; total
     }
     total += rows.length;
     offset += rows.length;
-    await supabaseAdmin
-      .from("export_jobs")
+    await (supabaseAdmin as any).from("export_jobs")
       .update({ processed_rows: total })
       .eq("id", job.id);
 
@@ -200,8 +198,7 @@ async function buildWorkspaceAuditCsv(job: JobRow): Promise<{ csv: string; total
 }
 
 async function processJob(job: JobRow): Promise<void> {
-  const started = await supabaseAdmin
-    .from("export_jobs")
+  const started = await (supabaseAdmin as any).from("export_jobs")
     .update({ status: "processing", started_at: new Date().toISOString() })
     .eq("id", job.id)
     .eq("status", "queued")
@@ -226,8 +223,7 @@ async function processJob(job: JobRow): Promise<void> {
       });
     if (upErr) throw new Error(upErr.message);
 
-    await supabaseAdmin
-      .from("export_jobs")
+    await (supabaseAdmin as any).from("export_jobs")
       .update({
         status: "completed",
         completed_at: new Date().toISOString(),
@@ -254,8 +250,7 @@ async function processJob(job: JobRow): Promise<void> {
     );
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    await supabaseAdmin
-      .from("export_jobs")
+    await (supabaseAdmin as any).from("export_jobs")
       .update({
         status: "failed",
         completed_at: new Date().toISOString(),
@@ -281,8 +276,7 @@ async function processJob(job: JobRow): Promise<void> {
 /** Process one specific job (called immediately after enqueue) or up to N queued jobs. */
 export async function processExportJobs(specificJobId?: string): Promise<{ processed: number }> {
   if (specificJobId) {
-    const { data: job } = await supabaseAdmin
-      .from("export_jobs")
+    const { data: job } = await (supabaseAdmin as any).from("export_jobs")
       .select("id, user_id, workspace_id, kind, filters, status")
       .eq("id", specificJobId)
       .maybeSingle();
@@ -292,8 +286,7 @@ export async function processExportJobs(specificJobId?: string): Promise<{ proce
   }
   // Recover stale queued jobs (older than 10 seconds) that lost their trigger.
   const cutoff = new Date(Date.now() - 10_000).toISOString();
-  const { data: jobs } = await supabaseAdmin
-    .from("export_jobs")
+  const { data: jobs } = await (supabaseAdmin as any).from("export_jobs")
     .select("id, user_id, workspace_id, kind, filters")
     .eq("status", "queued")
     .lte("created_at", cutoff)
