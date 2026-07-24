@@ -349,6 +349,68 @@ export type Database = {
           },
         ]
       }
+      export_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error: string | null
+          file_path: string | null
+          file_size_bytes: number | null
+          filters: Json
+          format: string
+          id: string
+          kind: string
+          processed_rows: number | null
+          started_at: string | null
+          status: string
+          total_rows: number | null
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error?: string | null
+          file_path?: string | null
+          file_size_bytes?: number | null
+          filters?: Json
+          format?: string
+          id?: string
+          kind: string
+          processed_rows?: number | null
+          started_at?: string | null
+          status?: string
+          total_rows?: number | null
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error?: string | null
+          file_path?: string | null
+          file_size_bytes?: number | null
+          filters?: Json
+          format?: string
+          id?: string
+          kind?: string
+          processed_rows?: number | null
+          started_at?: string | null
+          status?: string
+          total_rows?: number | null
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "export_jobs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plan_features: {
         Row: {
           enabled: boolean
