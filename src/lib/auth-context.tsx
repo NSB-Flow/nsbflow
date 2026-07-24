@@ -8,6 +8,7 @@ interface AuthState {
   user: User | null;
   roles: AppRole[];
   fullName: string | null;
+  sector: string | null;
   loading: boolean;
   refresh: () => Promise<void>;
 }
@@ -18,20 +19,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [fullName, setFullName] = useState<string | null>(null);
+  const [sector, setSector] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadProfileData = async (uid: string | undefined) => {
     if (!uid) {
       setRoles([]);
       setFullName(null);
+      setSector(null);
       return;
     }
     const [{ data: r }, { data: p }] = await Promise.all([
       supabase.from("user_roles").select("role").eq("user_id", uid),
-      supabase.from("profiles").select("full_name").eq("id", uid).maybeSingle(),
+      supabase.from("profiles").select("full_name, sector").eq("id", uid).maybeSingle(),
     ]);
     setRoles((r ?? []).map((x) => x.role as AppRole));
     setFullName(p?.full_name ?? null);
+    setSector(p?.sector ?? null);
   };
 
   useEffect(() => {
@@ -54,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <Ctx.Provider
-      value={{ session, user: session?.user ?? null, roles, fullName, loading, refresh }}
+      value={{ session, user: session?.user ?? null, roles, fullName, sector, loading, refresh }}
     >
       {children}
     </Ctx.Provider>
