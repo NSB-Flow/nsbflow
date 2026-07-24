@@ -298,6 +298,23 @@ function WorkspaceAuditPage() {
               </Button>
             ))}
             <div className="ml-auto flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1 mr-1">
+                {([
+                  { key: "7", label: "Últimos 7 dias" },
+                  { key: "30", label: "Últimos 30 dias" },
+                  { key: "month", label: "Este mês" },
+                ] as const).map((p) => (
+                  <Button
+                    key={p.key}
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={() => applyQuickPeriod(p.key, setFromDate, setToDate, setPage)}
+                  >
+                    {p.label}
+                  </Button>
+                ))}
+              </div>
               <label className="text-xs text-muted-foreground">De</label>
               <Input
                 type="date"
