@@ -75,7 +75,10 @@ const auditInputSchema = z.object({
     .enum(["all", "added", "removed", "role_changed", "activated", "deactivated"])
     .default("all"),
   search: z.string().default(""),
+  fromDate: z.string().datetime().optional(),
+  toDate: z.string().datetime().optional(),
 });
+
 
 /** Retorna eventos de auditoria de um workspace, paginados e ordenados no servidor. */
 export const getWorkspaceMemberAuditFn = createServerFn({ method: "POST" })
