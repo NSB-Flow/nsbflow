@@ -114,7 +114,7 @@ function RoleAuditPage() {
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Buscar por perfil, e-mail ou ID…"
+                placeholder="Buscar por perfil, e-mail, IP ou navegador…"
                 className="pl-7 h-9 w-72"
               />
             </div>
