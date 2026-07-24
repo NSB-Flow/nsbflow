@@ -1,14 +1,26 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Download, Loader2, CheckCircle2, XCircle, Clock, RefreshCw } from "lucide-react";
+import { Download, Loader2, CheckCircle2, XCircle, Clock, RefreshCw, Ban } from "lucide-react";
 import {
   listAuditExportJobsFn,
   getExportDownloadUrlFn,
+  cancelAuditExportFn,
   type ExportJob,
 } from "@/lib/audit-export-jobs.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
 const STATUS_LABEL: Record<ExportJob["status"], string> = {
