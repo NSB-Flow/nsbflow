@@ -59,25 +59,24 @@ export const runAgentFn = createServerFn({ method: "POST" })
       throw new Error("Agente indisponível no momento.");
     }
 
-    if (agentRow?.min_plan) {
-      // Exceção deliberada: super_admins são isentos do gate de min_plan para
-      // permitir testes/administração interna da plataforma, mesmo em workspaces
-      // sem assinatura ativa. Não é regra de negócio para clientes finais.
-      const { data: isSuper } = await supabase.rpc("is_super_admin", { _user_id: userId });
-      if (!isSuper) {
-        const { data: subRow } = await supabase
-          .from("subscriptions")
-          .select("plans(tier)")
-          .eq("workspace_id", data.workspaceId)
-          .maybeSingle();
-        const plan = Array.isArray(subRow?.plans) ? subRow?.plans[0] : subRow?.plans;
-        const tierRank: Record<string, number> = { smart: 1, pro: 2, enterprise: 3 };
-        const currentRank = tierRank[plan?.tier ?? ""] ?? 0;
-        const requiredRank = tierRank[agentRow.min_plan] ?? 0;
-        if (currentRank < requiredRank) {
-          const label = agentRow.min_plan.charAt(0).toUpperCase() + agentRow.min_plan.slice(1);
-          throw new Error(`Este agente requer o plano ${label} ou superior.`);
-        }
+    // Exceção deliberada: super_admins são isentos do gate de min_plan e do
+    // consumo de créditos para permitir testes/administração interna da plataforma,
+    // mesmo em workspaces sem assinatura ativa. Não é regra de negócio para clientes finais.
+    const { data: isSuper } = await supabase.rpc("is_super_admin", { _user_id: userId });
+
+    if (agentRow?.min_plan && !isSuper) {
+      const { data: subRow } = await supabase
+        .from("subscriptions")
+        .select("plans(tier)")
+        .eq("workspace_id", data.workspaceId)
+        .maybeSingle();
+      const plan = Array.isArray(subRow?.plans) ? subRow?.plans[0] : subRow?.plans;
+      const tierRank: Record<string, number> = { smart: 1, pro: 2, enterprise: 3 };
+      const currentRank = tierRank[plan?.tier ?? ""] ?? 0;
+      const requiredRank = tierRank[agentRow.min_plan] ?? 0;
+      if (currentRank < requiredRank) {
+        const label = agentRow.min_plan.charAt(0).toUpperCase() + agentRow.min_plan.slice(1);
+        throw new Error(`Este agente requer o plano ${label} ou superior.`);
       }
     }
 
@@ -104,24 +103,31 @@ export const runAgentFn = createServerFn({ method: "POST" })
       runId = inserted.id;
     }
 
-    const { data: creditRes, error: creditErr } = await supabaseAdmin.rpc("try_consume_agent_credit", {
-      _workspace_id: data.workspaceId,
-      _user_id: userId,
-      _run_id: runId,
-      _description: `Execução: ${data.agent}`,
-    });
-    if (creditErr) throw new Error(creditErr.message);
-    const credit = creditRes as { ok: boolean; source?: string; reason?: string };
-    if (!credit?.ok) {
-      const reason = credit?.reason ?? "no_credit";
-      const msg =
-        reason === "workspace_empty_and_user_ineligible" || reason === "all_pools_empty"
-          ? "Créditos esgotados. Contrate mais assentos, faça upgrade do plano ou aguarde a próxima reposição mensal."
-          : reason === "no_subscription"
-          ? "Nenhuma assinatura ativa neste workspace."
-          : "Não foi possível autorizar o consumo de créditos.";
-      await supabase.from("agent_runs").update({ status: "error", error: msg }).eq("id", runId);
-      return { runId, status: "error", error: msg };
+    let creditSource: string | undefined;
+    if (isSuper) {
+      // Super_admin: bypass do consumo de crédito (ver comentário acima).
+      creditSource = "super_admin_bypass";
+    } else {
+      const { data: creditRes, error: creditErr } = await supabaseAdmin.rpc("try_consume_agent_credit", {
+        _workspace_id: data.workspaceId,
+        _user_id: userId,
+        _run_id: runId,
+        _description: `Execução: ${data.agent}`,
+      });
+      if (creditErr) throw new Error(creditErr.message);
+      const credit = creditRes as { ok: boolean; source?: string; reason?: string };
+      if (!credit?.ok) {
+        const reason = credit?.reason ?? "no_credit";
+        const msg =
+          reason === "workspace_empty_and_user_ineligible" || reason === "all_pools_empty"
+            ? "Créditos esgotados. Contrate mais assentos, faça upgrade do plano ou aguarde a próxima reposição mensal."
+            : reason === "no_subscription"
+            ? "Nenhuma assinatura ativa neste workspace."
+            : "Não foi possível autorizar o consumo de créditos.";
+        await supabase.from("agent_runs").update({ status: "error", error: msg }).eq("id", runId);
+        return { runId, status: "error", error: msg };
+      }
+      creditSource = credit.source;
     }
 
     // 5) webhook
