@@ -27,7 +27,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AuditDetailSheet, type AuditField } from "@/components/audit/AuditDetailSheet";
+import { ExportJobsPanel } from "@/components/audit/ExportJobsPanel";
 import { downloadCsv, downloadAuditPdf, type ExportColumn } from "@/lib/audit-export";
+import { enqueueAuditExportFn } from "@/lib/audit-export-jobs.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/app/admin-role-audit")({
