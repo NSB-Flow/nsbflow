@@ -1,12 +1,13 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ShieldCheck, Download, RefreshCw, Search } from "lucide-react";
+import { ShieldCheck, Download, RefreshCw, Search, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   listAuditableWorkspacesFn,
   getWorkspaceMemberAuditFn,
   type WorkspaceMemberAuditEntry,
+  type WorkspaceAuditSort,
 } from "@/lib/workspace-audit.functions";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/workspace-context";
@@ -29,7 +30,9 @@ export const Route = createFileRoute("/_authenticated/app/admin-workspace-audit"
   component: WorkspaceAuditPage,
 });
 
-const ACTION_LABEL: Record<WorkspaceMemberAuditEntry["action"], string> = {
+type Action = WorkspaceMemberAuditEntry["action"];
+
+const ACTION_LABEL: Record<Action, string> = {
   added: "Adicionado",
   removed: "Removido",
   role_changed: "Papel alterado",
@@ -37,13 +40,16 @@ const ACTION_LABEL: Record<WorkspaceMemberAuditEntry["action"], string> = {
   deactivated: "Desativado",
 };
 
-const ACTION_VARIANT: Record<WorkspaceMemberAuditEntry["action"], "default" | "destructive" | "secondary"> = {
+const ACTION_VARIANT: Record<Action, "default" | "destructive" | "secondary"> = {
   added: "default",
   removed: "destructive",
   role_changed: "secondary",
   activated: "default",
   deactivated: "destructive",
 };
+
+const ACTION_KEYS = ["all", "added", "removed", "role_changed", "activated", "deactivated"] as const;
+const PAGE_SIZES = [25, 50, 100, 200];
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleString("pt-BR");
@@ -102,45 +108,44 @@ function WorkspaceAuditPage() {
   const fetchAudit = useServerFn(getWorkspaceMemberAuditFn);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [q, setQ] = useState("");
+  const [action, setAction] = useState<"all" | Action>("all");
+  const [sortBy, setSortBy] = useState<WorkspaceAuditSort>("created_at");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(50);
 
   const { data: workspaces = [], isLoading: wsLoading } = useQuery({
     queryKey: ["auditable-workspaces"],
     queryFn: () => listWs(),
   });
 
-  // Auto-select current active workspace once list is available
   useEffect(() => {
     if (selectedId || workspaces.length === 0) return;
     const preferred = workspace && workspaces.find((w) => w.id === workspace.id);
     setSelectedId((preferred ?? workspaces[0]).id);
   }, [workspaces, workspace, selectedId]);
 
-  const { data = [], isLoading, refetch, isFetching } = useQuery({
-    queryKey: ["workspace-member-audit", selectedId],
-    queryFn: () => fetchAudit({ data: { workspaceId: selectedId as string } }),
+  const { data, isLoading, refetch, isFetching } = useQuery({
+    queryKey: [
+      "workspace-member-audit",
+      { workspaceId: selectedId, q, action, sortBy, sortDir, page, pageSize },
+    ],
+    queryFn: () =>
+      fetchAudit({
+        data: {
+          workspaceId: selectedId as string,
+          search: q,
+          action,
+          sortBy,
+          sortDir,
+          page,
+          pageSize,
+        },
+      }),
     enabled: !!selectedId,
+    placeholderData: keepPreviousData,
   });
-
-  const [q, setQ] = useState("");
-  const [action, setAction] = useState<"all" | WorkspaceMemberAuditEntry["action"]>("all");
-
-  const filtered = useMemo(() => {
-    const term = q.trim().toLowerCase();
-    return data.filter((r) => {
-      if (action !== "all" && r.action !== action) return false;
-      if (!term) return true;
-      return [
-        r.oldRole,
-        r.newRole,
-        r.targetEmail,
-        r.targetUserId,
-        r.actorEmail,
-        r.actorUserId,
-        r.ip,
-        r.userAgent,
-      ].some((v) => v?.toLowerCase().includes(term));
-    });
-  }, [data, q, action]);
 
   if (loading) return null;
 
@@ -150,9 +155,31 @@ function WorkspaceAuditPage() {
   );
   if (!isSuper && !isWsAdmin) return <Navigate to="/app" />;
 
+  const rows = data?.rows ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  const toggleSort = (col: WorkspaceAuditSort) => {
+    if (sortBy === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else {
+      setSortBy(col);
+      setSortDir("desc");
+    }
+    setPage(0);
+  };
+
+  const sortIcon = (col: WorkspaceAuditSort) =>
+    sortBy === col ? (
+      sortDir === "asc" ? (
+        <ArrowUp className="inline h-3 w-3 ml-1" />
+      ) : (
+        <ArrowDown className="inline h-3 w-3 ml-1" />
+      )
+    ) : null;
+
   const exportCsv = () => {
     const wsName = workspaces.find((w) => w.id === selectedId)?.slug ?? "workspace";
-    const blob = new Blob([toCsv(filtered)], { type: "text/csv;charset=utf-8" });
+    const blob = new Blob([toCsv(rows)], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -160,8 +187,6 @@ function WorkspaceAuditPage() {
     a.click();
     URL.revokeObjectURL(url);
   };
-
-  const ACTION_KEYS = ["all", "added", "removed", "role_changed", "activated", "deactivated"] as const;
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto">
@@ -180,7 +205,7 @@ function WorkspaceAuditPage() {
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching || !selectedId}>
             <RefreshCw className={`h-3.5 w-3.5 mr-1 ${isFetching ? "animate-spin" : ""}`} /> Atualizar
           </Button>
-          <Button size="sm" onClick={exportCsv} disabled={filtered.length === 0}>
+          <Button size="sm" onClick={exportCsv} disabled={rows.length === 0}>
             <Download className="h-3.5 w-3.5 mr-1" /> Exportar CSV
           </Button>
         </div>
@@ -191,13 +216,16 @@ function WorkspaceAuditPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <CardTitle className="font-display text-base">
               {selectedId
-                ? `${filtered.length} registro(s) ${filtered.length !== data.length ? `de ${data.length}` : ""}`
+                ? `${total} registro(s) — página ${page + 1} de ${totalPages}`
                 : "Selecione um workspace"}
             </CardTitle>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Select
                 value={selectedId ?? ""}
-                onValueChange={(v) => setSelectedId(v)}
+                onValueChange={(v) => {
+                  setSelectedId(v);
+                  setPage(0);
+                }}
                 disabled={wsLoading || workspaces.length === 0}
               >
                 <SelectTrigger className="h-9 w-64">
@@ -215,8 +243,11 @@ function WorkspaceAuditPage() {
                 <Search className="absolute left-2 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
                 <Input
                   value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="Buscar por papel, e-mail, IP…"
+                  onChange={(e) => {
+                    setQ(e.target.value);
+                    setPage(0);
+                  }}
+                  placeholder="Buscar por papel, IP ou navegador…"
                   className="pl-7 h-9 w-72"
                 />
               </div>
@@ -229,9 +260,12 @@ function WorkspaceAuditPage() {
                 size="sm"
                 variant={action === k ? "default" : "outline"}
                 className="h-8"
-                onClick={() => setAction(k)}
+                onClick={() => {
+                  setAction(k);
+                  setPage(0);
+                }}
               >
-                {k === "all" ? "Todos" : ACTION_LABEL[k]}
+                {k === "all" ? "Todos" : ACTION_LABEL[k as Action]}
               </Button>
             ))}
           </div>
@@ -245,54 +279,110 @@ function WorkspaceAuditPage() {
                   ? "Você não administra nenhum workspace."
                   : "Selecione um workspace para ver os eventos."}
             </p>
-          ) : isLoading ? (
+          ) : isLoading && !data ? (
             <p className="text-sm text-muted-foreground">Carregando…</p>
-          ) : filtered.length === 0 ? (
+          ) : rows.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhum evento registrado neste workspace.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="whitespace-nowrap">Quando</TableHead>
-                    <TableHead>Ação</TableHead>
-                    <TableHead>Detalhe</TableHead>
-                    <TableHead>Usuário alvo</TableHead>
-                    <TableHead>Executado por</TableHead>
-                    <TableHead>IP</TableHead>
-                    <TableHead>Navegador</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map((r) => (
-                    <TableRow key={r.id}>
-                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
-                        {fmtDate(r.createdAt)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={ACTION_VARIANT[r.action]} className="uppercase text-[10px]">
-                          {ACTION_LABEL[r.action]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-xs">{summary(r)}</TableCell>
-                      <TableCell className="font-mono text-xs">
-                        {r.targetEmail ?? r.targetUserId}
-                      </TableCell>
-                      <TableCell className="font-mono text-xs">
-                        {r.actorEmail ?? r.actorUserId ?? "sistema"}
-                      </TableCell>
-                      <TableCell className="font-mono text-xs">{r.ip ?? "—"}</TableCell>
-                      <TableCell
-                        className="font-mono text-xs max-w-[280px] truncate"
-                        title={r.userAgent ?? ""}
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead
+                        className="whitespace-nowrap cursor-pointer select-none"
+                        onClick={() => toggleSort("created_at")}
                       >
-                        {r.userAgent ?? "—"}
-                      </TableCell>
+                        Quando {sortIcon("created_at")}
+                      </TableHead>
+                      <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("action")}>
+                        Ação {sortIcon("action")}
+                      </TableHead>
+                      <TableHead>Detalhe</TableHead>
+                      <TableHead>Usuário alvo</TableHead>
+                      <TableHead>Executado por</TableHead>
+                      <TableHead>IP</TableHead>
+                      <TableHead>Navegador</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {rows.map((r) => (
+                      <TableRow key={r.id}>
+                        <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                          {fmtDate(r.createdAt)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={ACTION_VARIANT[r.action]} className="uppercase text-[10px]">
+                            {ACTION_LABEL[r.action]}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs">{summary(r)}</TableCell>
+                        <TableCell className="font-mono text-xs">
+                          {r.targetEmail ?? r.targetUserId}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs">
+                          {r.actorEmail ?? r.actorUserId ?? "sistema"}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs">{r.ip ?? "—"}</TableCell>
+                        <TableCell
+                          className="font-mono text-xs max-w-[280px] truncate"
+                          title={r.userAgent ?? ""}
+                        >
+                          {r.userAgent ?? "—"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>Itens por página</span>
+                  <Select
+                    value={String(pageSize)}
+                    onValueChange={(v) => {
+                      setPageSize(Number(v));
+                      setPage(0);
+                    }}
+                  >
+                    <SelectTrigger className="h-8 w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAGE_SIZES.map((n) => (
+                        <SelectItem key={n} value={String(n)}>
+                          {n}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                    disabled={page === 0 || isFetching}
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5 mr-1" /> Anterior
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    {page + 1} / {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                    disabled={page + 1 >= totalPages || isFetching}
+                    onClick={() => setPage((p) => p + 1)}
+                  >
+                    Próxima <ChevronRight className="h-3.5 w-3.5 ml-1" />
+                  </Button>
+                </div>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
