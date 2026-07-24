@@ -4,6 +4,15 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type ExportJobStatus = "queued" | "processing" | "completed" | "failed" | "canceled";
 
+export type ExportJobFilters = {
+  search: string;
+  action: string;
+  sortBy: string;
+  sortDir: "asc" | "desc";
+  fromDate?: string;
+  toDate?: string;
+};
+
 export type ExportJob = {
   id: string;
   kind: "role_audit" | "workspace_member_audit";
@@ -17,7 +26,7 @@ export type ExportJob = {
   startedAt: string | null;
   completedAt: string | null;
   workspaceId: string | null;
-  filters: Record<string, unknown>;
+  filters: ExportJobFilters;
 };
 
 const filtersSchema = z.object({
@@ -35,30 +44,54 @@ const enqueueSchema = z.object({
   filters: filtersSchema,
 });
 
-function toJob(row: Record<string, unknown>): ExportJob {
+type RawRow = {
+  id: string;
+  kind: string;
+  status: string;
+  total_rows: number | null;
+  processed_rows: number | null;
+  file_path: string | null;
+  file_size_bytes: number | null;
+  error: string | null;
+  created_at: string;
+  started_at: string | null;
+  completed_at: string | null;
+  workspace_id: string | null;
+  filters: ExportJobFilters | null;
+};
+
+function toJob(row: RawRow): ExportJob {
   return {
-    id: row.id as string,
+    id: row.id,
     kind: row.kind as ExportJob["kind"],
     status: row.status as ExportJobStatus,
-    totalRows: (row.total_rows as number | null) ?? null,
-    processedRows: (row.processed_rows as number | null) ?? null,
-    filePath: (row.file_path as string | null) ?? null,
-    fileSizeBytes: (row.file_size_bytes as number | null) ?? null,
-    error: (row.error as string | null) ?? null,
-    createdAt: row.created_at as string,
-    startedAt: (row.started_at as string | null) ?? null,
-    completedAt: (row.completed_at as string | null) ?? null,
-    workspaceId: (row.workspace_id as string | null) ?? null,
-    filters: (row.filters as Record<string, unknown>) ?? {},
+    totalRows: row.total_rows,
+    processedRows: row.processed_rows,
+    filePath: row.file_path,
+    fileSizeBytes: row.file_size_bytes,
+    error: row.error,
+    createdAt: row.created_at,
+    startedAt: row.started_at,
+    completedAt: row.completed_at,
+    workspaceId: row.workspace_id,
+    filters:
+      row.filters ?? {
+        search: "",
+        action: "all",
+        sortBy: "created_at",
+        sortDir: "desc",
+      },
   };
 }
 
-/** Enqueue an async export job. Best-effort triggers processing immediately; pg_cron is a fallback. */
+// The generated Database types do not yet include the new `export_jobs` table.
+// Use light `any` casts on the query builders until types regen.
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export const enqueueAuditExportFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw: unknown) => enqueueSchema.parse(raw))
   .handler(async ({ data, context }): Promise<ExportJob> => {
-    // Authorization mirrors the sync audit endpoints
     if (data.kind === "role_audit") {
       const { data: isSuper } = await context.supabase.rpc("is_super_admin", {
         _user_id: context.userId,
@@ -84,7 +117,8 @@ export const enqueueAuditExportFn = createServerFn({ method: "POST" })
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: inserted, error: insErr } = await supabaseAdmin
+    const admin = supabaseAdmin as any;
+    const { data: inserted, error: insErr } = await admin
       .from("export_jobs")
       .insert({
         user_id: context.userId,
@@ -98,7 +132,6 @@ export const enqueueAuditExportFn = createServerFn({ method: "POST" })
       .single();
     if (insErr || !inserted) throw new Error(insErr?.message ?? "Failed to enqueue job");
 
-    // Best-effort kick — pg_cron will pick it up within a minute if this fails.
     const base = process.env.PUBLIC_APP_URL || "https://nsbflow.lovable.app";
     void fetch(`${base}/api/public/hooks/process-export-jobs`, {
       method: "POST",
@@ -106,7 +139,7 @@ export const enqueueAuditExportFn = createServerFn({ method: "POST" })
       body: JSON.stringify({ jobId: (inserted as { id: string }).id }),
     }).catch(() => undefined);
 
-    return toJob(inserted as Record<string, unknown>);
+    return toJob(inserted as RawRow);
   });
 
 const listSchema = z.object({
@@ -119,7 +152,7 @@ export const listAuditExportJobsFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw: unknown) => listSchema.parse(raw ?? {}))
   .handler(async ({ data, context }): Promise<ExportJob[]> => {
-    let q = context.supabase
+    let q = (context.supabase as any)
       .from("export_jobs")
       .select("*")
       .eq("user_id", context.userId)
@@ -129,7 +162,7 @@ export const listAuditExportJobsFn = createServerFn({ method: "POST" })
     if (data.workspaceId) q = q.eq("workspace_id", data.workspaceId);
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
-    return (rows ?? []).map((r) => toJob(r as Record<string, unknown>));
+    return ((rows ?? []) as RawRow[]).map(toJob);
   });
 
 const downloadSchema = z.object({ jobId: z.string().uuid() });
@@ -138,7 +171,7 @@ export const getExportDownloadUrlFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw: unknown) => downloadSchema.parse(raw))
   .handler(async ({ data, context }): Promise<{ url: string; filename: string }> => {
-    const { data: job, error } = await context.supabase
+    const { data: job, error } = await (context.supabase as any)
       .from("export_jobs")
       .select("id, user_id, status, file_path, kind, created_at")
       .eq("id", data.jobId)
@@ -151,7 +184,7 @@ export const getExportDownloadUrlFn = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: signed, error: sErr } = await supabaseAdmin.storage
       .from("audit-exports")
-      .createSignedUrl(job.file_path, 300);
+      .createSignedUrl(job.file_path as string, 300);
     if (sErr || !signed) throw new Error(sErr?.message ?? "Failed to sign URL");
 
     const stamp = new Date(job.created_at as string).toISOString().slice(0, 10);

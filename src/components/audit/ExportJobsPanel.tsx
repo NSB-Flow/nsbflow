@@ -31,7 +31,7 @@ export function ExportJobsPanel(props: {
   const list = useServerFn(listAuditExportJobsFn);
   const download = useServerFn(getExportDownloadUrlFn);
 
-  const { data, isFetching, refetch } = useQuery({
+  const { data, isFetching, refetch } = useQuery<ExportJob[]>({
     queryKey: ["export-jobs", props.kind, props.workspaceId ?? "-"],
     queryFn: () =>
       list({
@@ -48,7 +48,7 @@ export function ExportJobsPanel(props: {
     staleTime: 3000,
   });
 
-  const jobs = data ?? [];
+  const jobs: ExportJob[] = data ?? [];
   if (jobs.length === 0) return null;
 
   const handleDownload = async (jobId: string) => {
