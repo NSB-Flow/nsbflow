@@ -287,7 +287,11 @@ function RoleAuditPage() {
                   </TableHeader>
                   <TableBody>
                     {rows.map((r) => (
-                      <TableRow key={r.id}>
+                      <TableRow
+                        key={r.id}
+                        onClick={() => setSelected(r)}
+                        className="cursor-pointer hover:bg-muted/40"
+                      >
                         <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                           {fmtDate(r.createdAt)}
                         </TableCell>
