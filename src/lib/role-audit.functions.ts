@@ -32,7 +32,10 @@ const inputSchema = z.object({
   sortDir: z.enum(["asc", "desc"]).default("desc"),
   action: z.enum(["all", "granted", "revoked"]).default("all"),
   search: z.string().default(""),
+  fromDate: z.string().datetime().optional(),
+  toDate: z.string().datetime().optional(),
 });
+
 
 export const getRoleAuditFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
