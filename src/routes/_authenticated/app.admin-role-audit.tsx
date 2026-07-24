@@ -55,6 +55,27 @@ function toCsv(rows: RoleAuditEntry[]) {
 
 const PAGE_SIZES = [25, 50, 100, 200];
 
+function applyQuickPeriod(
+  type: "7" | "30" | "month",
+  setFrom: (v: string) => void,
+  setTo: (v: string) => void,
+  setPage: (v: number) => void,
+) {
+  const today = new Date();
+  const to = today.toISOString().slice(0, 10);
+  let from: string;
+  if (type === "month") {
+    from = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-01`;
+  } else {
+    const d = new Date(today);
+    d.setDate(d.getDate() - Number(type));
+    from = d.toISOString().slice(0, 10);
+  }
+  setFrom(from);
+  setTo(to);
+  setPage(0);
+}
+
 function RoleAuditPage() {
   const { roles, loading } = useAuth();
 
