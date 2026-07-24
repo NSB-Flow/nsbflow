@@ -66,13 +66,22 @@ function RoleAuditPage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(50);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
+  const fromISO = fromDate ? new Date(`${fromDate}T00:00:00`).toISOString() : undefined;
+  const toISO = toDate ? new Date(`${toDate}T23:59:59.999`).toISOString() : undefined;
 
   const { data, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ["role-audit", { q, action, sortBy, sortDir, page, pageSize }],
-    queryFn: () => fetchAudit({ data: { search: q, action, sortBy, sortDir, page, pageSize } }),
+    queryKey: ["role-audit", { q, action, sortBy, sortDir, page, pageSize, fromISO, toISO }],
+    queryFn: () =>
+      fetchAudit({
+        data: { search: q, action, sortBy, sortDir, page, pageSize, fromDate: fromISO, toDate: toISO },
+      }),
     placeholderData: keepPreviousData,
     enabled: !loading && roles.includes("super_admin"),
   });
+
 
   if (loading) return null;
   if (!roles.includes("super_admin")) return <Navigate to="/app" />;
