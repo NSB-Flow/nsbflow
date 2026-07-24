@@ -148,6 +148,8 @@ function RoleAuditPage() {
                     <TableHead>Perfil</TableHead>
                     <TableHead>Usuário alvo</TableHead>
                     <TableHead>Executado por</TableHead>
+                    <TableHead>IP</TableHead>
+                    <TableHead>Navegador</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -172,6 +174,15 @@ function RoleAuditPage() {
                       </TableCell>
                       <TableCell className="font-mono text-xs">
                         {r.actorEmail ?? r.actorUserId ?? "sistema"}
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {r.ip ?? "—"}
+                      </TableCell>
+                      <TableCell
+                        className="font-mono text-xs max-w-[280px] truncate"
+                        title={r.userAgent ?? ""}
+                      >
+                        {r.userAgent ?? "—"}
                       </TableCell>
                     </TableRow>
                   ))}
