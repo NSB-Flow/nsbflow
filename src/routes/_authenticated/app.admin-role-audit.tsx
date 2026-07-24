@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AuditDetailSheet, type AuditField } from "@/components/audit/AuditDetailSheet";
 
 export const Route = createFileRoute("/_authenticated/app/admin-role-audit")({
   head: () => ({ meta: [{ title: "Auditoria de Perfis — NSB Flow" }] }),
@@ -89,6 +90,7 @@ function RoleAuditPage() {
   const [pageSize, setPageSize] = useState(50);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [selected, setSelected] = useState<RoleAuditEntry | null>(null);
 
   const fromISO = fromDate ? new Date(`${fromDate}T00:00:00`).toISOString() : undefined;
   const toISO = toDate ? new Date(`${toDate}T23:59:59.999`).toISOString() : undefined;
@@ -285,7 +287,11 @@ function RoleAuditPage() {
                   </TableHeader>
                   <TableBody>
                     {rows.map((r) => (
-                      <TableRow key={r.id}>
+                      <TableRow
+                        key={r.id}
+                        onClick={() => setSelected(r)}
+                        className="cursor-pointer hover:bg-muted/40"
+                      >
                         <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                           {fmtDate(r.createdAt)}
                         </TableCell>
@@ -369,6 +375,42 @@ function RoleAuditPage() {
           )}
         </CardContent>
       </Card>
+
+      {(() => {
+        const r = selected;
+        const fields: AuditField[] = r
+          ? [
+              { label: "Quando", value: fmtDate(r.createdAt) },
+              { label: "Ação", value: r.action === "granted" ? "Concedido" : "Removido" },
+              { label: "Perfil", value: ROLE_LABELS[r.role as AppRole] ?? r.role },
+              { label: "ID do evento", value: r.id, mono: true, full: true },
+              { label: "Usuário alvo", value: r.targetEmail ?? "—", mono: true },
+              { label: "ID alvo", value: r.targetUserId, mono: true },
+              { label: "Executado por", value: r.actorEmail ?? "sistema", mono: true },
+              { label: "ID executor", value: r.actorUserId ?? "—", mono: true },
+              { label: "IP", value: r.ip ?? "—", mono: true },
+              { label: "User agent", value: r.userAgent ?? "—", mono: true, full: true },
+            ]
+          : [];
+        return (
+          <AuditDetailSheet
+            open={!!r}
+            onOpenChange={(v) => !v && setSelected(null)}
+            title="Evento de perfil"
+            subtitle={r ? fmtDate(r.createdAt) : undefined}
+            badge={
+              r
+                ? {
+                    label: r.action === "granted" ? "Concedido" : "Removido",
+                    variant: r.action === "granted" ? "default" : "destructive",
+                  }
+                : undefined
+            }
+            fields={fields}
+            raw={r ?? {}}
+          />
+        );
+      })()}
     </div>
   );
 }

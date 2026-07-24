@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AuditDetailSheet, type AuditField } from "@/components/audit/AuditDetailSheet";
 
 export const Route = createFileRoute("/_authenticated/app/admin-workspace-audit")({
   head: () => ({ meta: [{ title: "Auditoria de Workspace — NSB Flow" }] }),
@@ -137,6 +138,7 @@ function WorkspaceAuditPage() {
   const [pageSize, setPageSize] = useState(50);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [selected, setSelected] = useState<WorkspaceMemberAuditEntry | null>(null);
 
   const fromISO = fromDate ? new Date(`${fromDate}T00:00:00`).toISOString() : undefined;
   const toISO = toDate ? new Date(`${toDate}T23:59:59.999`).toISOString() : undefined;
@@ -392,7 +394,11 @@ function WorkspaceAuditPage() {
                   </TableHeader>
                   <TableBody>
                     {rows.map((r) => (
-                      <TableRow key={r.id}>
+                      <TableRow
+                        key={r.id}
+                        onClick={() => setSelected(r)}
+                        className="cursor-pointer hover:bg-muted/40"
+                      >
                         <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                           {fmtDate(r.createdAt)}
                         </TableCell>
@@ -471,6 +477,40 @@ function WorkspaceAuditPage() {
           )}
         </CardContent>
       </Card>
+
+      {(() => {
+        const r = selected;
+        const fields: AuditField[] = r
+          ? [
+              { label: "Quando", value: fmtDate(r.createdAt) },
+              { label: "Ação", value: ACTION_LABEL[r.action] },
+              { label: "Detalhe", value: summary(r), full: true },
+              { label: "Papel anterior", value: labelRole(r.oldRole) },
+              { label: "Papel novo", value: labelRole(r.newRole) },
+              { label: "Ativo anterior", value: r.oldActive == null ? "—" : r.oldActive ? "Sim" : "Não" },
+              { label: "Ativo novo", value: r.newActive == null ? "—" : r.newActive ? "Sim" : "Não" },
+              { label: "ID do evento", value: r.id, mono: true, full: true },
+              { label: "Workspace", value: r.workspaceId, mono: true, full: true },
+              { label: "Usuário alvo", value: r.targetEmail ?? "—", mono: true },
+              { label: "ID alvo", value: r.targetUserId, mono: true },
+              { label: "Executado por", value: r.actorEmail ?? "sistema", mono: true },
+              { label: "ID executor", value: r.actorUserId ?? "—", mono: true },
+              { label: "IP", value: r.ip ?? "—", mono: true },
+              { label: "User agent", value: r.userAgent ?? "—", mono: true, full: true },
+            ]
+          : [];
+        return (
+          <AuditDetailSheet
+            open={!!r}
+            onOpenChange={(v) => !v && setSelected(null)}
+            title="Evento de workspace"
+            subtitle={r ? fmtDate(r.createdAt) : undefined}
+            badge={r ? { label: ACTION_LABEL[r.action], variant: ACTION_VARIANT[r.action] } : undefined}
+            fields={fields}
+            raw={r ?? {}}
+          />
+        );
+      })()}
     </div>
   );
 }
