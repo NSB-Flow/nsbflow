@@ -107,29 +107,16 @@ function summary(r: WorkspaceMemberAuditEntry) {
   }
 }
 
-function toCsv(rows: WorkspaceMemberAuditEntry[]) {
-  const header = ["quando", "acao", "detalhe", "usuario_alvo", "executado_por", "ip", "user_agent"];
-  const esc = (v: string | null) => {
-    const s = v == null ? "" : String(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  const lines = [header.join(",")];
-  for (const r of rows) {
-    lines.push(
-      [
-        r.createdAt,
-        ACTION_LABEL[r.action],
-        summary(r),
-        r.targetEmail ?? r.targetUserId,
-        r.actorEmail ?? r.actorUserId ?? "sistema",
-        r.ip,
-        r.userAgent,
-      ]
-        .map(esc)
-        .join(","),
-    );
-  }
-  return lines.join("\n");
+function buildColumns(): ExportColumn<WorkspaceMemberAuditEntry>[] {
+  return [
+    { header: "Quando", value: (r) => fmtDate(r.createdAt), pdfWidth: 110 },
+    { header: "Ação", value: (r) => ACTION_LABEL[r.action], pdfWidth: 80 },
+    { header: "Detalhe", value: (r) => summary(r), pdfWidth: 140 },
+    { header: "Usuário alvo", value: (r) => r.targetEmail ?? r.targetUserId },
+    { header: "Executado por", value: (r) => r.actorEmail ?? r.actorUserId ?? "sistema" },
+    { header: "IP", value: (r) => r.ip ?? "—", pdfWidth: 90 },
+    { header: "Navegador", value: (r) => r.userAgent ?? "—" },
+  ];
 }
 
 function WorkspaceAuditPage() {
