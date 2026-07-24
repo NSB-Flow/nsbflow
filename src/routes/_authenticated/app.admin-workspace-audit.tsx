@@ -136,6 +136,7 @@ function WorkspaceAuditPage() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [selected, setSelected] = useState<WorkspaceMemberAuditEntry | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const fromISO = fromDate ? new Date(`${fromDate}T00:00:00`).toISOString() : undefined;
   const toISO = toDate ? new Date(`${toDate}T23:59:59.999`).toISOString() : undefined;
