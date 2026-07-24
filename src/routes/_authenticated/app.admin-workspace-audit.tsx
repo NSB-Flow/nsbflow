@@ -276,7 +276,46 @@ function WorkspaceAuditPage() {
                 {k === "all" ? "Todos" : ACTION_LABEL[k as Action]}
               </Button>
             ))}
+            <div className="ml-auto flex items-center gap-2 flex-wrap">
+              <label className="text-xs text-muted-foreground">De</label>
+              <Input
+                type="date"
+                value={fromDate}
+                max={toDate || undefined}
+                onChange={(e) => {
+                  setFromDate(e.target.value);
+                  setPage(0);
+                }}
+                className="h-8 w-40"
+              />
+              <label className="text-xs text-muted-foreground">Até</label>
+              <Input
+                type="date"
+                value={toDate}
+                min={fromDate || undefined}
+                onChange={(e) => {
+                  setToDate(e.target.value);
+                  setPage(0);
+                }}
+                className="h-8 w-40"
+              />
+              {(fromDate || toDate) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8"
+                  onClick={() => {
+                    setFromDate("");
+                    setToDate("");
+                    setPage(0);
+                  }}
+                >
+                  Limpar
+                </Button>
+              )}
+            </div>
           </div>
+
         </CardHeader>
         <CardContent>
           {!selectedId ? (
