@@ -17,6 +17,7 @@ export type Database = {
       agent_runs: {
         Row: {
           agent: string
+          agent_id: string | null
           cnpj: string | null
           company_id: string | null
           company_name: string | null
@@ -35,6 +36,7 @@ export type Database = {
         }
         Insert: {
           agent: string
+          agent_id?: string | null
           cnpj?: string | null
           company_id?: string | null
           company_name?: string | null
@@ -53,6 +55,7 @@ export type Database = {
         }
         Update: {
           agent?: string
+          agent_id?: string | null
           cnpj?: string | null
           company_id?: string | null
           company_name?: string | null
@@ -71,6 +74,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "agent_runs_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "agent_runs_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
@@ -85,6 +95,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      agents: {
+        Row: {
+          category: string | null
+          created_at: string
+          credit_cost: number
+          description: string | null
+          display_name: string
+          id: string
+          is_active: boolean
+          min_plan: string
+          n8n_webhook_url: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          credit_cost?: number
+          description?: string | null
+          display_name: string
+          id?: string
+          is_active?: boolean
+          min_plan?: string
+          n8n_webhook_url?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          credit_cost?: number
+          description?: string | null
+          display_name?: string
+          id?: string
+          is_active?: boolean
+          min_plan?: string
+          n8n_webhook_url?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       app_settings: {
         Row: {
