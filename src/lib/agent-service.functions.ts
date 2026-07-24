@@ -60,18 +60,24 @@ export const runAgentFn = createServerFn({ method: "POST" })
     }
 
     if (agentRow?.min_plan) {
-      const { data: subRow } = await supabase
-        .from("subscriptions")
-        .select("plans(tier)")
-        .eq("workspace_id", data.workspaceId)
-        .maybeSingle();
-      const plan = Array.isArray(subRow?.plans) ? subRow?.plans[0] : subRow?.plans;
-      const tierRank: Record<string, number> = { smart: 1, pro: 2, enterprise: 3 };
-      const currentRank = tierRank[plan?.tier ?? ""] ?? 0;
-      const requiredRank = tierRank[agentRow.min_plan] ?? 0;
-      if (currentRank < requiredRank) {
-        const label = agentRow.min_plan.charAt(0).toUpperCase() + agentRow.min_plan.slice(1);
-        throw new Error(`Este agente requer o plano ${label} ou superior.`);
+      // Exceção deliberada: super_admins são isentos do gate de min_plan para
+      // permitir testes/administração interna da plataforma, mesmo em workspaces
+      // sem assinatura ativa. Não é regra de negócio para clientes finais.
+      const { data: isSuper } = await supabase.rpc("is_super_admin", { _user_id: userId });
+      if (!isSuper) {
+        const { data: subRow } = await supabase
+          .from("subscriptions")
+          .select("plans(tier)")
+          .eq("workspace_id", data.workspaceId)
+          .maybeSingle();
+        const plan = Array.isArray(subRow?.plans) ? subRow?.plans[0] : subRow?.plans;
+        const tierRank: Record<string, number> = { smart: 1, pro: 2, enterprise: 3 };
+        const currentRank = tierRank[plan?.tier ?? ""] ?? 0;
+        const requiredRank = tierRank[agentRow.min_plan] ?? 0;
+        if (currentRank < requiredRank) {
+          const label = agentRow.min_plan.charAt(0).toUpperCase() + agentRow.min_plan.slice(1);
+          throw new Error(`Este agente requer o plano ${label} ou superior.`);
+        }
       }
     }
 
