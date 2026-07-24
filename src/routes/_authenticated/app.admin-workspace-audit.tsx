@@ -2,7 +2,7 @@ import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ShieldCheck, Download, RefreshCw, Search, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ShieldCheck, Download, RefreshCw, Search, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, FileText, FileSpreadsheet, Loader2 } from "lucide-react";
 import {
   listAuditableWorkspacesFn,
   getWorkspaceMemberAuditFn,
@@ -23,8 +23,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AuditDetailSheet, type AuditField } from "@/components/audit/AuditDetailSheet";
+import { downloadCsv, downloadAuditPdf, type ExportColumn } from "@/lib/audit-export";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/app/admin-workspace-audit")({
   head: () => ({ meta: [{ title: "Auditoria de Workspace — NSB Flow" }] }),
@@ -97,29 +107,16 @@ function summary(r: WorkspaceMemberAuditEntry) {
   }
 }
 
-function toCsv(rows: WorkspaceMemberAuditEntry[]) {
-  const header = ["quando", "acao", "detalhe", "usuario_alvo", "executado_por", "ip", "user_agent"];
-  const esc = (v: string | null) => {
-    const s = v == null ? "" : String(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  const lines = [header.join(",")];
-  for (const r of rows) {
-    lines.push(
-      [
-        r.createdAt,
-        ACTION_LABEL[r.action],
-        summary(r),
-        r.targetEmail ?? r.targetUserId,
-        r.actorEmail ?? r.actorUserId ?? "sistema",
-        r.ip,
-        r.userAgent,
-      ]
-        .map(esc)
-        .join(","),
-    );
-  }
-  return lines.join("\n");
+function buildColumns(): ExportColumn<WorkspaceMemberAuditEntry>[] {
+  return [
+    { header: "Quando", value: (r) => fmtDate(r.createdAt), pdfWidth: 110 },
+    { header: "Ação", value: (r) => ACTION_LABEL[r.action], pdfWidth: 80 },
+    { header: "Detalhe", value: (r) => summary(r), pdfWidth: 140 },
+    { header: "Usuário alvo", value: (r) => r.targetEmail ?? r.targetUserId },
+    { header: "Executado por", value: (r) => r.actorEmail ?? r.actorUserId ?? "sistema" },
+    { header: "IP", value: (r) => r.ip ?? "—", pdfWidth: 90 },
+    { header: "Navegador", value: (r) => r.userAgent ?? "—" },
+  ];
 }
 
 function WorkspaceAuditPage() {
@@ -139,6 +136,7 @@ function WorkspaceAuditPage() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [selected, setSelected] = useState<WorkspaceMemberAuditEntry | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const fromISO = fromDate ? new Date(`${fromDate}T00:00:00`).toISOString() : undefined;
   const toISO = toDate ? new Date(`${toDate}T23:59:59.999`).toISOString() : undefined;
@@ -208,15 +206,67 @@ function WorkspaceAuditPage() {
       )
     ) : null;
 
-  const exportCsv = () => {
-    const wsName = workspaces.find((w) => w.id === selectedId)?.slug ?? "workspace";
-    const blob = new Blob([toCsv(rows)], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `nsb-flow-workspace-audit-${wsName}-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const currentWs = workspaces.find((w) => w.id === selectedId);
+  const filterMeta = [
+    { label: "Workspace", value: currentWs?.name ?? selectedId ?? "—" },
+    { label: "Filtro de ação", value: action === "all" ? "Todos" : ACTION_LABEL[action as Action] },
+    { label: "Ordenação", value: `${sortBy} (${sortDir === "asc" ? "crescente" : "decrescente"})` },
+    ...(q.trim() ? [{ label: "Busca", value: q.trim() }] : []),
+    ...(fromDate ? [{ label: "De", value: fromDate }] : []),
+    ...(toDate ? [{ label: "Até", value: toDate }] : []),
+  ];
+
+  const runExport = async (scope: "page" | "all", format: "csv" | "pdf") => {
+    if (!selectedId) return;
+    setExporting(true);
+    try {
+      const cols = buildColumns();
+      let data: WorkspaceMemberAuditEntry[] = rows;
+      if (scope === "all") {
+        const res = await fetchAudit({
+          data: {
+            workspaceId: selectedId,
+            search: q,
+            action,
+            sortBy,
+            sortDir,
+            page: 0,
+            pageSize,
+            fromDate: fromISO,
+            toDate: toISO,
+            all: true,
+          },
+        });
+        data = res.rows;
+      }
+      if (data.length === 0) {
+        toast.info("Nenhum registro para exportar.");
+        return;
+      }
+      const wsSlug = currentWs?.slug ?? "workspace";
+      const stamp = new Date().toISOString().slice(0, 10);
+      const scopeTag = scope === "all" ? "filtrados" : `pag${page + 1}`;
+      const base = `nsb-flow-workspace-audit-${wsSlug}-${scopeTag}-${stamp}`;
+      if (format === "csv") {
+        downloadCsv(data, cols, `${base}.csv`);
+      } else {
+        downloadAuditPdf({
+          rows: data,
+          cols,
+          filename: `${base}.pdf`,
+          title: "Auditoria de Membros do Workspace",
+          subtitle: scope === "all"
+            ? `Exportação de todos os eventos filtrados (limite 5000).`
+            : `Exportação da página atual (${page + 1} de ${totalPages}).`,
+          meta: filterMeta,
+        });
+      }
+      toast.success(`Exportação ${format.toUpperCase()} concluída (${data.length} registros).`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao exportar.");
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
@@ -236,11 +286,38 @@ function WorkspaceAuditPage() {
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching || !selectedId}>
             <RefreshCw className={`h-3.5 w-3.5 mr-1 ${isFetching ? "animate-spin" : ""}`} /> Atualizar
           </Button>
-          <Button size="sm" onClick={exportCsv} disabled={rows.length === 0}>
-            <Download className="h-3.5 w-3.5 mr-1" /> Exportar CSV
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" disabled={rows.length === 0 || exporting || !selectedId}>
+                {exporting ? (
+                  <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                ) : (
+                  <Download className="h-3.5 w-3.5 mr-1" />
+                )}
+                Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64">
+              <DropdownMenuLabel>Página atual ({rows.length})</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => runExport("page", "csv")}>
+                <FileSpreadsheet className="h-3.5 w-3.5 mr-2" /> CSV — página atual
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => runExport("page", "pdf")}>
+                <FileText className="h-3.5 w-3.5 mr-2" /> PDF — página atual
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Todos os filtrados ({total})</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => runExport("all", "csv")}>
+                <FileSpreadsheet className="h-3.5 w-3.5 mr-2" /> CSV — todos filtrados
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => runExport("all", "pdf")}>
+                <FileText className="h-3.5 w-3.5 mr-2" /> PDF — todos filtrados
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
+
 
       <Card>
         <CardHeader className="gap-3">
