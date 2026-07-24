@@ -26,7 +26,7 @@ export const getRoleAuditFn = createServerFn({ method: "GET" })
 
     const { data: rows, error } = await supabaseAdmin
       .from("user_role_audit")
-      .select("id, created_at, action, role, target_user_id, actor_user_id")
+      .select("id, created_at, action, role, target_user_id, actor_user_id, ip, user_agent")
       .order("created_at", { ascending: false })
       .limit(500);
     if (error) throw new Error(error.message);
@@ -54,5 +54,7 @@ export const getRoleAuditFn = createServerFn({ method: "GET" })
       targetEmail: emailById.get(r.target_user_id) ?? null,
       actorUserId: r.actor_user_id,
       actorEmail: r.actor_user_id ? emailById.get(r.actor_user_id) ?? null : null,
+      ip: (r as { ip: string | null }).ip ?? null,
+      userAgent: (r as { user_agent: string | null }).user_agent ?? null,
     }));
   });
