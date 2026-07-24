@@ -272,6 +272,32 @@ function WorkspaceAuditPage() {
     }
   };
 
+  const runAsyncExport = async () => {
+    if (!selectedId) return;
+    setExporting(true);
+    try {
+      await enqueueExport({
+        data: {
+          kind: "workspace_member_audit",
+          workspaceId: selectedId,
+          filters: {
+            search: q,
+            action,
+            sortBy,
+            sortDir,
+            fromDate: fromISO,
+            toDate: toISO,
+          },
+        },
+      });
+      toast.success("Exportação enfileirada. Você será notificado quando estiver pronta.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao enfileirar exportação.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto">
       <div className="mb-6 flex items-center gap-3">
@@ -310,12 +336,22 @@ function WorkspaceAuditPage() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuLabel>Todos os filtrados ({total})</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => runExport("all", "csv")}>
+              <DropdownMenuItem onClick={() => runExport("all", "csv")} disabled={total > 5000}>
                 <FileSpreadsheet className="h-3.5 w-3.5 mr-2" /> CSV — todos filtrados
+                {total > 5000 && <span className="ml-auto text-[10px] text-muted-foreground">use assíncrono</span>}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => runExport("all", "pdf")}>
+              <DropdownMenuItem onClick={() => runExport("all", "pdf")} disabled={total > 5000}>
                 <FileText className="h-3.5 w-3.5 mr-2" /> PDF — todos filtrados
+                {total > 5000 && <span className="ml-auto text-[10px] text-muted-foreground">use assíncrono</span>}
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Assíncrono (grandes volumes)</DropdownMenuLabel>
+              <DropdownMenuItem onClick={runAsyncExport} disabled={!selectedId}>
+                <FileSpreadsheet className="h-3.5 w-3.5 mr-2" /> CSV — enfileirar todos filtrados
+              </DropdownMenuItem>
+              <p className="px-2 py-1 text-[10px] text-muted-foreground">
+                Até 100.000 registros. Notificaremos quando estiver pronto.
+              </p>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
