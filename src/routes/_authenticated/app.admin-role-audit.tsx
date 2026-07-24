@@ -22,7 +22,7 @@ function fmtDate(iso: string) {
 }
 
 function toCsv(rows: RoleAuditEntry[]) {
-  const header = ["quando", "acao", "perfil", "usuario_alvo", "executado_por"];
+  const header = ["quando", "acao", "perfil", "usuario_alvo", "executado_por", "ip", "user_agent"];
   const esc = (v: string | null) => {
     const s = v == null ? "" : String(v);
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
@@ -30,7 +30,15 @@ function toCsv(rows: RoleAuditEntry[]) {
   const lines = [header.join(",")];
   for (const r of rows) {
     lines.push(
-      [r.createdAt, r.action, r.role, r.targetEmail ?? r.targetUserId, r.actorEmail ?? r.actorUserId ?? "sistema"]
+      [
+        r.createdAt,
+        r.action,
+        r.role,
+        r.targetEmail ?? r.targetUserId,
+        r.actorEmail ?? r.actorUserId ?? "sistema",
+        r.ip,
+        r.userAgent,
+      ]
         .map(esc)
         .join(","),
     );
