@@ -128,14 +128,52 @@ function RoleAuditPage() {
       )
     ) : null;
 
-  const exportCsv = () => {
-    const blob = new Blob([toCsv(rows)], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `nsb-flow-role-audit-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const filterMeta = [
+    { label: "Filtro de ação", value: action === "all" ? "Todos" : action === "granted" ? "Concedidos" : "Removidos" },
+    { label: "Ordenação", value: `${sortBy} (${sortDir === "asc" ? "crescente" : "decrescente"})` },
+    ...(q.trim() ? [{ label: "Busca", value: q.trim() }] : []),
+    ...(fromDate ? [{ label: "De", value: fromDate }] : []),
+    ...(toDate ? [{ label: "Até", value: toDate }] : []),
+  ];
+
+  const runExport = async (scope: "page" | "all", format: "csv" | "pdf") => {
+    setExporting(true);
+    try {
+      const cols = buildColumns();
+      let data: RoleAuditEntry[] = rows;
+      if (scope === "all") {
+        const res = await fetchAudit({
+          data: { search: q, action, sortBy, sortDir, page: 0, pageSize, fromDate: fromISO, toDate: toISO, all: true },
+        });
+        data = res.rows;
+      }
+      if (data.length === 0) {
+        toast.info("Nenhum registro para exportar.");
+        return;
+      }
+      const stamp = new Date().toISOString().slice(0, 10);
+      const scopeTag = scope === "all" ? "filtrados" : `pag${page + 1}`;
+      const base = `nsb-flow-role-audit-${scopeTag}-${stamp}`;
+      if (format === "csv") {
+        downloadCsv(data, cols, `${base}.csv`);
+      } else {
+        downloadAuditPdf({
+          rows: data,
+          cols,
+          filename: `${base}.pdf`,
+          title: "Auditoria de Perfis Globais",
+          subtitle: scope === "all"
+            ? `Exportação de todos os eventos filtrados (limite ${5000}).`
+            : `Exportação da página atual (${page + 1} de ${totalPages}).`,
+          meta: filterMeta,
+        });
+      }
+      toast.success(`Exportação ${format.toUpperCase()} concluída (${data.length} registros).`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao exportar.");
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
@@ -155,11 +193,38 @@ function RoleAuditPage() {
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={`h-3.5 w-3.5 mr-1 ${isFetching ? "animate-spin" : ""}`} /> Atualizar
           </Button>
-          <Button size="sm" onClick={exportCsv} disabled={rows.length === 0}>
-            <Download className="h-3.5 w-3.5 mr-1" /> Exportar CSV
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" disabled={rows.length === 0 || exporting}>
+                {exporting ? (
+                  <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                ) : (
+                  <Download className="h-3.5 w-3.5 mr-1" />
+                )}
+                Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64">
+              <DropdownMenuLabel>Página atual ({rows.length})</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => runExport("page", "csv")}>
+                <FileSpreadsheet className="h-3.5 w-3.5 mr-2" /> CSV — página atual
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => runExport("page", "pdf")}>
+                <FileText className="h-3.5 w-3.5 mr-2" /> PDF — página atual
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Todos os filtrados ({total})</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => runExport("all", "csv")}>
+                <FileSpreadsheet className="h-3.5 w-3.5 mr-2" /> CSV — todos filtrados
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => runExport("all", "pdf")}>
+                <FileText className="h-3.5 w-3.5 mr-2" /> PDF — todos filtrados
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
+
 
       <Card>
         <CardHeader className="gap-3">
