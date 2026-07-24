@@ -25,7 +25,7 @@ export interface CompanyFormValues {
 interface Props {
   initial?: Partial<CompanyFormValues>;
   submitting?: boolean;
-  onSubmit: (v: CompanyFormValues) => void | Promise<void>;
+  onSubmit: (v: CompanyFormValues) => void | Promise<unknown>;
   onCancel: () => void;
 }
 
