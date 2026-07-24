@@ -242,12 +242,22 @@ function RoleAuditPage() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuLabel>Todos os filtrados ({total})</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => runExport("all", "csv")}>
+              <DropdownMenuItem onClick={() => runExport("all", "csv")} disabled={total > 5000}>
                 <FileSpreadsheet className="h-3.5 w-3.5 mr-2" /> CSV — todos filtrados
+                {total > 5000 && <span className="ml-auto text-[10px] text-muted-foreground">use assíncrono</span>}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => runExport("all", "pdf")}>
+              <DropdownMenuItem onClick={() => runExport("all", "pdf")} disabled={total > 5000}>
                 <FileText className="h-3.5 w-3.5 mr-2" /> PDF — todos filtrados
+                {total > 5000 && <span className="ml-auto text-[10px] text-muted-foreground">use assíncrono</span>}
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Assíncrono (grandes volumes)</DropdownMenuLabel>
+              <DropdownMenuItem onClick={runAsyncExport}>
+                <FileSpreadsheet className="h-3.5 w-3.5 mr-2" /> CSV — enfileirar todos filtrados
+              </DropdownMenuItem>
+              <p className="px-2 py-1 text-[10px] text-muted-foreground">
+                Até 100.000 registros. Notificaremos quando estiver pronto.
+              </p>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
