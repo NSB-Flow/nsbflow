@@ -258,7 +258,9 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
   const { user } = useAuth();
   const { workspaceId } = useWorkspace();
   const ent = useEntitlements();
-  const [company, setCompany] = useState<Company | null>(null);
+  const [company, setCompany] = useState<Company | null>(
+    initialCompanyId ? { id: initialCompanyId, razao_social: "", cnpj: null } : null,
+  );
   const [form, setForm] = useState<Omit<MeetingForm, "company_id">>({
     objective: "",
     solutions: [],
