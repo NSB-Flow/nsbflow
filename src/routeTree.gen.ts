@@ -39,6 +39,7 @@ import { Route as AuthenticatedAppAdminSecurityRouteImport } from './routes/_aut
 import { Route as AuthenticatedAppAdminRoleAuditRouteImport } from './routes/_authenticated/app.admin-role-audit'
 import { Route as AuthenticatedAppAdminRouteImport } from './routes/_authenticated/app.admin'
 import { Route as AuthenticatedAppAcademyRouteImport } from './routes/_authenticated/app.academy'
+import { Route as ApiPublicHooksProcessExportJobsRouteImport } from './routes/api/public/hooks/process-export-jobs'
 import { Route as AuthenticatedAppHistoricoIdRouteImport } from './routes/_authenticated/app.historico.$id'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -207,6 +208,12 @@ const AuthenticatedAppAcademyRoute = AuthenticatedAppAcademyRouteImport.update({
   path: '/academy',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const ApiPublicHooksProcessExportJobsRoute =
+  ApiPublicHooksProcessExportJobsRouteImport.update({
+    id: '/api/public/hooks/process-export-jobs',
+    path: '/api/public/hooks/process-export-jobs',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAppHistoricoIdRoute =
   AuthenticatedAppHistoricoIdRouteImport.update({
     id: '/$id',
@@ -245,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/api/public/referral-check': typeof ApiPublicReferralCheckRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
+  '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -276,6 +284,7 @@ export interface FileRoutesByTo {
   '/api/public/referral-check': typeof ApiPublicReferralCheckRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
+  '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -310,6 +319,7 @@ export interface FileRoutesById {
   '/api/public/referral-check': typeof ApiPublicReferralCheckRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
+  '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -344,6 +354,7 @@ export interface FileRouteTypes {
     | '/api/public/referral-check'
     | '/app/'
     | '/app/historico/$id'
+    | '/api/public/hooks/process-export-jobs'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -375,6 +386,7 @@ export interface FileRouteTypes {
     | '/api/public/referral-check'
     | '/app'
     | '/app/historico/$id'
+    | '/api/public/hooks/process-export-jobs'
   id:
     | '__root__'
     | '/'
@@ -408,6 +420,7 @@ export interface FileRouteTypes {
     | '/api/public/referral-check'
     | '/_authenticated/app/'
     | '/_authenticated/app/historico/$id'
+    | '/api/public/hooks/process-export-jobs'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -418,6 +431,7 @@ export interface RootRouteChildren {
   GuiasFollowUpEmailTemplatesRoute: typeof GuiasFollowUpEmailTemplatesRoute
   GuiasProspeccaoDeClientesB2bRoute: typeof GuiasProspeccaoDeClientesB2bRoute
   ApiPublicReferralCheckRoute: typeof ApiPublicReferralCheckRoute
+  ApiPublicHooksProcessExportJobsRoute: typeof ApiPublicHooksProcessExportJobsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -632,6 +646,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAcademyRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/api/public/hooks/process-export-jobs': {
+      id: '/api/public/hooks/process-export-jobs'
+      path: '/api/public/hooks/process-export-jobs'
+      fullPath: '/api/public/hooks/process-export-jobs'
+      preLoaderRoute: typeof ApiPublicHooksProcessExportJobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/app/historico/$id': {
       id: '/_authenticated/app/historico/$id'
       path: '/$id'
@@ -729,6 +750,7 @@ const rootRouteChildren: RootRouteChildren = {
   GuiasFollowUpEmailTemplatesRoute: GuiasFollowUpEmailTemplatesRoute,
   GuiasProspeccaoDeClientesB2bRoute: GuiasProspeccaoDeClientesB2bRoute,
   ApiPublicReferralCheckRoute: ApiPublicReferralCheckRoute,
+  ApiPublicHooksProcessExportJobsRoute: ApiPublicHooksProcessExportJobsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
