@@ -121,6 +121,7 @@ async function buildRoleAuditCsv(job: JobRow): Promise<{ csv: string; total: num
     await (supabaseAdmin as any).from("export_jobs")
       .update({ processed_rows: total })
       .eq("id", job.id);
+    await assertNotCanceled(job.id);
 
     if (rows.length < BATCH_SIZE) break;
   }
@@ -202,6 +203,7 @@ async function buildWorkspaceAuditCsv(job: JobRow): Promise<{ csv: string; total
     await (supabaseAdmin as any).from("export_jobs")
       .update({ processed_rows: total })
       .eq("id", job.id);
+    await assertNotCanceled(job.id);
 
     if (rows.length < BATCH_SIZE) break;
   }
