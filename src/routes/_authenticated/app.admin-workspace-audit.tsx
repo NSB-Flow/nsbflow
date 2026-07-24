@@ -114,6 +114,11 @@ function WorkspaceAuditPage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(50);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
+  const fromISO = fromDate ? new Date(`${fromDate}T00:00:00`).toISOString() : undefined;
+  const toISO = toDate ? new Date(`${toDate}T23:59:59.999`).toISOString() : undefined;
 
   const { data: workspaces = [], isLoading: wsLoading } = useQuery({
     queryKey: ["auditable-workspaces"],
@@ -129,7 +134,7 @@ function WorkspaceAuditPage() {
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: [
       "workspace-member-audit",
-      { workspaceId: selectedId, q, action, sortBy, sortDir, page, pageSize },
+      { workspaceId: selectedId, q, action, sortBy, sortDir, page, pageSize, fromISO, toISO },
     ],
     queryFn: () =>
       fetchAudit({
@@ -141,11 +146,14 @@ function WorkspaceAuditPage() {
           sortDir,
           page,
           pageSize,
+          fromDate: fromISO,
+          toDate: toISO,
         },
       }),
     enabled: !!selectedId,
     placeholderData: keepPreviousData,
   });
+
 
   if (loading) return null;
 
