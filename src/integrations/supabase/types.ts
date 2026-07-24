@@ -212,29 +212,50 @@ export type Database = {
       }
       companies: {
         Row: {
+          address: string | null
+          assigned_to: string | null
           cnpj: string | null
+          company_size: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
           created_at: string
           created_by: string | null
           id: string
           razao_social: string
+          segment: string | null
           updated_at: string
           workspace_id: string | null
         }
         Insert: {
+          address?: string | null
+          assigned_to?: string | null
           cnpj?: string | null
+          company_size?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
           razao_social: string
+          segment?: string | null
           updated_at?: string
           workspace_id?: string | null
         }
         Update: {
+          address?: string | null
+          assigned_to?: string | null
           cnpj?: string | null
+          company_size?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
           razao_social?: string
+          segment?: string | null
           updated_at?: string
           workspace_id?: string | null
         }
@@ -404,6 +425,79 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "export_jobs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunities: {
+        Row: {
+          agent_run_id: string | null
+          closed_at: string | null
+          company_id: string
+          contract_months: number | null
+          created_at: string
+          created_by: string
+          id: string
+          monthly_value: number | null
+          quantity: number | null
+          status: string
+          title: string
+          total_contract_value: number | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          agent_run_id?: string | null
+          closed_at?: string | null
+          company_id: string
+          contract_months?: number | null
+          created_at?: string
+          created_by: string
+          id?: string
+          monthly_value?: number | null
+          quantity?: number | null
+          status?: string
+          title: string
+          total_contract_value?: number | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          agent_run_id?: string | null
+          closed_at?: string | null
+          company_id?: string
+          contract_months?: number | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          monthly_value?: number | null
+          quantity?: number | null
+          status?: string
+          title?: string
+          total_contract_value?: number | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunities_agent_run_id_fkey"
+            columns: ["agent_run_id"]
+            isOneToOne: false
+            referencedRelation: "agent_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunities_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunities_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
