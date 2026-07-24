@@ -261,6 +261,23 @@ async function processJob(job: JobRow): Promise<void> {
     );
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
+    if (msg === CANCELED_SENTINEL) {
+      // Status was already set to 'canceled' by the user; leave it and drop a notification.
+      await supabaseAdmin.from("user_notifications").upsert(
+        {
+          user_id: job.user_id,
+          workspace_id: job.workspace_id,
+          kind: "export_failed",
+          severity: "info",
+          title: "Exportação cancelada",
+          body: "Você cancelou esta exportação antes da conclusão.",
+          action_url: null,
+          dedupe_key: `export_canceled:${job.id}`,
+        },
+        { onConflict: "user_id,dedupe_key", ignoreDuplicates: true },
+      );
+      return;
+    }
     await (supabaseAdmin as any).from("export_jobs")
       .update({
         status: "failed",
