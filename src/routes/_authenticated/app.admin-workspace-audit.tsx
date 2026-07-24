@@ -594,6 +594,12 @@ function WorkspaceAuditPage() {
         </CardContent>
       </Card>
 
+      {selectedId && (
+        <ExportJobsPanel kind="workspace_member_audit" workspaceId={selectedId} />
+      )}
+
+
+
       {(() => {
         const r = selected;
         const fields: AuditField[] = r
