@@ -809,6 +809,51 @@ export type Database = {
           },
         ]
       }
+      workspace_member_audit: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          created_at: string
+          id: string
+          ip: string | null
+          new_active: boolean | null
+          new_role: string | null
+          old_active: boolean | null
+          old_role: string | null
+          target_user_id: string
+          user_agent: string | null
+          workspace_id: string
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          ip?: string | null
+          new_active?: boolean | null
+          new_role?: string | null
+          old_active?: boolean | null
+          old_role?: string | null
+          target_user_id: string
+          user_agent?: string | null
+          workspace_id: string
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          ip?: string | null
+          new_active?: boolean | null
+          new_role?: string | null
+          old_active?: boolean | null
+          old_role?: string | null
+          target_user_id?: string
+          user_agent?: string | null
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       workspace_members: {
         Row: {
           active: boolean
