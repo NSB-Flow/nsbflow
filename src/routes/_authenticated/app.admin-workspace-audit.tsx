@@ -146,7 +146,7 @@ function WorkspaceAuditPage() {
 
   const isSuper = roles.includes("super_admin");
   const isWsAdmin = ["super_admin", "admin", "admin_empresa", "ceo", "diretor"].includes(
-    (useWorkspace().role ?? "") as string,
+    (activeRole ?? "") as string,
   );
   if (!isSuper && !isWsAdmin) return <Navigate to="/app" />;
 
