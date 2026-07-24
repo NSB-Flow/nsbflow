@@ -22,11 +22,12 @@ export const Route = createFileRoute("/_authenticated/app/configuracoes")({
 });
 
 function Config() {
-  const { user, roles, fullName, refresh } = useAuth();
+  const { user, roles, fullName, sector, refresh } = useAuth();
   const { prefs, update: updatePrefs, reset: resetPrefs } = useAlertPrefs(user?.id);
   const getUrl = useServerFn(getWebhookUrlFn);
   const saveUrl = useServerFn(saveWebhookUrlFn);
   const [name, setName] = useState(fullName ?? "");
+  const [sectorInput, setSectorInput] = useState(sector ?? "");
   const [savingProfile, setSavingProfile] = useState(false);
   const [webhook, setWebhook] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
@@ -34,6 +35,7 @@ function Config() {
   const [savingWebhook, setSavingWebhook] = useState(false);
 
   useEffect(() => { setName(fullName ?? ""); }, [fullName]);
+  useEffect(() => { setSectorInput(sector ?? ""); }, [sector]);
 
   useEffect(() => {
     getUrl()
@@ -48,7 +50,10 @@ function Config() {
   const saveProfile = async () => {
     if (!user) return;
     setSavingProfile(true);
-    const { error } = await supabase.from("profiles").update({ full_name: name }).eq("id", user.id);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ full_name: name, sector: sectorInput.trim() || null })
+      .eq("id", user.id);
     setSavingProfile(false);
     if (error) return toast.error(error.message);
     toast.success("Perfil atualizado");
@@ -87,6 +92,17 @@ function Config() {
           <div className="space-y-1.5">
             <Label>Nome completo</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Setor</Label>
+            <Input
+              value={sectorInput}
+              onChange={(e) => setSectorInput(e.target.value)}
+              placeholder="Ex.: Corporate, Enterprise, SMB, Public"
+            />
+            <p className="text-xs text-muted-foreground">
+              Usado automaticamente nos formulários dos agentes DEAP.
+            </p>
           </div>
           <div className="space-y-1.5">
             <Label>Perfis</Label>

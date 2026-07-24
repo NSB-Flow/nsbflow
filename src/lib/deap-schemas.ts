@@ -16,11 +16,9 @@ export const SOLUTIONS = [
 ] as const;
 
 export const briefingSchema = z.object({
-  company: z.string().trim().min(2, "Informe a razão social").max(200),
-  cnpj: z.string().trim().min(14, "CNPJ inválido").max(20),
+  company_id: z.string().uuid("Selecione uma conta"),
   objective: z.string().trim().max(2000).optional().or(z.literal("")),
   solutions: z.array(z.string()).min(1, "Selecione ao menos uma solução"),
-  seller_sector: z.string().trim().max(120).optional().or(z.literal("")),
 });
 export type BriefingForm = z.infer<typeof briefingSchema>;
 

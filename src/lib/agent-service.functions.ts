@@ -6,6 +6,7 @@ import type { Json } from "@/integrations/supabase/types";
 const RunInput = z.object({
   agent: z.string().min(1),
   workspaceId: z.string().uuid(),
+  companyId: z.string().uuid(),
   runId: z.string().uuid().optional(),
   payload: z.record(z.any()),
 });
@@ -14,6 +15,7 @@ const RunInput = z.object({
  * Executa um agente externo (n8n) e persiste em agent_runs.
  * A URL do webhook fica em app_settings (chave: n8n_webhook_url), editável por admin.
  * Consome 1 crédito (pool do workspace → saldo pessoal de indicação) antes de disparar.
+ * O company_id é obrigatório — snapshot de razao_social/cnpj é gravado em agent_runs.
  */
 export const runAgentFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -21,18 +23,30 @@ export const runAgentFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<{ runId: string; status: "done" | "error"; result?: Json | null; error?: string | null; creditSource?: string }> => {
     const { supabase, userId } = context;
 
-    // 1) valida membership no workspace (defesa em profundidade além do RLS)
+    // 1) valida membership no workspace
     const { data: member } = await supabase
       .from("workspace_members")
       .select("id").eq("workspace_id", data.workspaceId).eq("user_id", userId).eq("active", true)
       .maybeSingle();
     if (!member) throw new Error("Sem acesso a este workspace.");
 
-    // 2) consome crédito (workspace pool → user pool). Enterprise = ilimitado.
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // 2) resolve conta (isolamento por workspace via RLS)
+    const { data: company, error: companyErr } = await supabase
+      .from("companies")
+      .select("id, razao_social, cnpj, workspace_id")
+      .eq("id", data.companyId)
+      .eq("workspace_id", data.workspaceId)
+      .maybeSingle();
+    if (companyErr) throw new Error(companyErr.message);
+    if (!company) throw new Error("Conta não encontrada neste workspace.");
 
-    const company = (data.payload.company as string) ?? null;
-    const cnpj = (data.payload.cnpj as string) ?? null;
+    // 3) setor do vendedor a partir do perfil
+    const { data: profile } = await supabase
+      .from("profiles").select("sector").eq("id", userId).maybeSingle();
+    const sellerSector = profile?.sector ?? null;
+
+    // 4) consome crédito (workspace pool → user pool). Enterprise = ilimitado.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Cria ou reutiliza registro
     let runId = data.runId;
@@ -42,12 +56,13 @@ export const runAgentFn = createServerFn({ method: "POST" })
         .insert({
           agent: data.agent,
           workspace_id: data.workspaceId,
+          company_id: company.id,
           payload: data.payload,
           status: "pending",
           created_by: userId,
-          company_name: company,
-          cnpj,
-          title: company ? `${data.agent} — ${company}` : data.agent,
+          company_name: company.razao_social,
+          cnpj: company.cnpj,
+          title: `${data.agent} — ${company.razao_social}`,
         })
         .select("id")
         .single();
@@ -75,7 +90,7 @@ export const runAgentFn = createServerFn({ method: "POST" })
       return { runId, status: "error", error: msg };
     }
 
-    // 3) webhook
+    // 5) webhook
     const { data: setting } = await supabase
       .from("app_settings").select("value").eq("key", "n8n_webhook_url").maybeSingle();
     const webhookUrl =
@@ -93,7 +108,15 @@ export const runAgentFn = createServerFn({ method: "POST" })
       const res = await fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agent: data.agent, runId, workspaceId: data.workspaceId, payload: data.payload }),
+        body: JSON.stringify({
+          agent: data.agent,
+          runId,
+          workspaceId: data.workspaceId,
+          companyId: company.id,
+          company: { id: company.id, razao_social: company.razao_social, cnpj: company.cnpj },
+          seller: { userId, sector: sellerSector },
+          payload: data.payload,
+        }),
         signal: controller.signal,
       });
       clearTimeout(timeout);
