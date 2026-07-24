@@ -77,16 +77,18 @@ const auditInputSchema = z.object({
   search: z.string().default(""),
   fromDate: z.string().datetime().optional(),
   toDate: z.string().datetime().optional(),
+  all: z.boolean().default(false),
 });
 
+const EXPORT_CAP = 5000;
 
 /** Retorna eventos de auditoria de um workspace, paginados e ordenados no servidor. */
 export const getWorkspaceMemberAuditFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw: unknown) => auditInputSchema.parse(raw))
   .handler(async ({ data, context }): Promise<WorkspaceMemberAuditPage> => {
-    const from = data.page * data.pageSize;
-    const to = from + data.pageSize - 1;
+    const from = data.all ? 0 : data.page * data.pageSize;
+    const to = data.all ? EXPORT_CAP - 1 : from + data.pageSize - 1;
 
     let q = context.supabase
       .from("workspace_member_audit")
