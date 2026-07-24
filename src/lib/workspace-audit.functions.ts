@@ -99,6 +99,9 @@ export const getWorkspaceMemberAuditFn = createServerFn({ method: "POST" })
       .range(from, to);
 
     if (data.action !== "all") q = q.eq("action", data.action);
+    if (data.fromDate) q = q.gte("created_at", data.fromDate);
+    if (data.toDate) q = q.lte("created_at", data.toDate);
+
 
     const term = data.search.trim();
     if (term) {
