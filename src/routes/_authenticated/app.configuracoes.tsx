@@ -106,6 +106,8 @@ function Config() {
           </div>
           <div className="space-y-1.5">
             <Label>Perfis</Label>
+            <div className="flex flex-wrap gap-1.5">
+              {roles.length === 0 ? (
                 <Badge variant="outline">Sem perfil atribuído</Badge>
               ) : (
                 roles.map((r) => <Badge key={r}>{ROLE_LABELS[r]}</Badge>)
