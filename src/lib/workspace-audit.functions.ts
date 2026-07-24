@@ -19,7 +19,17 @@ export type WorkspaceMemberAuditEntry = {
   userAgent: string | null;
 };
 
+export type WorkspaceMemberAuditPage = {
+  rows: WorkspaceMemberAuditEntry[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
 export type AuditableWorkspace = { id: string; name: string; slug: string };
+
+const SORT_COLUMNS = ["created_at", "action"] as const;
+export type WorkspaceAuditSort = (typeof SORT_COLUMNS)[number];
 
 /** Lista os workspaces que o usuário logado pode auditar. Super admins veem todos; admins veem apenas os seus. */
 export const listAuditableWorkspacesFn = createServerFn({ method: "GET" })
@@ -39,7 +49,6 @@ export const listAuditableWorkspacesFn = createServerFn({ method: "GET" })
       return data ?? [];
     }
 
-    // Admins: only workspaces they administer
     const { data: memberships, error: memErr } = await context.supabase
       .from("workspace_members")
       .select("workspace_id, role, workspaces(id, name, slug)")
@@ -56,22 +65,47 @@ export const listAuditableWorkspacesFn = createServerFn({ method: "GET" })
       .filter((x): x is AuditableWorkspace => !!x);
   });
 
-/** Retorna eventos de auditoria de um workspace. RLS já limita ao super_admin ou admin daquele workspace. */
+const auditInputSchema = z.object({
+  workspaceId: z.string().uuid(),
+  page: z.number().int().min(0).default(0),
+  pageSize: z.number().int().min(1).max(200).default(50),
+  sortBy: z.enum(SORT_COLUMNS).default("created_at"),
+  sortDir: z.enum(["asc", "desc"]).default("desc"),
+  action: z
+    .enum(["all", "added", "removed", "role_changed", "activated", "deactivated"])
+    .default("all"),
+  search: z.string().default(""),
+});
+
+/** Retorna eventos de auditoria de um workspace, paginados e ordenados no servidor. */
 export const getWorkspaceMemberAuditFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) =>
-    z.object({ workspaceId: z.string().uuid() }).parse(raw),
-  )
-  .handler(async ({ data, context }): Promise<WorkspaceMemberAuditEntry[]> => {
-    // Consulta via RLS-aware client: bloqueia automaticamente quem não pode ler
-    const { data: rows, error } = await context.supabase
+  .inputValidator((raw: unknown) => auditInputSchema.parse(raw))
+  .handler(async ({ data, context }): Promise<WorkspaceMemberAuditPage> => {
+    const from = data.page * data.pageSize;
+    const to = from + data.pageSize - 1;
+
+    let q = context.supabase
       .from("workspace_member_audit")
       .select(
         "id, created_at, workspace_id, action, old_role, new_role, old_active, new_active, target_user_id, actor_user_id, ip, user_agent",
+        { count: "exact" },
       )
       .eq("workspace_id", data.workspaceId)
-      .order("created_at", { ascending: false })
-      .limit(500);
+      .order(data.sortBy, { ascending: data.sortDir === "asc" })
+      .range(from, to);
+
+    if (data.action !== "all") q = q.eq("action", data.action);
+
+    const term = data.search.trim();
+    if (term) {
+      const like = `%${term}%`;
+      q = q.or(
+        `old_role.ilike.${like},new_role.ilike.${like},ip.ilike.${like},user_agent.ilike.${like}`,
+      );
+    }
+
+    const { data: rows, error, count } = await q;
     if (error) throw new Error(error.message);
 
     const ids = new Set<string>();
@@ -89,20 +123,25 @@ export const getWorkspaceMemberAuditFn = createServerFn({ method: "POST" })
       }
     }
 
-    return (rows ?? []).map((r) => ({
-      id: r.id,
-      createdAt: r.created_at,
-      workspaceId: r.workspace_id,
-      action: r.action as WorkspaceMemberAuditEntry["action"],
-      oldRole: r.old_role,
-      newRole: r.new_role,
-      oldActive: r.old_active,
-      newActive: r.new_active,
-      targetUserId: r.target_user_id,
-      targetEmail: emailById.get(r.target_user_id) ?? null,
-      actorUserId: r.actor_user_id,
-      actorEmail: r.actor_user_id ? emailById.get(r.actor_user_id) ?? null : null,
-      ip: r.ip,
-      userAgent: r.user_agent,
-    }));
+    return {
+      rows: (rows ?? []).map((r) => ({
+        id: r.id,
+        createdAt: r.created_at,
+        workspaceId: r.workspace_id,
+        action: r.action as WorkspaceMemberAuditEntry["action"],
+        oldRole: r.old_role,
+        newRole: r.new_role,
+        oldActive: r.old_active,
+        newActive: r.new_active,
+        targetUserId: r.target_user_id,
+        targetEmail: emailById.get(r.target_user_id) ?? null,
+        actorUserId: r.actor_user_id,
+        actorEmail: r.actor_user_id ? emailById.get(r.actor_user_id) ?? null : null,
+        ip: r.ip,
+        userAgent: r.user_agent,
+      })),
+      total: count ?? 0,
+      page: data.page,
+      pageSize: data.pageSize,
+    };
   });

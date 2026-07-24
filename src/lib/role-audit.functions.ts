@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type RoleAuditEntry = {
@@ -14,9 +15,29 @@ export type RoleAuditEntry = {
   userAgent: string | null;
 };
 
-export const getRoleAuditFn = createServerFn({ method: "GET" })
+export type RoleAuditPage = {
+  rows: RoleAuditEntry[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+const SORT_COLUMNS = ["created_at", "action", "role"] as const;
+export type RoleAuditSort = (typeof SORT_COLUMNS)[number];
+
+const inputSchema = z.object({
+  page: z.number().int().min(0).default(0),
+  pageSize: z.number().int().min(1).max(200).default(50),
+  sortBy: z.enum(SORT_COLUMNS).default("created_at"),
+  sortDir: z.enum(["asc", "desc"]).default("desc"),
+  action: z.enum(["all", "granted", "revoked"]).default("all"),
+  search: z.string().default(""),
+});
+
+export const getRoleAuditFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<RoleAuditEntry[]> => {
+  .inputValidator((raw: unknown) => inputSchema.parse(raw ?? {}))
+  .handler(async ({ data, context }): Promise<RoleAuditPage> => {
     const { data: isSuper } = await context.supabase.rpc("is_super_admin", {
       _user_id: context.userId,
     });
@@ -24,11 +45,28 @@ export const getRoleAuditFn = createServerFn({ method: "GET" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data: rows, error } = await supabaseAdmin
+    const from = data.page * data.pageSize;
+    const to = from + data.pageSize - 1;
+
+    let q = supabaseAdmin
       .from("user_role_audit")
-      .select("id, created_at, action, role, target_user_id, actor_user_id, ip, user_agent")
-      .order("created_at", { ascending: false })
-      .limit(500);
+      .select(
+        "id, created_at, action, role, target_user_id, actor_user_id, ip, user_agent",
+        { count: "exact" },
+      )
+      .order(data.sortBy, { ascending: data.sortDir === "asc" })
+      .range(from, to);
+
+    if (data.action !== "all") q = q.eq("action", data.action);
+
+    const term = data.search.trim();
+    if (term) {
+      // Search on server-side columns; email search is done client-side after join
+      const like = `%${term}%`;
+      q = q.or(`role.ilike.${like},ip.ilike.${like},user_agent.ilike.${like}`);
+    }
+
+    const { data: rows, error, count } = await q;
     if (error) throw new Error(error.message);
 
     const ids = new Set<string>();
@@ -45,16 +83,21 @@ export const getRoleAuditFn = createServerFn({ method: "GET" })
       }
     }
 
-    return (rows ?? []).map((r) => ({
-      id: r.id,
-      createdAt: r.created_at,
-      action: r.action as "granted" | "revoked",
-      role: r.role,
-      targetUserId: r.target_user_id,
-      targetEmail: emailById.get(r.target_user_id) ?? null,
-      actorUserId: r.actor_user_id,
-      actorEmail: r.actor_user_id ? emailById.get(r.actor_user_id) ?? null : null,
-      ip: (r as { ip: string | null }).ip ?? null,
-      userAgent: (r as { user_agent: string | null }).user_agent ?? null,
-    }));
+    return {
+      rows: (rows ?? []).map((r) => ({
+        id: r.id,
+        createdAt: r.created_at,
+        action: r.action as "granted" | "revoked",
+        role: r.role,
+        targetUserId: r.target_user_id,
+        targetEmail: emailById.get(r.target_user_id) ?? null,
+        actorUserId: r.actor_user_id,
+        actorEmail: r.actor_user_id ? emailById.get(r.actor_user_id) ?? null : null,
+        ip: (r as { ip: string | null }).ip ?? null,
+        userAgent: (r as { user_agent: string | null }).user_agent ?? null,
+      })),
+      total: count ?? 0,
+      page: data.page,
+      pageSize: data.pageSize,
+    };
   });
