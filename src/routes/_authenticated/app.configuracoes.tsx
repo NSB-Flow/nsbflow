@@ -94,9 +94,18 @@ function Config() {
             <Input value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="space-y-1.5">
+            <Label>Setor</Label>
+            <Input
+              value={sectorInput}
+              onChange={(e) => setSectorInput(e.target.value)}
+              placeholder="Ex.: Corporate, Enterprise, SMB, Public"
+            />
+            <p className="text-xs text-muted-foreground">
+              Usado automaticamente nos formulários dos agentes DEAP.
+            </p>
+          </div>
+          <div className="space-y-1.5">
             <Label>Perfis</Label>
-            <div className="flex flex-wrap gap-1.5">
-              {roles.length === 0 ? (
                 <Badge variant="outline">Sem perfil atribuído</Badge>
               ) : (
                 roles.map((r) => <Badge key={r}>{ROLE_LABELS[r]}</Badge>)
