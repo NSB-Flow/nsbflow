@@ -28,7 +28,7 @@ export interface OpportunityFormValues {
 interface Props {
   initial?: Partial<OpportunityFormValues>;
   submitting?: boolean;
-  onSubmit: (v: OpportunityFormValues) => void | Promise<void>;
+  onSubmit: (v: OpportunityFormValues) => void | Promise<unknown>;
   onCancel: () => void;
 }
 
