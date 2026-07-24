@@ -48,6 +48,33 @@ export const runAgentFn = createServerFn({ method: "POST" })
     // 4) consome crédito (workspace pool → user pool). Enterprise = ilimitado.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    // 4a) resolve agente central por slug e valida min_plan
+    const { data: agentRow } = await supabase
+      .from("agents")
+      .select("id, slug, display_name, min_plan, is_active")
+      .eq("slug", data.agent)
+      .maybeSingle();
+
+    if (agentRow && !agentRow.is_active) {
+      throw new Error("Agente indisponível no momento.");
+    }
+
+    if (agentRow?.min_plan) {
+      const { data: subRow } = await supabase
+        .from("subscriptions")
+        .select("plans(tier)")
+        .eq("workspace_id", data.workspaceId)
+        .maybeSingle();
+      const plan = Array.isArray(subRow?.plans) ? subRow?.plans[0] : subRow?.plans;
+      const tierRank: Record<string, number> = { smart: 1, pro: 2, enterprise: 3 };
+      const currentRank = tierRank[plan?.tier ?? ""] ?? 0;
+      const requiredRank = tierRank[agentRow.min_plan] ?? 0;
+      if (currentRank < requiredRank) {
+        const label = agentRow.min_plan.charAt(0).toUpperCase() + agentRow.min_plan.slice(1);
+        throw new Error(`Este agente requer o plano ${label} ou superior.`);
+      }
+    }
+
     // Cria ou reutiliza registro
     let runId = data.runId;
     if (!runId) {
@@ -55,6 +82,7 @@ export const runAgentFn = createServerFn({ method: "POST" })
         .from("agent_runs")
         .insert({
           agent: data.agent,
+          agent_id: agentRow?.id ?? null,
           workspace_id: data.workspaceId,
           company_id: company.id,
           payload: data.payload,
@@ -62,7 +90,7 @@ export const runAgentFn = createServerFn({ method: "POST" })
           created_by: userId,
           company_name: company.razao_social,
           cnpj: company.cnpj,
-          title: `${data.agent} — ${company.razao_social}`,
+          title: `${agentRow?.display_name ?? data.agent} — ${company.razao_social}`,
         })
         .select("id")
         .single();
