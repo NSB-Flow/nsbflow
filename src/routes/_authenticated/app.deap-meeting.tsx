@@ -411,9 +411,6 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
       />
     </div>
   );
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  void initialCompanyId;
 }
 
 // ---------- Result Panel ----------
