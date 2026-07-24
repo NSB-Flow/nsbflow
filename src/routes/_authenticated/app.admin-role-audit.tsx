@@ -22,7 +22,7 @@ function fmtDate(iso: string) {
 }
 
 function toCsv(rows: RoleAuditEntry[]) {
-  const header = ["quando", "acao", "perfil", "usuario_alvo", "executado_por"];
+  const header = ["quando", "acao", "perfil", "usuario_alvo", "executado_por", "ip", "user_agent"];
   const esc = (v: string | null) => {
     const s = v == null ? "" : String(v);
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
@@ -30,7 +30,15 @@ function toCsv(rows: RoleAuditEntry[]) {
   const lines = [header.join(",")];
   for (const r of rows) {
     lines.push(
-      [r.createdAt, r.action, r.role, r.targetEmail ?? r.targetUserId, r.actorEmail ?? r.actorUserId ?? "sistema"]
+      [
+        r.createdAt,
+        r.action,
+        r.role,
+        r.targetEmail ?? r.targetUserId,
+        r.actorEmail ?? r.actorUserId ?? "sistema",
+        r.ip,
+        r.userAgent,
+      ]
         .map(esc)
         .join(","),
     );
@@ -57,7 +65,7 @@ function RoleAuditPage() {
     return data.filter((r) => {
       if (action !== "all" && r.action !== action) return false;
       if (!term) return true;
-      return [r.role, r.targetEmail, r.targetUserId, r.actorEmail, r.actorUserId]
+      return [r.role, r.targetEmail, r.targetUserId, r.actorEmail, r.actorUserId, r.ip, r.userAgent]
         .some((v) => v?.toLowerCase().includes(term));
     });
   }, [data, q, action]);
@@ -106,7 +114,7 @@ function RoleAuditPage() {
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Buscar por perfil, e-mail ou ID…"
+                placeholder="Buscar por perfil, e-mail, IP ou navegador…"
                 className="pl-7 h-9 w-72"
               />
             </div>
@@ -140,6 +148,8 @@ function RoleAuditPage() {
                     <TableHead>Perfil</TableHead>
                     <TableHead>Usuário alvo</TableHead>
                     <TableHead>Executado por</TableHead>
+                    <TableHead>IP</TableHead>
+                    <TableHead>Navegador</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -164,6 +174,15 @@ function RoleAuditPage() {
                       </TableCell>
                       <TableCell className="font-mono text-xs">
                         {r.actorEmail ?? r.actorUserId ?? "sistema"}
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {r.ip ?? "—"}
+                      </TableCell>
+                      <TableCell
+                        className="font-mono text-xs max-w-[280px] truncate"
+                        title={r.userAgent ?? ""}
+                      >
+                        {r.userAgent ?? "—"}
                       </TableCell>
                     </TableRow>
                   ))}
