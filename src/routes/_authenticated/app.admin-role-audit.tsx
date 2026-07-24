@@ -2,7 +2,7 @@ import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ShieldCheck, Download, RefreshCw, Search, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ShieldCheck, Download, RefreshCw, Search, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, FileText, FileSpreadsheet, Loader2 } from "lucide-react";
 import { getRoleAuditFn, type RoleAuditEntry, type RoleAuditSort } from "@/lib/role-audit.functions";
 import { useAuth } from "@/lib/auth-context";
 import { ROLE_LABELS, type AppRole } from "@/lib/roles";
@@ -17,8 +17,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AuditDetailSheet, type AuditField } from "@/components/audit/AuditDetailSheet";
+import { downloadCsv, downloadAuditPdf, type ExportColumn } from "@/lib/audit-export";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/app/admin-role-audit")({
   head: () => ({ meta: [{ title: "Auditoria de Perfis — NSB Flow" }] }),
@@ -29,29 +39,16 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleString("pt-BR");
 }
 
-function toCsv(rows: RoleAuditEntry[]) {
-  const header = ["quando", "acao", "perfil", "usuario_alvo", "executado_por", "ip", "user_agent"];
-  const esc = (v: string | null) => {
-    const s = v == null ? "" : String(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  const lines = [header.join(",")];
-  for (const r of rows) {
-    lines.push(
-      [
-        r.createdAt,
-        r.action,
-        r.role,
-        r.targetEmail ?? r.targetUserId,
-        r.actorEmail ?? r.actorUserId ?? "sistema",
-        r.ip,
-        r.userAgent,
-      ]
-        .map(esc)
-        .join(","),
-    );
-  }
-  return lines.join("\n");
+function buildColumns(): ExportColumn<RoleAuditEntry>[] {
+  return [
+    { header: "Quando", value: (r) => fmtDate(r.createdAt), pdfWidth: 110 },
+    { header: "Ação", value: (r) => (r.action === "granted" ? "Concedido" : "Removido"), pdfWidth: 70 },
+    { header: "Perfil", value: (r) => ROLE_LABELS[r.role as AppRole] ?? r.role, pdfWidth: 110 },
+    { header: "Usuário alvo", value: (r) => r.targetEmail ?? r.targetUserId },
+    { header: "Executado por", value: (r) => r.actorEmail ?? r.actorUserId ?? "sistema" },
+    { header: "IP", value: (r) => r.ip ?? "—", pdfWidth: 90 },
+    { header: "Navegador", value: (r) => r.userAgent ?? "—" },
+  ];
 }
 
 const PAGE_SIZES = [25, 50, 100, 200];
