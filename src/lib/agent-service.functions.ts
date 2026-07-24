@@ -59,7 +59,12 @@ export const runAgentFn = createServerFn({ method: "POST" })
       throw new Error("Agente indisponível no momento.");
     }
 
-    if (agentRow?.min_plan) {
+    // Exceção deliberada: super_admins são isentos do gate de min_plan e do
+    // consumo de créditos para permitir testes/administração interna da plataforma,
+    // mesmo em workspaces sem assinatura ativa. Não é regra de negócio para clientes finais.
+    const { data: isSuper } = await supabase.rpc("is_super_admin", { _user_id: userId });
+
+    if (agentRow?.min_plan && !isSuper) {
       const { data: subRow } = await supabase
         .from("subscriptions")
         .select("plans(tier)")
@@ -98,24 +103,31 @@ export const runAgentFn = createServerFn({ method: "POST" })
       runId = inserted.id;
     }
 
-    const { data: creditRes, error: creditErr } = await supabaseAdmin.rpc("try_consume_agent_credit", {
-      _workspace_id: data.workspaceId,
-      _user_id: userId,
-      _run_id: runId,
-      _description: `Execução: ${data.agent}`,
-    });
-    if (creditErr) throw new Error(creditErr.message);
-    const credit = creditRes as { ok: boolean; source?: string; reason?: string };
-    if (!credit?.ok) {
-      const reason = credit?.reason ?? "no_credit";
-      const msg =
-        reason === "workspace_empty_and_user_ineligible" || reason === "all_pools_empty"
-          ? "Créditos esgotados. Contrate mais assentos, faça upgrade do plano ou aguarde a próxima reposição mensal."
-          : reason === "no_subscription"
-          ? "Nenhuma assinatura ativa neste workspace."
-          : "Não foi possível autorizar o consumo de créditos.";
-      await supabase.from("agent_runs").update({ status: "error", error: msg }).eq("id", runId);
-      return { runId, status: "error", error: msg };
+    let creditSource: string | undefined;
+    if (isSuper) {
+      // Super_admin: bypass do consumo de crédito (ver comentário acima).
+      creditSource = "super_admin_bypass";
+    } else {
+      const { data: creditRes, error: creditErr } = await supabaseAdmin.rpc("try_consume_agent_credit", {
+        _workspace_id: data.workspaceId,
+        _user_id: userId,
+        _run_id: runId,
+        _description: `Execução: ${data.agent}`,
+      });
+      if (creditErr) throw new Error(creditErr.message);
+      const credit = creditRes as { ok: boolean; source?: string; reason?: string };
+      if (!credit?.ok) {
+        const reason = credit?.reason ?? "no_credit";
+        const msg =
+          reason === "workspace_empty_and_user_ineligible" || reason === "all_pools_empty"
+            ? "Créditos esgotados. Contrate mais assentos, faça upgrade do plano ou aguarde a próxima reposição mensal."
+            : reason === "no_subscription"
+            ? "Nenhuma assinatura ativa neste workspace."
+            : "Não foi possível autorizar o consumo de créditos.";
+        await supabase.from("agent_runs").update({ status: "error", error: msg }).eq("id", runId);
+        return { runId, status: "error", error: msg };
+      }
+      creditSource = credit.source;
     }
 
     // 5) webhook
@@ -164,7 +176,7 @@ export const runAgentFn = createServerFn({ method: "POST" })
         .update({ status: "done", result: json as never, error: null })
         .eq("id", runId);
 
-      return { runId, status: "done", result: json, creditSource: credit.source };
+      return { runId, status: "done", result: json, creditSource };
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro desconhecido";
       await supabase.from("agent_runs").update({ status: "error", error: msg }).eq("id", runId);
