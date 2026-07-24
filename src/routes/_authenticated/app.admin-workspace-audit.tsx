@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AuditDetailSheet, type AuditField } from "@/components/audit/AuditDetailSheet";
 
 export const Route = createFileRoute("/_authenticated/app/admin-workspace-audit")({
   head: () => ({ meta: [{ title: "Auditoria de Workspace — NSB Flow" }] }),
