@@ -206,8 +206,17 @@ export function AppSidebar() {
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-
                 </>
+              )}
+              {(isSuperAdmin || isWorkspaceAdmin) && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Auditoria de Workspace" isActive={isActive("/app/admin-workspace-audit")}>
+                    <Link to="/app/admin-workspace-audit" className="flex items-center gap-2">
+                      <Shield className="h-4 w-4 text-gold" />
+                      {!collapsed && <span className="text-gold">Workspace</span>}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               )}
             </SidebarMenu>
           </SidebarGroupContent>
