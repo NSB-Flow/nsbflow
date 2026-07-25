@@ -26,7 +26,6 @@ import { Route as AuthenticatedAppPessoasRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAppIndicacoesRouteImport } from './routes/_authenticated/app.indicacoes'
 import { Route as AuthenticatedAppHistoricoRouteImport } from './routes/_authenticated/app.historico'
 import { Route as AuthenticatedAppEquipeRouteImport } from './routes/_authenticated/app.equipe'
-import { Route as AuthenticatedAppEmpresasRouteImport } from './routes/_authenticated/app.empresas'
 import { Route as AuthenticatedAppDeapMeetingRouteImport } from './routes/_authenticated/app.deap-meeting'
 import { Route as AuthenticatedAppDeapAssessmentRouteImport } from './routes/_authenticated/app.deap-assessment'
 import { Route as AuthenticatedAppConfiguracoesRouteImport } from './routes/_authenticated/app.configuracoes'
@@ -39,6 +38,7 @@ import { Route as AuthenticatedAppAdminSecurityRouteImport } from './routes/_aut
 import { Route as AuthenticatedAppAdminRoleAuditRouteImport } from './routes/_authenticated/app.admin-role-audit'
 import { Route as AuthenticatedAppAdminRouteImport } from './routes/_authenticated/app.admin'
 import { Route as AuthenticatedAppAcademyRouteImport } from './routes/_authenticated/app.academy'
+import { Route as AuthenticatedAppEmpresasIndexRouteImport } from './routes/_authenticated/app.empresas.index'
 import { Route as ApiPublicHooksProcessExportJobsRouteImport } from './routes/api/public/hooks/process-export-jobs'
 import { Route as AuthenticatedAppHistoricoIdRouteImport } from './routes/_authenticated/app.historico.$id'
 import { Route as AuthenticatedAppEmpresasIdRouteImport } from './routes/_authenticated/app.empresas.$id'
@@ -134,12 +134,6 @@ const AuthenticatedAppEquipeRoute = AuthenticatedAppEquipeRouteImport.update({
   path: '/equipe',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const AuthenticatedAppEmpresasRoute =
-  AuthenticatedAppEmpresasRouteImport.update({
-    id: '/empresas',
-    path: '/empresas',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
 const AuthenticatedAppDeapMeetingRoute =
   AuthenticatedAppDeapMeetingRouteImport.update({
     id: '/deap-meeting',
@@ -209,6 +203,12 @@ const AuthenticatedAppAcademyRoute = AuthenticatedAppAcademyRouteImport.update({
   path: '/academy',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppEmpresasIndexRoute =
+  AuthenticatedAppEmpresasIndexRouteImport.update({
+    id: '/empresas/',
+    path: '/empresas/',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const ApiPublicHooksProcessExportJobsRoute =
   ApiPublicHooksProcessExportJobsRouteImport.update({
     id: '/api/public/hooks/process-export-jobs',
@@ -223,9 +223,9 @@ const AuthenticatedAppHistoricoIdRoute =
   } as any)
 const AuthenticatedAppEmpresasIdRoute =
   AuthenticatedAppEmpresasIdRouteImport.update({
-    id: '/$id',
-    path: '/$id',
-    getParentRoute: () => AuthenticatedAppEmpresasRoute,
+    id: '/empresas/$id',
+    path: '/empresas/$id',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -247,7 +247,6 @@ export interface FileRoutesByFullPath {
   '/app/configuracoes': typeof AuthenticatedAppConfiguracoesRoute
   '/app/deap-assessment': typeof AuthenticatedAppDeapAssessmentRoute
   '/app/deap-meeting': typeof AuthenticatedAppDeapMeetingRoute
-  '/app/empresas': typeof AuthenticatedAppEmpresasRouteWithChildren
   '/app/equipe': typeof AuthenticatedAppEquipeRoute
   '/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
   '/app/indicacoes': typeof AuthenticatedAppIndicacoesRoute
@@ -261,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/app/empresas/$id': typeof AuthenticatedAppEmpresasIdRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
+  '/app/empresas/': typeof AuthenticatedAppEmpresasIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -280,7 +280,6 @@ export interface FileRoutesByTo {
   '/app/configuracoes': typeof AuthenticatedAppConfiguracoesRoute
   '/app/deap-assessment': typeof AuthenticatedAppDeapAssessmentRoute
   '/app/deap-meeting': typeof AuthenticatedAppDeapMeetingRoute
-  '/app/empresas': typeof AuthenticatedAppEmpresasRouteWithChildren
   '/app/equipe': typeof AuthenticatedAppEquipeRoute
   '/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
   '/app/indicacoes': typeof AuthenticatedAppIndicacoesRoute
@@ -294,6 +293,7 @@ export interface FileRoutesByTo {
   '/app/empresas/$id': typeof AuthenticatedAppEmpresasIdRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
+  '/app/empresas': typeof AuthenticatedAppEmpresasIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -316,7 +316,6 @@ export interface FileRoutesById {
   '/_authenticated/app/configuracoes': typeof AuthenticatedAppConfiguracoesRoute
   '/_authenticated/app/deap-assessment': typeof AuthenticatedAppDeapAssessmentRoute
   '/_authenticated/app/deap-meeting': typeof AuthenticatedAppDeapMeetingRoute
-  '/_authenticated/app/empresas': typeof AuthenticatedAppEmpresasRouteWithChildren
   '/_authenticated/app/equipe': typeof AuthenticatedAppEquipeRoute
   '/_authenticated/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
   '/_authenticated/app/indicacoes': typeof AuthenticatedAppIndicacoesRoute
@@ -330,6 +329,7 @@ export interface FileRoutesById {
   '/_authenticated/app/empresas/$id': typeof AuthenticatedAppEmpresasIdRoute
   '/_authenticated/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
+  '/_authenticated/app/empresas/': typeof AuthenticatedAppEmpresasIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -352,7 +352,6 @@ export interface FileRouteTypes {
     | '/app/configuracoes'
     | '/app/deap-assessment'
     | '/app/deap-meeting'
-    | '/app/empresas'
     | '/app/equipe'
     | '/app/historico'
     | '/app/indicacoes'
@@ -366,6 +365,7 @@ export interface FileRouteTypes {
     | '/app/empresas/$id'
     | '/app/historico/$id'
     | '/api/public/hooks/process-export-jobs'
+    | '/app/empresas/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -385,7 +385,6 @@ export interface FileRouteTypes {
     | '/app/configuracoes'
     | '/app/deap-assessment'
     | '/app/deap-meeting'
-    | '/app/empresas'
     | '/app/equipe'
     | '/app/historico'
     | '/app/indicacoes'
@@ -399,6 +398,7 @@ export interface FileRouteTypes {
     | '/app/empresas/$id'
     | '/app/historico/$id'
     | '/api/public/hooks/process-export-jobs'
+    | '/app/empresas'
   id:
     | '__root__'
     | '/'
@@ -420,7 +420,6 @@ export interface FileRouteTypes {
     | '/_authenticated/app/configuracoes'
     | '/_authenticated/app/deap-assessment'
     | '/_authenticated/app/deap-meeting'
-    | '/_authenticated/app/empresas'
     | '/_authenticated/app/equipe'
     | '/_authenticated/app/historico'
     | '/_authenticated/app/indicacoes'
@@ -434,6 +433,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/empresas/$id'
     | '/_authenticated/app/historico/$id'
     | '/api/public/hooks/process-export-jobs'
+    | '/_authenticated/app/empresas/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -568,13 +568,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppEquipeRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
-    '/_authenticated/app/empresas': {
-      id: '/_authenticated/app/empresas'
-      path: '/empresas'
-      fullPath: '/app/empresas'
-      preLoaderRoute: typeof AuthenticatedAppEmpresasRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
     '/_authenticated/app/deap-meeting': {
       id: '/_authenticated/app/deap-meeting'
       path: '/deap-meeting'
@@ -659,6 +652,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAcademyRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/empresas/': {
+      id: '/_authenticated/app/empresas/'
+      path: '/empresas'
+      fullPath: '/app/empresas/'
+      preLoaderRoute: typeof AuthenticatedAppEmpresasIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/api/public/hooks/process-export-jobs': {
       id: '/api/public/hooks/process-export-jobs'
       path: '/api/public/hooks/process-export-jobs'
@@ -675,27 +675,13 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/app/empresas/$id': {
       id: '/_authenticated/app/empresas/$id'
-      path: '/$id'
+      path: '/empresas/$id'
       fullPath: '/app/empresas/$id'
       preLoaderRoute: typeof AuthenticatedAppEmpresasIdRouteImport
-      parentRoute: typeof AuthenticatedAppEmpresasRoute
+      parentRoute: typeof AuthenticatedAppRoute
     }
   }
 }
-
-interface AuthenticatedAppEmpresasRouteChildren {
-  AuthenticatedAppEmpresasIdRoute: typeof AuthenticatedAppEmpresasIdRoute
-}
-
-const AuthenticatedAppEmpresasRouteChildren: AuthenticatedAppEmpresasRouteChildren =
-  {
-    AuthenticatedAppEmpresasIdRoute: AuthenticatedAppEmpresasIdRoute,
-  }
-
-const AuthenticatedAppEmpresasRouteWithChildren =
-  AuthenticatedAppEmpresasRoute._addFileChildren(
-    AuthenticatedAppEmpresasRouteChildren,
-  )
 
 interface AuthenticatedAppHistoricoRouteChildren {
   AuthenticatedAppHistoricoIdRoute: typeof AuthenticatedAppHistoricoIdRoute
@@ -724,7 +710,6 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppConfiguracoesRoute: typeof AuthenticatedAppConfiguracoesRoute
   AuthenticatedAppDeapAssessmentRoute: typeof AuthenticatedAppDeapAssessmentRoute
   AuthenticatedAppDeapMeetingRoute: typeof AuthenticatedAppDeapMeetingRoute
-  AuthenticatedAppEmpresasRoute: typeof AuthenticatedAppEmpresasRouteWithChildren
   AuthenticatedAppEquipeRoute: typeof AuthenticatedAppEquipeRoute
   AuthenticatedAppHistoricoRoute: typeof AuthenticatedAppHistoricoRouteWithChildren
   AuthenticatedAppIndicacoesRoute: typeof AuthenticatedAppIndicacoesRoute
@@ -734,6 +719,8 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppTrialExpiradoRoute: typeof AuthenticatedAppTrialExpiradoRoute
   AuthenticatedAppWorkspacesRoute: typeof AuthenticatedAppWorkspacesRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
+  AuthenticatedAppEmpresasIdRoute: typeof AuthenticatedAppEmpresasIdRoute
+  AuthenticatedAppEmpresasIndexRoute: typeof AuthenticatedAppEmpresasIndexRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
@@ -750,7 +737,6 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppConfiguracoesRoute: AuthenticatedAppConfiguracoesRoute,
   AuthenticatedAppDeapAssessmentRoute: AuthenticatedAppDeapAssessmentRoute,
   AuthenticatedAppDeapMeetingRoute: AuthenticatedAppDeapMeetingRoute,
-  AuthenticatedAppEmpresasRoute: AuthenticatedAppEmpresasRouteWithChildren,
   AuthenticatedAppEquipeRoute: AuthenticatedAppEquipeRoute,
   AuthenticatedAppHistoricoRoute: AuthenticatedAppHistoricoRouteWithChildren,
   AuthenticatedAppIndicacoesRoute: AuthenticatedAppIndicacoesRoute,
@@ -760,6 +746,8 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppTrialExpiradoRoute: AuthenticatedAppTrialExpiradoRoute,
   AuthenticatedAppWorkspacesRoute: AuthenticatedAppWorkspacesRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
+  AuthenticatedAppEmpresasIdRoute: AuthenticatedAppEmpresasIdRoute,
+  AuthenticatedAppEmpresasIndexRoute: AuthenticatedAppEmpresasIndexRoute,
 }
 
 const AuthenticatedAppRouteWithChildren =
@@ -789,13 +777,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
