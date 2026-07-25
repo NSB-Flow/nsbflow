@@ -22,7 +22,6 @@ import { Route as AuthenticatedAppWorkspacesRouteImport } from './routes/_authen
 import { Route as AuthenticatedAppTrialExpiradoRouteImport } from './routes/_authenticated/app.trial-expirado'
 import { Route as AuthenticatedAppRelatoriosRouteImport } from './routes/_authenticated/app.relatorios'
 import { Route as AuthenticatedAppPlanosRouteImport } from './routes/_authenticated/app.planos'
-import { Route as AuthenticatedAppPessoasRouteImport } from './routes/_authenticated/app.pessoas'
 import { Route as AuthenticatedAppIndicacoesRouteImport } from './routes/_authenticated/app.indicacoes'
 import { Route as AuthenticatedAppHistoricoRouteImport } from './routes/_authenticated/app.historico'
 import { Route as AuthenticatedAppEquipeRouteImport } from './routes/_authenticated/app.equipe'
@@ -38,8 +37,10 @@ import { Route as AuthenticatedAppAdminSecurityRouteImport } from './routes/_aut
 import { Route as AuthenticatedAppAdminRoleAuditRouteImport } from './routes/_authenticated/app.admin-role-audit'
 import { Route as AuthenticatedAppAdminRouteImport } from './routes/_authenticated/app.admin'
 import { Route as AuthenticatedAppAcademyRouteImport } from './routes/_authenticated/app.academy'
+import { Route as AuthenticatedAppPessoasIndexRouteImport } from './routes/_authenticated/app.pessoas.index'
 import { Route as AuthenticatedAppEmpresasIndexRouteImport } from './routes/_authenticated/app.empresas.index'
 import { Route as ApiPublicHooksProcessExportJobsRouteImport } from './routes/api/public/hooks/process-export-jobs'
+import { Route as AuthenticatedAppPessoasIdRouteImport } from './routes/_authenticated/app.pessoas.$id'
 import { Route as AuthenticatedAppHistoricoIdRouteImport } from './routes/_authenticated/app.historico.$id'
 import { Route as AuthenticatedAppEmpresasIdRouteImport } from './routes/_authenticated/app.empresas.$id'
 
@@ -110,11 +111,6 @@ const AuthenticatedAppRelatoriosRoute =
 const AuthenticatedAppPlanosRoute = AuthenticatedAppPlanosRouteImport.update({
   id: '/planos',
   path: '/planos',
-  getParentRoute: () => AuthenticatedAppRoute,
-} as any)
-const AuthenticatedAppPessoasRoute = AuthenticatedAppPessoasRouteImport.update({
-  id: '/pessoas',
-  path: '/pessoas',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
 const AuthenticatedAppIndicacoesRoute =
@@ -203,6 +199,12 @@ const AuthenticatedAppAcademyRoute = AuthenticatedAppAcademyRouteImport.update({
   path: '/academy',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppPessoasIndexRoute =
+  AuthenticatedAppPessoasIndexRouteImport.update({
+    id: '/pessoas/',
+    path: '/pessoas/',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppEmpresasIndexRoute =
   AuthenticatedAppEmpresasIndexRouteImport.update({
     id: '/empresas/',
@@ -214,6 +216,12 @@ const ApiPublicHooksProcessExportJobsRoute =
     id: '/api/public/hooks/process-export-jobs',
     path: '/api/public/hooks/process-export-jobs',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedAppPessoasIdRoute =
+  AuthenticatedAppPessoasIdRouteImport.update({
+    id: '/pessoas/$id',
+    path: '/pessoas/$id',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppHistoricoIdRoute =
   AuthenticatedAppHistoricoIdRouteImport.update({
@@ -250,7 +258,6 @@ export interface FileRoutesByFullPath {
   '/app/equipe': typeof AuthenticatedAppEquipeRoute
   '/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
   '/app/indicacoes': typeof AuthenticatedAppIndicacoesRoute
-  '/app/pessoas': typeof AuthenticatedAppPessoasRoute
   '/app/planos': typeof AuthenticatedAppPlanosRoute
   '/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
   '/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
@@ -259,8 +266,10 @@ export interface FileRoutesByFullPath {
   '/app/': typeof AuthenticatedAppIndexRoute
   '/app/empresas/$id': typeof AuthenticatedAppEmpresasIdRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
+  '/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
   '/app/empresas/': typeof AuthenticatedAppEmpresasIndexRoute
+  '/app/pessoas/': typeof AuthenticatedAppPessoasIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -283,7 +292,6 @@ export interface FileRoutesByTo {
   '/app/equipe': typeof AuthenticatedAppEquipeRoute
   '/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
   '/app/indicacoes': typeof AuthenticatedAppIndicacoesRoute
-  '/app/pessoas': typeof AuthenticatedAppPessoasRoute
   '/app/planos': typeof AuthenticatedAppPlanosRoute
   '/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
   '/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
@@ -292,8 +300,10 @@ export interface FileRoutesByTo {
   '/app': typeof AuthenticatedAppIndexRoute
   '/app/empresas/$id': typeof AuthenticatedAppEmpresasIdRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
+  '/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
   '/app/empresas': typeof AuthenticatedAppEmpresasIndexRoute
+  '/app/pessoas': typeof AuthenticatedAppPessoasIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -319,7 +329,6 @@ export interface FileRoutesById {
   '/_authenticated/app/equipe': typeof AuthenticatedAppEquipeRoute
   '/_authenticated/app/historico': typeof AuthenticatedAppHistoricoRouteWithChildren
   '/_authenticated/app/indicacoes': typeof AuthenticatedAppIndicacoesRoute
-  '/_authenticated/app/pessoas': typeof AuthenticatedAppPessoasRoute
   '/_authenticated/app/planos': typeof AuthenticatedAppPlanosRoute
   '/_authenticated/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
   '/_authenticated/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
@@ -328,8 +337,10 @@ export interface FileRoutesById {
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/app/empresas/$id': typeof AuthenticatedAppEmpresasIdRoute
   '/_authenticated/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
+  '/_authenticated/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
   '/_authenticated/app/empresas/': typeof AuthenticatedAppEmpresasIndexRoute
+  '/_authenticated/app/pessoas/': typeof AuthenticatedAppPessoasIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -355,7 +366,6 @@ export interface FileRouteTypes {
     | '/app/equipe'
     | '/app/historico'
     | '/app/indicacoes'
-    | '/app/pessoas'
     | '/app/planos'
     | '/app/relatorios'
     | '/app/trial-expirado'
@@ -364,8 +374,10 @@ export interface FileRouteTypes {
     | '/app/'
     | '/app/empresas/$id'
     | '/app/historico/$id'
+    | '/app/pessoas/$id'
     | '/api/public/hooks/process-export-jobs'
     | '/app/empresas/'
+    | '/app/pessoas/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -388,7 +400,6 @@ export interface FileRouteTypes {
     | '/app/equipe'
     | '/app/historico'
     | '/app/indicacoes'
-    | '/app/pessoas'
     | '/app/planos'
     | '/app/relatorios'
     | '/app/trial-expirado'
@@ -397,8 +408,10 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/empresas/$id'
     | '/app/historico/$id'
+    | '/app/pessoas/$id'
     | '/api/public/hooks/process-export-jobs'
     | '/app/empresas'
+    | '/app/pessoas'
   id:
     | '__root__'
     | '/'
@@ -423,7 +436,6 @@ export interface FileRouteTypes {
     | '/_authenticated/app/equipe'
     | '/_authenticated/app/historico'
     | '/_authenticated/app/indicacoes'
-    | '/_authenticated/app/pessoas'
     | '/_authenticated/app/planos'
     | '/_authenticated/app/relatorios'
     | '/_authenticated/app/trial-expirado'
@@ -432,8 +444,10 @@ export interface FileRouteTypes {
     | '/_authenticated/app/'
     | '/_authenticated/app/empresas/$id'
     | '/_authenticated/app/historico/$id'
+    | '/_authenticated/app/pessoas/$id'
     | '/api/public/hooks/process-export-jobs'
     | '/_authenticated/app/empresas/'
+    | '/_authenticated/app/pessoas/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -538,13 +552,6 @@ declare module '@tanstack/react-router' {
       path: '/planos'
       fullPath: '/app/planos'
       preLoaderRoute: typeof AuthenticatedAppPlanosRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/pessoas': {
-      id: '/_authenticated/app/pessoas'
-      path: '/pessoas'
-      fullPath: '/app/pessoas'
-      preLoaderRoute: typeof AuthenticatedAppPessoasRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/indicacoes': {
@@ -652,6 +659,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAcademyRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/pessoas/': {
+      id: '/_authenticated/app/pessoas/'
+      path: '/pessoas'
+      fullPath: '/app/pessoas/'
+      preLoaderRoute: typeof AuthenticatedAppPessoasIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/empresas/': {
       id: '/_authenticated/app/empresas/'
       path: '/empresas'
@@ -665,6 +679,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/hooks/process-export-jobs'
       preLoaderRoute: typeof ApiPublicHooksProcessExportJobsRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/app/pessoas/$id': {
+      id: '/_authenticated/app/pessoas/$id'
+      path: '/pessoas/$id'
+      fullPath: '/app/pessoas/$id'
+      preLoaderRoute: typeof AuthenticatedAppPessoasIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/historico/$id': {
       id: '/_authenticated/app/historico/$id'
@@ -713,14 +734,15 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppEquipeRoute: typeof AuthenticatedAppEquipeRoute
   AuthenticatedAppHistoricoRoute: typeof AuthenticatedAppHistoricoRouteWithChildren
   AuthenticatedAppIndicacoesRoute: typeof AuthenticatedAppIndicacoesRoute
-  AuthenticatedAppPessoasRoute: typeof AuthenticatedAppPessoasRoute
   AuthenticatedAppPlanosRoute: typeof AuthenticatedAppPlanosRoute
   AuthenticatedAppRelatoriosRoute: typeof AuthenticatedAppRelatoriosRoute
   AuthenticatedAppTrialExpiradoRoute: typeof AuthenticatedAppTrialExpiradoRoute
   AuthenticatedAppWorkspacesRoute: typeof AuthenticatedAppWorkspacesRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
   AuthenticatedAppEmpresasIdRoute: typeof AuthenticatedAppEmpresasIdRoute
+  AuthenticatedAppPessoasIdRoute: typeof AuthenticatedAppPessoasIdRoute
   AuthenticatedAppEmpresasIndexRoute: typeof AuthenticatedAppEmpresasIndexRoute
+  AuthenticatedAppPessoasIndexRoute: typeof AuthenticatedAppPessoasIndexRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
@@ -740,14 +762,15 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppEquipeRoute: AuthenticatedAppEquipeRoute,
   AuthenticatedAppHistoricoRoute: AuthenticatedAppHistoricoRouteWithChildren,
   AuthenticatedAppIndicacoesRoute: AuthenticatedAppIndicacoesRoute,
-  AuthenticatedAppPessoasRoute: AuthenticatedAppPessoasRoute,
   AuthenticatedAppPlanosRoute: AuthenticatedAppPlanosRoute,
   AuthenticatedAppRelatoriosRoute: AuthenticatedAppRelatoriosRoute,
   AuthenticatedAppTrialExpiradoRoute: AuthenticatedAppTrialExpiradoRoute,
   AuthenticatedAppWorkspacesRoute: AuthenticatedAppWorkspacesRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
   AuthenticatedAppEmpresasIdRoute: AuthenticatedAppEmpresasIdRoute,
+  AuthenticatedAppPessoasIdRoute: AuthenticatedAppPessoasIdRoute,
   AuthenticatedAppEmpresasIndexRoute: AuthenticatedAppEmpresasIndexRoute,
+  AuthenticatedAppPessoasIndexRoute: AuthenticatedAppPessoasIndexRoute,
 }
 
 const AuthenticatedAppRouteWithChildren =
