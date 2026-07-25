@@ -313,7 +313,7 @@ function PessoaDetail() {
               <Kpi label="Oportunidades criadas" value={kpis.totalOpps.toString()} />
               <Kpi label="Nota média de reunião" value={fmtNum(kpis.avgMeeting)} />
               <Kpi label="Score de oportunidade médio" value={fmtNum(kpis.avgOpp, 0)} />
-              <Kpi label="NPS médio" value={fmtNum(kpis.avgNps, 0)} />
+              <Kpi label="Sentimento do Cliente médio" value={fmtNum(kpis.avgNps, 0)} />
               <Kpi label="Taxa de conversão (opp/conta)" value={fmtPct(kpis.taxaCriacao)} />
               <Kpi label="Taxa de ganha (ganha/opp)" value={fmtPct(kpis.taxaGanha)} />
             </div>

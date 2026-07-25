@@ -535,6 +535,54 @@ export type Database = {
           },
         ]
       }
+      nps_surveys: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          responded_at: string | null
+          score: number | null
+          sent_at: string
+          status: string
+          workspace_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          responded_at?: string | null
+          score?: number | null
+          sent_at?: string
+          status?: string
+          workspace_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          responded_at?: string | null
+          score?: number | null
+          sent_at?: string
+          status?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nps_surveys_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nps_surveys_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       opportunities: {
         Row: {
           agent_run_id: string | null
