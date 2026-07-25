@@ -36,7 +36,7 @@ const ITEMS: Item[] = [
   { key: "pessoas", title: "Pessoas", url: "/app/pessoas", icon: Users, group: "principal" },
   { key: "biblioteca", title: "Biblioteca", url: "/app/biblioteca", icon: BookOpen, group: "principal", soon: true },
   { key: "academy", title: "Academy", url: "/app/academy", icon: GraduationCap, group: "principal", soon: true },
-  { key: "relatorios", title: "Relatórios", url: "/app/relatorios", icon: BarChart3, group: "principal", soon: true },
+  { key: "relatorios", title: "Relatórios", url: "/app/relatorios", icon: BarChart3, group: "principal" },
   { key: "historico", title: "Histórico", url: "/app/historico", icon: History, group: "principal" },
 
   { key: "equipe", title: "Equipe", url: "/app/equipe", icon: Users, group: "billing" },
