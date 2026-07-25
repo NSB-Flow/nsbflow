@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import {
   ArrowLeft, Building2, Pencil, Plus, Trash2, ExternalLink, Users,
-  FileText, MessagesSquare, Loader2, TrendingUp,
+  FileText, MessagesSquare, Loader2, TrendingUp, TrendingDown, Minus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { CompanyForm, type CompanyFormValues } from "@/components/companies/CompanyForm";
@@ -144,8 +144,9 @@ function EmpresaDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("meeting_analyses")
-        .select("meeting_score, opportunity_score, nps_estimate")
-        .eq("company_id", id);
+        .select("meeting_score, opportunity_score, nps_estimate, created_at")
+        .eq("company_id", id)
+        .order("created_at", { ascending: false });
       if (error) throw error;
       const rows = data ?? [];
       const avg = (key: "meeting_score" | "opportunity_score" | "nps_estimate") => {
@@ -153,11 +154,15 @@ function EmpresaDetail() {
         if (vals.length === 0) return null;
         return vals.reduce((a, b) => a + Number(b), 0) / vals.length;
       };
+      const last = rows[0] ?? null;
       return {
         count: rows.length,
         avgMeeting: avg("meeting_score"),
         avgOpportunity: avg("opportunity_score"),
         avgNps: avg("nps_estimate"),
+        lastMeeting: last?.meeting_score ?? null,
+        lastOpportunity: last?.opportunity_score ?? null,
+        lastNps: last?.nps_estimate ?? null,
       };
     },
   });
@@ -343,20 +348,26 @@ function EmpresaDetail() {
           label="Reuniões com briefing prévio"
           value={indicators.pctWithBriefing == null ? "—" : `${indicators.pctWithBriefing}%`}
         />
-        <Kpi
+        <KpiTrend
           icon={TrendingUp}
-          label="Nota média da reunião"
-          value={meetingMetrics && meetingMetrics.avgMeeting != null ? meetingMetrics.avgMeeting.toFixed(1) : "Sem dados ainda"}
+          label="Nota da reunião"
+          avg={meetingMetrics?.avgMeeting ?? null}
+          last={meetingMetrics?.lastMeeting ?? null}
+          format={(n) => n.toFixed(1)}
         />
-        <Kpi
+        <KpiTrend
           icon={TrendingUp}
-          label="Score médio de oportunidade"
-          value={meetingMetrics && meetingMetrics.avgOpportunity != null ? Math.round(meetingMetrics.avgOpportunity).toString() : "Sem dados ainda"}
+          label="Score de oportunidade"
+          avg={meetingMetrics?.avgOpportunity ?? null}
+          last={meetingMetrics?.lastOpportunity ?? null}
+          format={(n) => Math.round(n).toString()}
         />
-        <Kpi
+        <KpiTrend
           icon={TrendingUp}
-          label="NPS médio estimado"
-          value={meetingMetrics && meetingMetrics.avgNps != null ? meetingMetrics.avgNps.toFixed(1) : "Sem dados ainda"}
+          label="NPS estimado"
+          avg={meetingMetrics?.avgNps ?? null}
+          last={meetingMetrics?.lastNps ?? null}
+          format={(n) => n.toFixed(1)}
         />
       </div>
 
@@ -576,6 +587,66 @@ function Kpi({ icon: Icon, label, value }: { icon: typeof Building2; label: stri
         <div>
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
           <div className="text-2xl font-bold font-display">{value}</div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function KpiTrend({
+  icon: Icon,
+  label,
+  avg,
+  last,
+  format,
+}: {
+  icon: typeof Building2;
+  label: string;
+  avg: number | null;
+  last: number | null;
+  format: (n: number) => string;
+}) {
+  const hasData = avg != null && last != null;
+
+  let trendIcon = null;
+  let trendClass = "text-muted-foreground";
+  if (hasData) {
+    if (last > avg) {
+      trendIcon = <TrendingUp className="h-3.5 w-3.5" />;
+      trendClass = "text-emerald-600";
+    } else if (last < avg) {
+      trendIcon = <TrendingDown className="h-3.5 w-3.5" />;
+      trendClass = "text-rose-600";
+    } else {
+      trendIcon = <Minus className="h-3.5 w-3.5" />;
+      trendClass = "text-muted-foreground";
+    }
+  }
+
+  return (
+    <Card>
+      <CardContent className="p-4 flex items-center gap-3">
+        <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center">
+          <Icon className="h-5 w-5 text-primary" />
+        </div>
+        <div className="min-w-0">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
+          {hasData ? (
+            <div className="flex items-center gap-2">
+              <div className="text-2xl font-bold font-display">{format(avg)}</div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground" title="Média histórica">
+                <span className="hidden sm:inline">média</span>
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground">Sem dados ainda</div>
+          )}
+          {hasData && (
+            <div className={`flex items-center gap-1 text-xs font-medium mt-0.5 ${trendClass}`}>
+              {trendIcon}
+              <span>Última: {format(last)}</span>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
