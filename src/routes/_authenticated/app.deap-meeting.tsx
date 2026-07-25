@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { MultiSelect } from "@/components/ui/multi-select";
-import { SOLUTIONS, briefingSchema, meetingSchema, type BriefingForm, type MeetingForm } from "@/lib/deap-schemas";
+import { TagInput } from "@/components/ui/tag-input";
+import { briefingSchema, meetingSchema, type BriefingForm, type MeetingForm } from "@/lib/deap-schemas";
 import { AGENT_DISPLAY_NAMES } from "@/lib/agent-names";
 import { runAgentFn } from "@/lib/agent-service.functions";
 import { supabase } from "@/integrations/supabase/client";
