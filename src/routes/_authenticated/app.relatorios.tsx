@@ -313,8 +313,25 @@ function RelatoriosPage() {
     staleTime: 30_000,
   });
 
+  const { data: npsRealSurveys = [] } = useQuery({
+    queryKey: ["reports-nps-real", workspaceId, companyIds.length],
+    enabled: !!workspaceId && companyIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("nps_surveys")
+        .select("company_id, score, responded_at")
+        .eq("workspace_id", workspaceId!)
+        .in("company_id", companyIds)
+        .eq("status", "responded")
+        .order("responded_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 30_000,
+  });
+
   const accountRows = useMemo(() => {
-    type Row = { id: string; name: string; segment: string | null; nps: number | null; nota: number | null; last: string | null; risk: boolean; band: "Detrator" | "Neutro" | "Promotor" | "Sem NPS" };
+    type Row = { id: string; name: string; segment: string | null; nps: number | null; npsReal: number | null; nota: number | null; last: string | null; risk: boolean; band: "Negativo" | "Neutro" | "Positivo" | "Sem Sentimento" };
     const byCo: Record<string, { npsSum: number; npsN: number; nSum: number; nN: number }> = {};
     for (const ma of accountAnalyses) {
       const id = ma.company_id as string;
@@ -328,6 +345,11 @@ function RelatoriosPage() {
       const id = r.company_id as string | null;
       if (id && !lastMap[id]) lastMap[id] = r.created_at as string;
     }
+    const npsRealMap: Record<string, number> = {};
+    for (const s of npsRealSurveys) {
+      const id = s.company_id as string | null;
+      if (id && !(id in npsRealMap) && s.score != null) npsRealMap[id] = Number(s.score);
+    }
     const now = Date.now();
     const rows: Row[] = companies.map((c) => {
       const s = byCo[c.id];
@@ -336,17 +358,22 @@ function RelatoriosPage() {
       const last = lastMap[c.id] ?? null;
       const staleActivity = !last || (now - new Date(last).getTime()) > 60 * 24 * 3600 * 1000;
       const risk = (nps != null && nps < npsThreshold) || staleActivity;
-      const band: Row["band"] = nps == null ? "Sem NPS" : nps >= 9 ? "Promotor" : nps >= 7 ? "Neutro" : "Detrator";
-      return { id: c.id, name: c.razao_social, segment: c.segment ?? null, nps, nota, last, risk, band };
+      const band: Row["band"] = nps == null ? "Sem Sentimento" : nps >= 9 ? "Positivo" : nps >= 7 ? "Neutro" : "Negativo";
+      return { id: c.id, name: c.razao_social, segment: c.segment ?? null, nps, npsReal: c.id in npsRealMap ? npsRealMap[c.id] : null, nota, last, risk, band };
     });
     rows.sort((a, b) => Number(b.risk) - Number(a.risk) || (a.nps ?? 999) - (b.nps ?? 999));
     return rows;
-  }, [companies, accountAnalyses, accountLastActivity, npsThreshold]);
+  }, [companies, accountAnalyses, accountLastActivity, npsRealSurveys, npsThreshold]);
 
   const npsBands = useMemo(() => {
-    const acc: Record<string, number> = { Detrator: 0, Neutro: 0, Promotor: 0, "Sem NPS": 0 };
+    const acc: Record<string, number> = { Negativo: 0, Neutro: 0, Positivo: 0, "Sem Sentimento": 0 };
     for (const r of accountRows) acc[r.band]++;
     return acc;
+  }, [accountRows]);
+
+  const npsRealAvg = useMemo(() => {
+    const vals = accountRows.map((r) => r.npsReal).filter((v): v is number => v != null);
+    return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
   }, [accountRows]);
 
   // ---------- Usage ----------
