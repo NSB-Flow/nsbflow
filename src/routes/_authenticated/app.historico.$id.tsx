@@ -9,6 +9,7 @@ import { ArrowLeft, FileDown, Star, Trash2 } from "lucide-react";
 import { generateReportPdf, downloadBlob } from "@/lib/pdf-report";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
+import { agentDisplayName } from "@/lib/agent-names";
 
 export const Route = createFileRoute("/_authenticated/app/historico/$id")({
   head: () => ({ meta: [{ title: "Detalhes — Histórico" }] }),
@@ -33,7 +34,7 @@ function HistoricoDetail() {
   if (isLoading) return <div className="p-8 text-sm text-muted-foreground">Carregando...</div>;
   if (!run) return <div className="p-8">Não encontrado.</div>;
 
-  const reportType = run.agent === "briefing" ? "DEAP Briefing" : run.agent === "meeting" ? "DEAP Meeting Intelligence" : run.agent;
+  const reportType = agentDisplayName(run.agent);
 
   const exportPdf = async () => {
     if (!run.result) return toast.error("Sem resultado para exportar");

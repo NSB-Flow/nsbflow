@@ -23,8 +23,8 @@ export type FeatureKey =
   | "pessoas";
 
 export const FEATURE_LABELS: Record<FeatureKey, string> = {
-  "deap.meeting.briefing": "DEAP Briefing AI",
-  "deap.meeting.intelligence": "DEAP Meeting Intelligence AI",
+  "deap.meeting.briefing": "Deap Briefing AI",
+  "deap.meeting.intelligence": "Deap Intelligence AI",
   "deap.assessment.sales": "Sales Development AI",
   "deap.assessment.leadership": "Leadership AI",
   "deap.assessment.process": "Process & Execution AI",
