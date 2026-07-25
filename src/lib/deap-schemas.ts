@@ -1,28 +1,17 @@
 import { z } from "zod";
 
-export const SOLUTIONS = [
-  "Link Dedicado",
-  "Telefonia Móvel",
-  "Cloud",
-  "IA",
-  "Segurança",
-  "Microsoft",
-  "Google Workspace",
-  "Data Center",
-  "Backup",
-  "Contact Center",
-  "SD-WAN",
-  "5G Corporativo",
-] as const;
+// Kept for compatibility; agents no longer read a fixed catalog.
+export const SOLUTIONS: readonly string[] = [];
 
 export const briefingSchema = z.object({
   company_id: z.string().uuid("Selecione uma conta"),
   objective: z.string().trim().max(2000).optional().or(z.literal("")),
-  solutions: z.array(z.string()).min(1, "Selecione ao menos uma solução"),
+  solutions: z.array(z.string().trim().min(1).max(80)).min(1, "Adicione ao menos uma solução"),
 });
 export type BriefingForm = z.infer<typeof briefingSchema>;
 
-export const meetingSchema = briefingSchema.extend({
+export const meetingSchema = z.object({
+  company_id: z.string().uuid("Selecione uma conta"),
   attachment_url: z.string().url().optional().or(z.literal("")),
   attachment_name: z.string().optional(),
 });
