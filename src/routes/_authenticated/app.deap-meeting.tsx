@@ -218,7 +218,7 @@ function BriefingTab({ initialCompanyId }: { initialCompanyId: string | null }) 
             <Textarea rows={3} value={form.objective} onChange={(e) => setForm({ ...form, objective: e.target.value })} placeholder="Ex.: expandir participação em cloud e segurança..." />
           </Field>
           <Field label="Soluções a ofertar *">
-            <MultiSelect options={SOLUTIONS} value={form.solutions} onChange={(v) => setForm({ ...form, solutions: v })} />
+            <TagInput value={form.solutions} onChange={(v) => setForm({ ...form, solutions: v })} placeholder="Ex.: Cloud, Segurança, IA..." />
           </Field>
           <SellerSectorField />
           <Button className="w-full" onClick={submit} disabled={loading || !company}>
