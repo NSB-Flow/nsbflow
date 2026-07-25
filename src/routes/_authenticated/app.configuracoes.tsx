@@ -116,6 +116,7 @@ function Config() {
               value={phone}
               onChange={(e) => setPhone(formatBrPhone(e.target.value))}
             />
+          </div>
           <div className="space-y-1.5">
             <Label>Setor</Label>
             <Input
