@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
 type Json = unknown;
 
 export interface PdfMeta {
-  reportType: string;      // "DEAP Briefing" | "DEAP Meeting Intelligence"
+  reportType: string;      // e.g. "Deap Briefing AI" | "Deap Intelligence AI"
   companyName?: string | null;
   cnpj?: string | null;
   clientName?: string | null;

@@ -93,12 +93,12 @@ function Landing() {
             {[
               {
                 icon: Sparkles,
-                title: "DEAP Briefing AI",
+                title: "Deap Briefing AI",
                 desc: "Briefings executivos de conta em minutos: mercado, stakeholders, estratégia e roteiro.",
               },
               {
                 icon: LineChart,
-                title: "DEAP Meeting Intelligence",
+                title: "Deap Intelligence AI",
                 desc: "Ata automática, qualidade da reunião, oportunidades perdidas e plano de follow-up.",
               },
               {

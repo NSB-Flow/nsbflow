@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { SOLUTIONS, briefingSchema, meetingSchema, type BriefingForm, type MeetingForm } from "@/lib/deap-schemas";
+import { AGENT_DISPLAY_NAMES } from "@/lib/agent-names";
 import { runAgentFn } from "@/lib/agent-service.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { AgentReport } from "@/components/agent-report/AgentReport";
@@ -74,10 +75,10 @@ function DeapMeeting() {
       <Tabs defaultValue="briefing">
         <TabsList>
           <TabsTrigger value="briefing" className="gap-2">
-            <Sparkles className="h-4 w-4" /> Briefing AI
+            <Sparkles className="h-4 w-4" /> {AGENT_DISPLAY_NAMES.deap_briefing}
           </TabsTrigger>
           <TabsTrigger value="meeting" className="gap-2">
-            <FileAudio className="h-4 w-4" /> Meeting Intelligence AI
+            <FileAudio className="h-4 w-4" /> {AGENT_DISPLAY_NAMES.deap_intelligence}
           </TabsTrigger>
         </TabsList>
 
@@ -228,7 +229,7 @@ function BriefingTab({ initialCompanyId }: { initialCompanyId: string | null }) 
 
       <ResultPanel
         agent="briefing"
-        reportType="DEAP Briefing"
+        reportType={AGENT_DISPLAY_NAMES.deap_briefing}
         loading={loading}
         result={result}
         company={company}
@@ -402,7 +403,7 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
 
       <ResultPanel
         agent="meeting"
-        reportType="DEAP Meeting Intelligence"
+        reportType={AGENT_DISPLAY_NAMES.deap_intelligence}
         loading={loading}
         result={result}
         company={company}
@@ -515,7 +516,7 @@ function ResultPanel({ agent, reportType, loading, result, company }: ResultProp
               <div className="text-sm">
                 <div className="font-medium">Análise incompleta</div>
                 <div className="text-muted-foreground">
-                  Nenhum briefing foi encontrado para esta conta. Gere o Briefing AI primeiro para enriquecer a análise da reunião.
+                  Nenhum briefing foi encontrado para esta conta. Gere o Deap Briefing AI primeiro para enriquecer a análise da reunião.
                 </div>
               </div>
             </div>

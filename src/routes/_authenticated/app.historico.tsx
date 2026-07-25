@@ -77,8 +77,8 @@ function HistoricoPage() {
             <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os agentes</SelectItem>
-              <SelectItem value="briefing">Briefing</SelectItem>
-              <SelectItem value="meeting">Meeting Intelligence</SelectItem>
+              <SelectItem value="deap_briefing">Deap Briefing AI</SelectItem>
+              <SelectItem value="deap_intelligence">Deap Intelligence AI</SelectItem>
             </SelectContent>
           </Select>
           <Button variant={favOnly ? "default" : "outline"} onClick={() => setFavOnly((v) => !v)}>
