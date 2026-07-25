@@ -1,0 +1,1 @@
+ALTER TABLE public.meeting_analyses ADD COLUMN IF NOT EXISTS coaching_scores jsonb;

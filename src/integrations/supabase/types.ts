@@ -480,6 +480,7 @@ export type Database = {
       meeting_analyses: {
         Row: {
           agent_run_id: string
+          coaching_scores: Json | null
           company_id: string
           created_at: string
           id: string
@@ -490,6 +491,7 @@ export type Database = {
         }
         Insert: {
           agent_run_id: string
+          coaching_scores?: Json | null
           company_id: string
           created_at?: string
           id?: string
@@ -500,6 +502,7 @@ export type Database = {
         }
         Update: {
           agent_run_id?: string
+          coaching_scores?: Json | null
           company_id?: string
           created_at?: string
           id?: string
