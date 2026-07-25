@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { MultiSelect } from "@/components/ui/multi-select";
-import { SOLUTIONS, briefingSchema, meetingSchema, type BriefingForm, type MeetingForm } from "@/lib/deap-schemas";
+import { TagInput } from "@/components/ui/tag-input";
+import { briefingSchema, meetingSchema, type BriefingForm, type MeetingForm } from "@/lib/deap-schemas";
 import { AGENT_DISPLAY_NAMES } from "@/lib/agent-names";
 import { runAgentFn } from "@/lib/agent-service.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -155,7 +155,131 @@ function SellerSectorField() {
   );
 }
 
+// ---------- Mic Recorder (Enterprise) ----------
+
+function formatDuration(sec: number) {
+  const m = Math.floor(sec / 60).toString().padStart(2, "0");
+  const s = Math.floor(sec % 60).toString().padStart(2, "0");
+  return `${m}:${s}`;
+}
+
+function MicRecorder({
+  disabled,
+  onRecorded,
+}: {
+  disabled?: boolean;
+  onRecorded: (file: File) => void | Promise<void>;
+}) {
+  const [recording, setRecording] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+  const [starting, setStarting] = useState(false);
+  const recRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (recRef.current && recRef.current.state !== "inactive") recRef.current.stop();
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+    };
+  }, []);
+
+  const pickMime = () => {
+    const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg"];
+    for (const t of candidates) {
+      if (typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(t)) return t;
+    }
+    return "";
+  };
+
+  const start = async () => {
+    if (recording || starting) return;
+    setStarting(true);
+    try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error("Seu navegador não suporta captura de áudio.");
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      const mimeType = pickMime();
+      const rec = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+      chunksRef.current = [];
+      rec.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      rec.onstop = async () => {
+        const type = rec.mimeType || "audio/webm";
+        const blob = new Blob(chunksRef.current, { type });
+        const ext = type.includes("mp4") ? "m4a" : type.includes("ogg") ? "ogg" : "webm";
+        const file = new File([blob], `reuniao-${new Date().toISOString().replace(/[:.]/g, "-")}.${ext}`, {
+          type,
+        });
+        streamRef.current?.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        await onRecorded(file);
+      };
+      rec.start(1000);
+      recRef.current = rec;
+      setElapsed(0);
+      setRecording(true);
+      timerRef.current = setInterval(() => setElapsed((s) => s + 1), 1000);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Não foi possível acessar o microfone.";
+      toast.error(msg);
+    } finally {
+      setStarting(false);
+    }
+  };
+
+  const stop = () => {
+    if (!recording) return;
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setRecording(false);
+    recRef.current?.stop();
+  };
+
+  return (
+    <div className="rounded-lg border border-dashed p-3 flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2 text-sm min-w-0">
+        <span className="relative flex h-3 w-3 shrink-0">
+          {recording && (
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-70" />
+          )}
+          <span
+            className={
+              "relative inline-flex rounded-full h-3 w-3 " + (recording ? "bg-destructive" : "bg-gold")
+            }
+          />
+        </span>
+        <div className="min-w-0">
+          <div className="font-medium truncate">
+            {recording ? "Gravando reunião…" : "Iniciar reunião"}
+          </div>
+          <div className="text-xs text-muted-foreground tabular-nums">
+            {recording ? formatDuration(elapsed) : "Captura pelo microfone (áudio anexado ao final)"}
+          </div>
+        </div>
+      </div>
+      {recording ? (
+        <Button size="sm" variant="destructive" onClick={stop}>
+          Encerrar reunião
+        </Button>
+      ) : (
+        <Button size="sm" variant="outline" onClick={start} disabled={disabled || starting}>
+          <Mic className="h-3.5 w-3.5 mr-1.5" /> {starting ? "..." : "Iniciar"}
+        </Button>
+      )}
+    </div>
+  );
+}
+
 // ---------- Briefing ----------
+
 
 function BriefingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
   const runAgent = useServerFn(runAgentFn);
@@ -218,7 +342,7 @@ function BriefingTab({ initialCompanyId }: { initialCompanyId: string | null }) 
             <Textarea rows={3} value={form.objective} onChange={(e) => setForm({ ...form, objective: e.target.value })} placeholder="Ex.: expandir participação em cloud e segurança..." />
           </Field>
           <Field label="Soluções a ofertar *">
-            <MultiSelect options={SOLUTIONS} value={form.solutions} onChange={(v) => setForm({ ...form, solutions: v })} />
+            <TagInput value={form.solutions} onChange={(v) => setForm({ ...form, solutions: v })} placeholder="Ex.: Cloud, Segurança, IA..." />
           </Field>
           <SellerSectorField />
           <Button className="w-full" onClick={submit} disabled={loading || !company}>
@@ -257,8 +381,6 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
     initialCompanyId ? { id: initialCompanyId, razao_social: "", cnpj: null } : null,
   );
   const [form, setForm] = useState<Omit<MeetingForm, "company_id">>({
-    objective: "",
-    solutions: [],
     attachment_url: "",
     attachment_name: "",
   });
@@ -350,12 +472,6 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
         </CardHeader>
         <CardContent className="space-y-4">
           <CompanySection company={company} onChange={setCompany} />
-          <Field label="Objetivo">
-            <Textarea rows={2} value={form.objective} onChange={(e) => setForm({ ...form, objective: e.target.value })} />
-          </Field>
-          <Field label="Soluções que desejava ofertar *">
-            <MultiSelect options={SOLUTIONS} value={form.solutions} onChange={(v) => setForm({ ...form, solutions: v })} />
-          </Field>
 
           <div>
             <Label className="mb-1.5 block">Upload (áudio, vídeo, TXT, DOCX, PDF) *</Label>
@@ -381,19 +497,14 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
           </div>
 
           {isEnterprise && (
-            <div className="rounded-lg border border-dashed p-3 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-sm">
-                <Mic className="h-4 w-4 text-gold" />
-                <div>
-                  <div className="font-medium">Iniciar reunião</div>
-                  <div className="text-xs text-muted-foreground">Gravação e transcrição ao vivo — em breve.</div>
-                </div>
-              </div>
-              <Button size="sm" variant="outline" disabled>
-                <Lock className="h-3.5 w-3.5 mr-1.5" /> Em breve
-              </Button>
-            </div>
+            <MicRecorder
+              disabled={uploading || loading}
+              onRecorded={async (file) => {
+                await onDrop([file]);
+              }}
+            />
           )}
+
 
           <Button className="w-full" onClick={submit} disabled={loading || uploading || !form.attachment_url || !company}>
             {loading ? (<><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Analisando reunião...</>) : (<><FileAudio className="h-4 w-4 mr-2" /> Analisar Reunião</>)}

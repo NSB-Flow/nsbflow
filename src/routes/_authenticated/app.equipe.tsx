@@ -13,6 +13,7 @@ import { useWorkspace } from "@/lib/workspace-context";
 import { useEntitlements } from "@/lib/entitlements";
 import { ROLE_LABELS, type AppRole } from "@/lib/roles";
 import { toast } from "sonner";
+import { formatBrPhone } from "@/lib/phone";
 import { UserPlus, Trash2, Users } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/equipe")({
@@ -28,6 +29,7 @@ function EquipePage() {
   const qc = useQueryClient();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [email, setEmail] = useState("");
+  const [invitePhone, setInvitePhone] = useState("");
   const [role, setRole] = useState<AppRole>("vendedor");
 
   const { data: members = [] } = useQuery({
@@ -71,6 +73,7 @@ function EquipePage() {
     );
     setInviteOpen(false);
     setEmail("");
+    setInvitePhone("");
   };
 
   return (
@@ -93,6 +96,16 @@ function EquipePage() {
               <div>
                 <Label>E-mail *</Label>
                 <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="pessoa@empresa.com" />
+              </div>
+              <div>
+                <Label>Celular <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                <Input
+                  type="tel"
+                  inputMode="tel"
+                  placeholder="(11) 91234-5678"
+                  value={invitePhone}
+                  onChange={(e) => setInvitePhone(formatBrPhone(e.target.value))}
+                />
               </div>
               <div>
                 <Label>Perfil</Label>

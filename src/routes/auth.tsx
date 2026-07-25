@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { NsbLogo } from "@/components/brand/NsbLogo";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { toast } from "sonner";
+import { formatBrPhone, digitsOnly } from "@/lib/phone";
 
 const search = z.object({
   mode: z.enum(["signin", "signup", "reset"]).optional(),
@@ -150,6 +151,7 @@ type PostSignup = {
 function SignUp({ refCode }: { refCode?: string }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [pass, setPass] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState<PostSignup | null>(null);
@@ -239,7 +241,11 @@ function SignUp({ refCode }: { refCode?: string }) {
           password: pass,
           options: {
             emailRedirectTo: window.location.origin + "/app",
-            data: { full_name: name, ...(includeRef ? { ref_code: normalizedRef } : {}) },
+            data: {
+              full_name: name,
+              ...(digitsOnly(phone) ? { phone_number: digitsOnly(phone) } : {}),
+              ...(includeRef ? { ref_code: normalizedRef } : {}),
+            },
           },
         });
         if (error) {
@@ -298,6 +304,17 @@ function SignUp({ refCode }: { refCode?: string }) {
       <div className="space-y-2">
         <Label>E-mail corporativo</Label>
         <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+      </div>
+      <div className="space-y-2">
+        <Label>Celular <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+        <Input
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel"
+          placeholder="(11) 91234-5678"
+          value={phone}
+          onChange={(e) => setPhone(formatBrPhone(e.target.value))}
+        />
       </div>
       <div className="space-y-2">
         <Label>Senha</Label>

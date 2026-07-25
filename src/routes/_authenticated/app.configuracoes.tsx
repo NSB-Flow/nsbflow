@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getWebhookUrlFn, saveWebhookUrlFn } from "@/lib/agent-service.functions";
 import { useAlertPrefs } from "@/lib/alert-prefs";
 import { toast } from "sonner";
+import { formatBrPhone, digitsOnly } from "@/lib/phone";
 import { Loader2, ShieldCheck, BellRing } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/configuracoes")({
@@ -28,6 +29,7 @@ function Config() {
   const saveUrl = useServerFn(saveWebhookUrlFn);
   const [name, setName] = useState(fullName ?? "");
   const [sectorInput, setSectorInput] = useState(sector ?? "");
+  const [phone, setPhone] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
   const [webhook, setWebhook] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
@@ -36,6 +38,13 @@ function Config() {
 
   useEffect(() => { setName(fullName ?? ""); }, [fullName]);
   useEffect(() => { setSectorInput(sector ?? ""); }, [sector]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("phone_number").eq("id", user.id).maybeSingle().then(({ data }) => {
+      setPhone(formatBrPhone(data?.phone_number ?? ""));
+    });
+  }, [user]);
 
   useEffect(() => {
     getUrl()
@@ -52,7 +61,11 @@ function Config() {
     setSavingProfile(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ full_name: name, sector: sectorInput.trim() || null })
+      .update({
+        full_name: name,
+        sector: sectorInput.trim() || null,
+        phone_number: digitsOnly(phone) || null,
+      })
       .eq("id", user.id);
     setSavingProfile(false);
     if (error) return toast.error(error.message);
@@ -92,6 +105,17 @@ function Config() {
           <div className="space-y-1.5">
             <Label>Nome completo</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Celular <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+            <Input
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="(11) 91234-5678"
+              value={phone}
+              onChange={(e) => setPhone(formatBrPhone(e.target.value))}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>Setor</Label>
