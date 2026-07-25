@@ -98,6 +98,16 @@ function EquipePage() {
                 <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="pessoa@empresa.com" />
               </div>
               <div>
+                <Label>Celular <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                <Input
+                  type="tel"
+                  inputMode="tel"
+                  placeholder="(11) 91234-5678"
+                  value={invitePhone}
+                  onChange={(e) => setInvitePhone(formatBrPhone(e.target.value))}
+                />
+              </div>
+              <div>
                 <Label>Perfil</Label>
                 <Select value={role} onValueChange={(v) => setRole(v as AppRole)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
