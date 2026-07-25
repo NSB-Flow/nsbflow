@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { NsbLogo } from "@/components/brand/NsbLogo";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { toast } from "sonner";
+import { formatBrPhone, digitsOnly } from "@/lib/phone";
 
 const search = z.object({
   mode: z.enum(["signin", "signup", "reset"]).optional(),
