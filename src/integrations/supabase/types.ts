@@ -432,6 +432,61 @@ export type Database = {
           },
         ]
       }
+      meeting_analyses: {
+        Row: {
+          agent_run_id: string
+          company_id: string
+          created_at: string
+          id: string
+          meeting_score: number | null
+          nps_estimate: number | null
+          opportunity_score: number | null
+          workspace_id: string
+        }
+        Insert: {
+          agent_run_id: string
+          company_id: string
+          created_at?: string
+          id?: string
+          meeting_score?: number | null
+          nps_estimate?: number | null
+          opportunity_score?: number | null
+          workspace_id: string
+        }
+        Update: {
+          agent_run_id?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          meeting_score?: number | null
+          nps_estimate?: number | null
+          opportunity_score?: number | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_analyses_agent_run_id_fkey"
+            columns: ["agent_run_id"]
+            isOneToOne: false
+            referencedRelation: "agent_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_analyses_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_analyses_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       opportunities: {
         Row: {
           agent_run_id: string | null
