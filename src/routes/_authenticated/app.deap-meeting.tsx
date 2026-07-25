@@ -257,8 +257,6 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
     initialCompanyId ? { id: initialCompanyId, razao_social: "", cnpj: null } : null,
   );
   const [form, setForm] = useState<Omit<MeetingForm, "company_id">>({
-    objective: "",
-    solutions: [],
     attachment_url: "",
     attachment_name: "",
   });
