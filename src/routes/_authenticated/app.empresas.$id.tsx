@@ -343,6 +343,21 @@ function EmpresaDetail() {
           label="Reuniões com briefing prévio"
           value={indicators.pctWithBriefing == null ? "—" : `${indicators.pctWithBriefing}%`}
         />
+        <Kpi
+          icon={TrendingUp}
+          label="Nota média da reunião"
+          value={meetingMetrics && meetingMetrics.avgMeeting != null ? meetingMetrics.avgMeeting.toFixed(1) : "Sem dados ainda"}
+        />
+        <Kpi
+          icon={TrendingUp}
+          label="Score médio de oportunidade"
+          value={meetingMetrics && meetingMetrics.avgOpportunity != null ? Math.round(meetingMetrics.avgOpportunity).toString() : "Sem dados ainda"}
+        />
+        <Kpi
+          icon={TrendingUp}
+          label="NPS médio estimado"
+          value={meetingMetrics && meetingMetrics.avgNps != null ? meetingMetrics.avgNps.toFixed(1) : "Sem dados ainda"}
+        />
       </div>
 
       {/* Vendedores envolvidos */}
