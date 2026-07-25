@@ -86,10 +86,11 @@ function PessoaDetail() {
         .eq("workspace_id", workspaceId!)
         .eq("user_id", id)
         .eq("role_in_account", "vendedor_principal");
-      const rows = (aa ?? []).map((r) => {
+      const rows: Array<{ id: string; razao_social: string; segmento: string | null }> = [];
+      for (const r of aa ?? []) {
         const c = Array.isArray(r.companies) ? r.companies[0] : r.companies;
-        return c ? { id: c.id as string, razao_social: c.razao_social as string, segmento: (c.segmento as string) ?? null } : null;
-      }).filter((x): x is { id: string; razao_social: string; segmento: string | null } => !!x);
+        if (c) rows.push({ id: c.id as string, razao_social: c.razao_social as string, segmento: (c.segmento as string | null) ?? null });
+      }
 
       if (rows.length === 0) return [];
       const companyIds = rows.map((r) => r.id);
