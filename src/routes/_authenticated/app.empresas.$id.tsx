@@ -593,6 +593,66 @@ function Kpi({ icon: Icon, label, value }: { icon: typeof Building2; label: stri
   );
 }
 
+function KpiTrend({
+  icon: Icon,
+  label,
+  avg,
+  last,
+  format,
+}: {
+  icon: typeof Building2;
+  label: string;
+  avg: number | null;
+  last: number | null;
+  format: (n: number) => string;
+}) {
+  const hasData = avg != null && last != null;
+
+  let trendIcon = null;
+  let trendClass = "text-muted-foreground";
+  if (hasData) {
+    if (last > avg) {
+      trendIcon = <TrendingUp className="h-3.5 w-3.5" />;
+      trendClass = "text-emerald-600";
+    } else if (last < avg) {
+      trendIcon = <TrendingDown className="h-3.5 w-3.5" />;
+      trendClass = "text-rose-600";
+    } else {
+      trendIcon = <Minus className="h-3.5 w-3.5" />;
+      trendClass = "text-muted-foreground";
+    }
+  }
+
+  return (
+    <Card>
+      <CardContent className="p-4 flex items-center gap-3">
+        <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center">
+          <Icon className="h-5 w-5 text-primary" />
+        </div>
+        <div className="min-w-0">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
+          {hasData ? (
+            <div className="flex items-center gap-2">
+              <div className="text-2xl font-bold font-display">{format(avg)}</div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground" title="Média histórica">
+                <span className="hidden sm:inline">média</span>
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground">Sem dados ainda</div>
+          )}
+          {hasData && (
+            <div className={`flex items-center gap-1 text-xs font-medium mt-0.5 ${trendClass}`}>
+              {trendIcon}
+              <span>Última: {format(last)}</span>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function money(n: number | null): string {
   if (n == null) return "—";
   return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
