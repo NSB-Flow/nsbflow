@@ -393,6 +393,8 @@ function EmpresaDetail() {
         </CardContent>
       </Card>
 
+      <AccountAssignments companyId={company.id} companyWorkspaceId={company.workspace_id} />
+
       {/* Oportunidades */}
       <Card>
         <CardHeader className="flex-row items-center justify-between space-y-0">
