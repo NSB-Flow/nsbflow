@@ -75,10 +75,10 @@ function DeapMeeting() {
       <Tabs defaultValue="briefing">
         <TabsList>
           <TabsTrigger value="briefing" className="gap-2">
-            <Sparkles className="h-4 w-4" /> Briefing AI
+            <Sparkles className="h-4 w-4" /> {AGENT_DISPLAY_NAMES.deap_briefing}
           </TabsTrigger>
           <TabsTrigger value="meeting" className="gap-2">
-            <FileAudio className="h-4 w-4" /> Meeting Intelligence AI
+            <FileAudio className="h-4 w-4" /> {AGENT_DISPLAY_NAMES.deap_intelligence}
           </TabsTrigger>
         </TabsList>
 
