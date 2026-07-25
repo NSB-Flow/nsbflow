@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_assignments: {
+        Row: {
+          assigned_by: string
+          company_id: string
+          created_at: string
+          id: string
+          role_in_account: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          assigned_by: string
+          company_id: string
+          created_at?: string
+          id?: string
+          role_in_account: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          assigned_by?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          role_in_account?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_assignments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "account_assignments_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_runs: {
         Row: {
           agent: string
@@ -893,6 +938,38 @@ export type Database = {
           },
         ]
       }
+      user_reports_to: {
+        Row: {
+          created_at: string
+          id: string
+          manager_id: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          manager_id: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          manager_id?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_reports_to_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_role_audit: {
         Row: {
           action: string
@@ -1149,6 +1226,14 @@ export type Database = {
         Args: { _workspace_id: string }
         Returns: undefined
       }
+      can_view_user_scope: {
+        Args: { _target: string; _viewer: string; _workspace_id: string }
+        Returns: boolean
+      }
+      get_subordinates: {
+        Args: { p_manager_id: string; p_workspace_id: string }
+        Returns: string[]
+      }
       has_active_paid_subscription: {
         Args: { _user_id: string }
         Returns: boolean
@@ -1158,6 +1243,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_coordinator_or_above: {
+        Args: { _user_id: string; _workspace_id: string }
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
