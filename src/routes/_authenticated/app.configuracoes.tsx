@@ -40,6 +40,13 @@ function Config() {
   useEffect(() => { setSectorInput(sector ?? ""); }, [sector]);
 
   useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("phone_number").eq("id", user.id).maybeSingle().then(({ data }) => {
+      setPhone(formatBrPhone(data?.phone_number ?? ""));
+    });
+  }, [user]);
+
+  useEffect(() => {
     getUrl()
       .then((r) => {
         setIsAdmin(r.isAdmin);
