@@ -348,20 +348,26 @@ function EmpresaDetail() {
           label="Reuniões com briefing prévio"
           value={indicators.pctWithBriefing == null ? "—" : `${indicators.pctWithBriefing}%`}
         />
-        <Kpi
+        <KpiTrend
           icon={TrendingUp}
-          label="Nota média da reunião"
-          value={meetingMetrics && meetingMetrics.avgMeeting != null ? meetingMetrics.avgMeeting.toFixed(1) : "Sem dados ainda"}
+          label="Nota da reunião"
+          avg={meetingMetrics?.avgMeeting ?? null}
+          last={meetingMetrics?.lastMeeting ?? null}
+          format={(n) => n.toFixed(1)}
         />
-        <Kpi
+        <KpiTrend
           icon={TrendingUp}
-          label="Score médio de oportunidade"
-          value={meetingMetrics && meetingMetrics.avgOpportunity != null ? Math.round(meetingMetrics.avgOpportunity).toString() : "Sem dados ainda"}
+          label="Score de oportunidade"
+          avg={meetingMetrics?.avgOpportunity ?? null}
+          last={meetingMetrics?.lastOpportunity ?? null}
+          format={(n) => Math.round(n).toString()}
         />
-        <Kpi
+        <KpiTrend
           icon={TrendingUp}
-          label="NPS médio estimado"
-          value={meetingMetrics && meetingMetrics.avgNps != null ? meetingMetrics.avgNps.toFixed(1) : "Sem dados ainda"}
+          label="NPS estimado"
+          avg={meetingMetrics?.avgNps ?? null}
+          last={meetingMetrics?.lastNps ?? null}
+          format={(n) => n.toFixed(1)}
         />
       </div>
 
