@@ -348,12 +348,6 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
         </CardHeader>
         <CardContent className="space-y-4">
           <CompanySection company={company} onChange={setCompany} />
-          <Field label="Objetivo">
-            <Textarea rows={2} value={form.objective} onChange={(e) => setForm({ ...form, objective: e.target.value })} />
-          </Field>
-          <Field label="Soluções que desejava ofertar *">
-            <MultiSelect options={SOLUTIONS} value={form.solutions} onChange={(v) => setForm({ ...form, solutions: v })} />
-          </Field>
 
           <div>
             <Label className="mb-1.5 block">Upload (áudio, vídeo, TXT, DOCX, PDF) *</Label>
@@ -379,19 +373,14 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
           </div>
 
           {isEnterprise && (
-            <div className="rounded-lg border border-dashed p-3 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-sm">
-                <Mic className="h-4 w-4 text-gold" />
-                <div>
-                  <div className="font-medium">Iniciar reunião</div>
-                  <div className="text-xs text-muted-foreground">Gravação e transcrição ao vivo — em breve.</div>
-                </div>
-              </div>
-              <Button size="sm" variant="outline" disabled>
-                <Lock className="h-3.5 w-3.5 mr-1.5" /> Em breve
-              </Button>
-            </div>
+            <MicRecorder
+              disabled={uploading || loading}
+              onRecorded={async (file) => {
+                await onDrop([file]);
+              }}
+            />
           )}
+
 
           <Button className="w-full" onClick={submit} disabled={loading || uploading || !form.attachment_url || !company}>
             {loading ? (<><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Analisando reunião...</>) : (<><FileAudio className="h-4 w-4 mr-2" /> Analisar Reunião</>)}
