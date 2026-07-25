@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import {
   ArrowLeft, Building2, Pencil, Plus, Trash2, ExternalLink, Users,
-  FileText, MessagesSquare, Loader2, TrendingUp,
+  FileText, MessagesSquare, Loader2, TrendingUp, TrendingDown, Minus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { CompanyForm, type CompanyFormValues } from "@/components/companies/CompanyForm";
