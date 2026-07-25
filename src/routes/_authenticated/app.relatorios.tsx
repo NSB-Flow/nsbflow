@@ -607,15 +607,17 @@ function RelatoriosPage() {
       return [
         {
           name: "Contas",
-          columns: ["Empresa", "CNPJ", "Segmento", "Sentimento médio", "Nota reunião", "Última atividade", "Classificação", "Em risco"],
+          columns: ["Empresa", "CNPJ", "Segmento", "Sentimento do Cliente (média)", "NPS Real", "Nota reunião", "Última atividade", "Classificação de Sentimento", "Em risco"],
           rows: accountRows.map((r) => {
             const co = companies.find((c) => c.id === r.id);
             return [
               r.name, co?.cnpj ?? "", r.segment ?? "",
               r.nps != null ? +r.nps.toFixed(2) : "",
+              r.npsReal != null ? +r.npsReal.toFixed(2) : "",
               r.nota != null ? +r.nota.toFixed(2) : "",
               r.last ? format(new Date(r.last), "yyyy-MM-dd") : "",
-              r.band, r.risk ? "SIM" : "",
+              r.band === "Sem Sentimento" ? "Sem Sentimento registrado" : `Sentimento ${r.band}`,
+              r.risk ? "SIM" : "",
             ];
           }),
         },
