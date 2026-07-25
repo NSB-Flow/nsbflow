@@ -33,7 +33,7 @@ const ITEMS: Item[] = [
   { key: "deap-meeting", title: "DEAP Meeting", url: "/app/deap-meeting", icon: MessagesSquare, group: "principal", feature: "deap.meeting.briefing" },
   { key: "deap-assessment", title: "DEAP Assessment", url: "/app/deap-assessment", icon: ClipboardCheck, group: "principal", feature: "deap.assessment.sales" },
   { key: "empresas", title: "Empresas", url: "/app/empresas", icon: Building2, group: "principal" },
-  { key: "pessoas", title: "Pessoas", url: "/app/pessoas", icon: Users, group: "principal", soon: true },
+  { key: "pessoas", title: "Pessoas", url: "/app/pessoas", icon: Users, group: "principal" },
   { key: "biblioteca", title: "Biblioteca", url: "/app/biblioteca", icon: BookOpen, group: "principal", soon: true },
   { key: "academy", title: "Academy", url: "/app/academy", icon: GraduationCap, group: "principal", soon: true },
   { key: "relatorios", title: "Relatórios", url: "/app/relatorios", icon: BarChart3, group: "principal", soon: true },

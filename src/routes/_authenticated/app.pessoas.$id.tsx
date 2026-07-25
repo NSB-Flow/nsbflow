@@ -129,8 +129,9 @@ function PessoaDetail() {
           .select("id, status, company_id, created_at")
           .eq("workspace_id", workspaceId!).eq("created_by", id),
         supabase.from("meeting_analyses")
-          .select("meeting_score, opportunity_score, nps_estimate, coaching_scores, created_at, agent_runs!inner(created_by, workspace_id)")
+          .select("meeting_score, opportunity_score, nps_estimate, coaching_scores, created_at, agent_runs!inner(created_by, workspace_id, agent)")
           .eq("workspace_id", workspaceId!)
+          .eq("agent_runs.agent", "deap_intelligence")
           .eq("agent_runs.created_by", id)
           .order("created_at", { ascending: true }),
       ]);
