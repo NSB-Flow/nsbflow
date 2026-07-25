@@ -13,6 +13,7 @@ import { useWorkspace } from "@/lib/workspace-context";
 import { useEntitlements } from "@/lib/entitlements";
 import { ROLE_LABELS, type AppRole } from "@/lib/roles";
 import { toast } from "sonner";
+import { formatBrPhone } from "@/lib/phone";
 import { UserPlus, Trash2, Users } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/equipe")({
