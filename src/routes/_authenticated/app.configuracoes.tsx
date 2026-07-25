@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getWebhookUrlFn, saveWebhookUrlFn } from "@/lib/agent-service.functions";
 import { useAlertPrefs } from "@/lib/alert-prefs";
 import { toast } from "sonner";
+import { formatBrPhone, digitsOnly } from "@/lib/phone";
 import { Loader2, ShieldCheck, BellRing } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/configuracoes")({
