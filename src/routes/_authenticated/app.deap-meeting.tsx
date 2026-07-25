@@ -516,7 +516,7 @@ function ResultPanel({ agent, reportType, loading, result, company }: ResultProp
               <div className="text-sm">
                 <div className="font-medium">Análise incompleta</div>
                 <div className="text-muted-foreground">
-                  Nenhum briefing foi encontrado para esta conta. Gere o Briefing AI primeiro para enriquecer a análise da reunião.
+                  Nenhum briefing foi encontrado para esta conta. Gere o Deap Briefing AI primeiro para enriquecer a análise da reunião.
                 </div>
               </div>
             </div>
