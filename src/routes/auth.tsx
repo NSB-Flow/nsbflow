@@ -241,7 +241,11 @@ function SignUp({ refCode }: { refCode?: string }) {
           password: pass,
           options: {
             emailRedirectTo: window.location.origin + "/app",
-            data: { full_name: name, ...(includeRef ? { ref_code: normalizedRef } : {}) },
+            data: {
+              full_name: name,
+              ...(digitsOnly(phone) ? { phone_number: digitsOnly(phone) } : {}),
+              ...(includeRef ? { ref_code: normalizedRef } : {}),
+            },
           },
         });
         if (error) {
