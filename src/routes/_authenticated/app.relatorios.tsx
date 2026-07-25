@@ -507,25 +507,27 @@ function RelatoriosPage() {
           {
             heading: "Classificação por Sentimento do Cliente",
             kpis: [
-              { label: "Promotores", value: String(npsBands.Promotor) },
-              { label: "Neutros", value: String(npsBands.Neutro) },
-              { label: "Detratores", value: String(npsBands.Detrator) },
+              { label: "Sentimento Positivo", value: String(npsBands.Positivo) },
+              { label: "Sentimento Neutro", value: String(npsBands.Neutro) },
+              { label: "Sentimento Negativo", value: String(npsBands.Negativo) },
               { label: "Em risco", value: String(accountRows.filter((r) => r.risk).length) },
+              { label: "NPS Real (média)", value: npsRealAvg != null ? npsRealAvg.toFixed(1) : "Sem NPS Real ainda" },
             ],
             note: `Sentimento do Cliente abaixo de ${npsThreshold} ou sem atividade há mais de 60 dias sinaliza risco.`,
             tables: [
               {
                 title: "Contas",
-                columns: ["Empresa", "Segmento", "Sentimento", "Nota reunião", "Última atividade", "Risco"],
+                columns: ["Empresa", "Segmento", "Sentimento", "NPS Real", "Nota reunião", "Última atividade", "Risco"],
                 rows: accountRows.map((r) => [
                   r.name,
                   r.segment ?? "—",
                   fmtNum(r.nps, 1),
+                  r.npsReal != null ? r.npsReal.toFixed(1) : "—",
                   fmtNum(r.nota, 1),
                   r.last ? format(new Date(r.last), "dd/MM/yyyy") : "—",
                   r.risk ? "SIM" : "—",
                 ]),
-                widths: [3, 1.5, 0.8, 1.2, 1.4, 0.8],
+                widths: [2.6, 1.4, 0.9, 0.9, 1.1, 1.3, 0.8],
               },
             ],
           },
