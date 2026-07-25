@@ -119,7 +119,7 @@ function ReportDoc({ input }: { input: ReportPdfInput }): ReactElement {
       </Page>
       <Page size="A4" style={styles.page}>
         <Text style={styles.h1}>{input.title}</Text>
-        <Text style={styles.small}>Período: {input.period}</Text>
+        <Text style={[styles.small, { marginTop: 6, marginBottom: 4 }]}>Período: {input.period}</Text>
 
         {input.sections.map((s, si) => (
           <View key={si}>
