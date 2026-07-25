@@ -73,6 +73,7 @@ function EquipePage() {
     );
     setInviteOpen(false);
     setEmail("");
+    setInvitePhone("");
   };
 
   return (
