@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { isAdminRole, type AppRole } from "@/lib/roles";
 
-export const Route = createFileRoute("/_authenticated/app/empresas")({
+export const Route = createFileRoute("/_authenticated/app/empresas/")({
   head: () => ({
     meta: [
       { title: "Empresas — NSB Flow" },
