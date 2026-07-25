@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { useWorkspace } from "@/lib/workspace-context";
 import { applyReferralPaidFn } from "@/lib/credits.functions";
+import { validateCouponFn } from "@/lib/coupons.functions";
 import { toast } from "sonner";
 import { CreditCard, Lock, Loader2, Users as UsersIcon } from "lucide-react";
 import { z } from "zod";
@@ -40,6 +41,7 @@ function CheckoutPage() {
   const [processing, setProcessing] = useState(false);
   const [seats, setSeats] = useState<number>(1);
   const applyReferralPaid = useServerFn(applyReferralPaidFn);
+  const validateCoupon = useServerFn(validateCouponFn);
   const isPersonal = workspace?.is_personal ?? true;
 
   const { data: plan } = useQuery({
@@ -61,13 +63,13 @@ function CheckoutPage() {
 
   const applyCoupon = async () => {
     if (!coupon.trim()) return;
-    const { data } = await supabase.from("coupons").select("*").eq("code", coupon.trim().toUpperCase()).eq("active", true).maybeSingle();
-    if (!data) {
+    const res = await validateCoupon({ data: { code: coupon.trim() } });
+    if (!res.ok) {
       toast.error("Cupom inválido");
       return;
     }
-    setCouponApplied({ code: data.code, percent: data.percent_off ?? 0 });
-    toast.success(`Cupom ${data.code} aplicado`);
+    setCouponApplied({ code: res.code, percent: res.percent_off });
+    toast.success(`Cupom ${res.code} aplicado`);
   };
 
   const subscribe = async () => {
