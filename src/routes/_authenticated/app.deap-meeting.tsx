@@ -403,7 +403,7 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
 
       <ResultPanel
         agent="meeting"
-        reportType="DEAP Meeting Intelligence"
+        reportType={AGENT_DISPLAY_NAMES.deap_intelligence}
         loading={loading}
         result={result}
         company={company}
