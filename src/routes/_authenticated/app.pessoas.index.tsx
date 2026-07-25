@@ -100,8 +100,9 @@ function PessoasPage() {
           .in("created_by", visibleIds),
         supabase
           .from("meeting_analyses")
-          .select("meeting_score, agent_run_id, agent_runs!inner(created_by, workspace_id)")
+          .select("meeting_score, agent_run_id, agent_runs!inner(created_by, workspace_id, agent)")
           .eq("workspace_id", workspaceId!)
+          .eq("agent_runs.agent", "deap_intelligence")
           .in("agent_runs.created_by", visibleIds),
       ]);
 
