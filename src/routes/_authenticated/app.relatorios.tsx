@@ -824,10 +824,24 @@ function RelatoriosPage() {
         {/* ---------- Accounts ---------- */}
         <TabsContent value="accounts" className="mt-6 space-y-4">
           <div className="grid gap-4 md:grid-cols-4">
-            <Kpi label="Promotores" value={String(npsBands.Promotor)} />
-            <Kpi label="Neutros" value={String(npsBands.Neutro)} />
-            <Kpi label="Detratores" value={String(npsBands.Detrator)} />
+            <Kpi label="Sentimento Positivo" value={String(npsBands.Positivo)} />
+            <Kpi label="Sentimento Neutro" value={String(npsBands.Neutro)} />
+            <Kpi label="Sentimento Negativo" value={String(npsBands.Negativo)} />
             <Kpi label="Contas em risco" value={String(accountRows.filter((r) => r.risk).length)} />
+          </div>
+          <div className="grid gap-4 md:grid-cols-4">
+            <Kpi
+              label="NPS Real (média)"
+              value={npsRealAvg != null ? npsRealAvg.toFixed(1) : "Sem NPS Real ainda"}
+            />
+            <Kpi
+              label="Contas com NPS Real"
+              value={String(accountRows.filter((r) => r.npsReal != null).length)}
+            />
+            <Kpi
+              label="Sem Sentimento registrado"
+              value={String(npsBands["Sem Sentimento"])}
+            />
           </div>
 
           <Card>
@@ -855,28 +869,34 @@ function RelatoriosPage() {
                   <TableRow>
                     <TableHead>Empresa</TableHead>
                     <TableHead>Segmento</TableHead>
-                    <TableHead className="text-right">Sentimento</TableHead>
+                    <TableHead className="text-right">Sentimento do Cliente</TableHead>
+                    <TableHead className="text-right">NPS Real</TableHead>
                     <TableHead className="text-right">Nota</TableHead>
                     <TableHead>Última atividade</TableHead>
-                    <TableHead>Classificação</TableHead>
+                    <TableHead>Classificação de Sentimento</TableHead>
                     <TableHead />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {accountRows.length === 0 ? (
-                    <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-8">Sem dados ainda.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={8} className="text-center text-sm text-muted-foreground py-8">Sem dados ainda.</TableCell></TableRow>
                   ) : accountRows.map((r) => (
                     <TableRow key={r.id}>
                       <TableCell className="font-medium">{r.name}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{r.segment ?? "—"}</TableCell>
                       <TableCell className="text-right tabular-nums">{fmtNum(r.nps, 1)}</TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {r.npsReal != null ? r.npsReal.toFixed(1) : (
+                          <span className="text-muted-foreground text-xs">Sem NPS Real ainda</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right tabular-nums">{fmtNum(r.nota, 1)}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {r.last ? format(new Date(r.last), "dd/MM/yyyy") : "—"}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={r.band === "Promotor" ? "default" : r.band === "Detrator" ? "destructive" : "secondary"}>
-                          {r.band}
+                        <Badge variant={r.band === "Positivo" ? "default" : r.band === "Negativo" ? "destructive" : "secondary"}>
+                          {r.band === "Sem Sentimento" ? "Sem Sentimento registrado" : `Sentimento ${r.band}`}
                         </Badge>
                       </TableCell>
                       <TableCell>
