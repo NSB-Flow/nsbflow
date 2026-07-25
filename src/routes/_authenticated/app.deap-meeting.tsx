@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { SOLUTIONS, briefingSchema, meetingSchema, type BriefingForm, type MeetingForm } from "@/lib/deap-schemas";
+import { AGENT_DISPLAY_NAMES } from "@/lib/agent-names";
 import { runAgentFn } from "@/lib/agent-service.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { AgentReport } from "@/components/agent-report/AgentReport";
