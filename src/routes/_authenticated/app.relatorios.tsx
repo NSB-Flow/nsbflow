@@ -805,7 +805,7 @@ function RelatoriosPage() {
                 <div>
                   <CardTitle className="text-base">Contas visíveis</CardTitle>
                   <CardDescription>
-                    Sinalização de risco: Sentimento do Cliente NPS &lt; {npsThreshold}lt; {npsThreshold} ou sem atividade há mais de 60 dias.
+                    Sinalização de risco: Sentimento do Cliente &lt; {npsThreshold} ou sem atividade há mais de 60 dias.
                   </CardDescription>
                 </div>
                 <div className="w-[180px]">
