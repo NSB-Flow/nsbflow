@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { useWorkspace } from "@/lib/workspace-context";
 import { applyReferralPaidFn } from "@/lib/credits.functions";
+import { validateCouponFn } from "@/lib/coupons.functions";
 import { toast } from "sonner";
 import { CreditCard, Lock, Loader2, Users as UsersIcon } from "lucide-react";
 import { z } from "zod";
