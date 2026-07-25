@@ -61,7 +61,11 @@ function Config() {
     setSavingProfile(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ full_name: name, sector: sectorInput.trim() || null })
+      .update({
+        full_name: name,
+        sector: sectorInput.trim() || null,
+        phone_number: digitsOnly(phone) || null,
+      })
       .eq("id", user.id);
     setSavingProfile(false);
     if (error) return toast.error(error.message);
