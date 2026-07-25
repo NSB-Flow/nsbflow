@@ -229,7 +229,7 @@ function BriefingTab({ initialCompanyId }: { initialCompanyId: string | null }) 
 
       <ResultPanel
         agent="briefing"
-        reportType="DEAP Briefing"
+        reportType={AGENT_DISPLAY_NAMES.deap_briefing}
         loading={loading}
         result={result}
         company={company}
