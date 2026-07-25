@@ -742,6 +742,7 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          phone_number: string | null
           referral_code: string | null
           sector: string | null
           updated_at: string
@@ -751,6 +752,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          phone_number?: string | null
           referral_code?: string | null
           sector?: string | null
           updated_at?: string
@@ -760,6 +762,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          phone_number?: string | null
           referral_code?: string | null
           sector?: string | null
           updated_at?: string
