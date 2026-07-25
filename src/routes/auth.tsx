@@ -150,6 +150,7 @@ type PostSignup = {
 function SignUp({ refCode }: { refCode?: string }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [pass, setPass] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState<PostSignup | null>(null);
