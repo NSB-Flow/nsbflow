@@ -365,11 +365,12 @@ function EmpresaDetail() {
         />
         <KpiTrend
           icon={TrendingUp}
-          label="NPS estimado"
+          label="Sentimento do Cliente"
           avg={meetingMetrics?.avgNps ?? null}
           last={meetingMetrics?.lastNps ?? null}
           format={(n) => n.toFixed(1)}
         />
+        <NpsRealKpi companyId={id} />
       </div>
 
       {/* Vendedores envolvidos */}
