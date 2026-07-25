@@ -138,6 +138,30 @@ function EmpresaDetail() {
     },
   });
 
+  const { data: meetingMetrics } = useQuery({
+    queryKey: ["empresa-meeting-metrics", id],
+    enabled: !!company,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("meeting_analyses")
+        .select("meeting_score, opportunity_score, nps_estimate")
+        .eq("company_id", id);
+      if (error) throw error;
+      const rows = data ?? [];
+      const avg = (key: "meeting_score" | "opportunity_score" | "nps_estimate") => {
+        const vals = rows.map((r) => r[key]).filter((v): v is number => v != null);
+        if (vals.length === 0) return null;
+        return vals.reduce((a, b) => a + Number(b), 0) / vals.length;
+      };
+      return {
+        count: rows.length,
+        avgMeeting: avg("meeting_score"),
+        avgOpportunity: avg("opportunity_score"),
+        avgNps: avg("nps_estimate"),
+      };
+    },
+  });
+
   // Sellers involved + assigned name lookup
   const userIds = useMemo(() => {
     const s = new Set<string>();
@@ -318,6 +342,21 @@ function EmpresaDetail() {
           icon={TrendingUp}
           label="Reuniões com briefing prévio"
           value={indicators.pctWithBriefing == null ? "—" : `${indicators.pctWithBriefing}%`}
+        />
+        <Kpi
+          icon={TrendingUp}
+          label="Nota média da reunião"
+          value={meetingMetrics && meetingMetrics.avgMeeting != null ? meetingMetrics.avgMeeting.toFixed(1) : "Sem dados ainda"}
+        />
+        <Kpi
+          icon={TrendingUp}
+          label="Score médio de oportunidade"
+          value={meetingMetrics && meetingMetrics.avgOpportunity != null ? Math.round(meetingMetrics.avgOpportunity).toString() : "Sem dados ainda"}
+        />
+        <Kpi
+          icon={TrendingUp}
+          label="NPS médio estimado"
+          value={meetingMetrics && meetingMetrics.avgNps != null ? meetingMetrics.avgNps.toFixed(1) : "Sem dados ainda"}
         />
       </div>
 
