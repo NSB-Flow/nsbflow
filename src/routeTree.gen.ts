@@ -40,6 +40,7 @@ import { Route as AuthenticatedAppAcademyRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAppPessoasIndexRouteImport } from './routes/_authenticated/app.pessoas.index'
 import { Route as AuthenticatedAppEmpresasIndexRouteImport } from './routes/_authenticated/app.empresas.index'
 import { Route as ApiPublicHooksProcessExportJobsRouteImport } from './routes/api/public/hooks/process-export-jobs'
+import { Route as AuthenticatedAppPessoasIdRouteImport } from './routes/_authenticated/app.pessoas.$id'
 import { Route as AuthenticatedAppHistoricoIdRouteImport } from './routes/_authenticated/app.historico.$id'
 import { Route as AuthenticatedAppEmpresasIdRouteImport } from './routes/_authenticated/app.empresas.$id'
 
@@ -216,6 +217,12 @@ const ApiPublicHooksProcessExportJobsRoute =
     path: '/api/public/hooks/process-export-jobs',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedAppPessoasIdRoute =
+  AuthenticatedAppPessoasIdRouteImport.update({
+    id: '/pessoas/$id',
+    path: '/pessoas/$id',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppHistoricoIdRoute =
   AuthenticatedAppHistoricoIdRouteImport.update({
     id: '/$id',
@@ -259,6 +266,7 @@ export interface FileRoutesByFullPath {
   '/app/': typeof AuthenticatedAppIndexRoute
   '/app/empresas/$id': typeof AuthenticatedAppEmpresasIdRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
+  '/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
   '/app/empresas/': typeof AuthenticatedAppEmpresasIndexRoute
   '/app/pessoas/': typeof AuthenticatedAppPessoasIndexRoute
@@ -292,6 +300,7 @@ export interface FileRoutesByTo {
   '/app': typeof AuthenticatedAppIndexRoute
   '/app/empresas/$id': typeof AuthenticatedAppEmpresasIdRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
+  '/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
   '/app/empresas': typeof AuthenticatedAppEmpresasIndexRoute
   '/app/pessoas': typeof AuthenticatedAppPessoasIndexRoute
@@ -328,6 +337,7 @@ export interface FileRoutesById {
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/app/empresas/$id': typeof AuthenticatedAppEmpresasIdRoute
   '/_authenticated/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
+  '/_authenticated/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
   '/_authenticated/app/empresas/': typeof AuthenticatedAppEmpresasIndexRoute
   '/_authenticated/app/pessoas/': typeof AuthenticatedAppPessoasIndexRoute
@@ -364,6 +374,7 @@ export interface FileRouteTypes {
     | '/app/'
     | '/app/empresas/$id'
     | '/app/historico/$id'
+    | '/app/pessoas/$id'
     | '/api/public/hooks/process-export-jobs'
     | '/app/empresas/'
     | '/app/pessoas/'
@@ -397,6 +408,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/empresas/$id'
     | '/app/historico/$id'
+    | '/app/pessoas/$id'
     | '/api/public/hooks/process-export-jobs'
     | '/app/empresas'
     | '/app/pessoas'
@@ -432,6 +444,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/'
     | '/_authenticated/app/empresas/$id'
     | '/_authenticated/app/historico/$id'
+    | '/_authenticated/app/pessoas/$id'
     | '/api/public/hooks/process-export-jobs'
     | '/_authenticated/app/empresas/'
     | '/_authenticated/app/pessoas/'
@@ -667,6 +680,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksProcessExportJobsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/app/pessoas/$id': {
+      id: '/_authenticated/app/pessoas/$id'
+      path: '/pessoas/$id'
+      fullPath: '/app/pessoas/$id'
+      preLoaderRoute: typeof AuthenticatedAppPessoasIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/historico/$id': {
       id: '/_authenticated/app/historico/$id'
       path: '/$id'
@@ -720,6 +740,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppWorkspacesRoute: typeof AuthenticatedAppWorkspacesRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
   AuthenticatedAppEmpresasIdRoute: typeof AuthenticatedAppEmpresasIdRoute
+  AuthenticatedAppPessoasIdRoute: typeof AuthenticatedAppPessoasIdRoute
   AuthenticatedAppEmpresasIndexRoute: typeof AuthenticatedAppEmpresasIndexRoute
   AuthenticatedAppPessoasIndexRoute: typeof AuthenticatedAppPessoasIndexRoute
 }
@@ -747,6 +768,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppWorkspacesRoute: AuthenticatedAppWorkspacesRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
   AuthenticatedAppEmpresasIdRoute: AuthenticatedAppEmpresasIdRoute,
+  AuthenticatedAppPessoasIdRoute: AuthenticatedAppPessoasIdRoute,
   AuthenticatedAppEmpresasIndexRoute: AuthenticatedAppEmpresasIndexRoute,
   AuthenticatedAppPessoasIndexRoute: AuthenticatedAppPessoasIndexRoute,
 }
