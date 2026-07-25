@@ -41,6 +41,7 @@ function CheckoutPage() {
   const [processing, setProcessing] = useState(false);
   const [seats, setSeats] = useState<number>(1);
   const applyReferralPaid = useServerFn(applyReferralPaidFn);
+  const validateCoupon = useServerFn(validateCouponFn);
   const isPersonal = workspace?.is_personal ?? true;
 
   const { data: plan } = useQuery({
