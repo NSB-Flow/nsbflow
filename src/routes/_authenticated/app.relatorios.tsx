@@ -448,7 +448,7 @@ function RelatoriosPage() {
             tables: [
               {
                 title: "Ranking",
-                columns: ["Vendedor", "Reuniões", "Nota", "NPS", "Score Op.", "Conversão", "Ganhas/Opps"],
+                columns: ["Vendedor", "Reuniões", "Nota", "Sentimento", "Score Op.", "Conversão", "Ganhas/Opps"],
                 rows: teamRows.map((r) => [
                   r.name,
                   r.reunioes,
@@ -478,18 +478,18 @@ function RelatoriosPage() {
         author,
         sections: [
           {
-            heading: "Classificação NPS",
+            heading: "Classificação por Sentimento do Cliente",
             kpis: [
               { label: "Promotores", value: String(npsBands.Promotor) },
               { label: "Neutros", value: String(npsBands.Neutro) },
               { label: "Detratores", value: String(npsBands.Detrator) },
               { label: "Em risco", value: String(accountRows.filter((r) => r.risk).length) },
             ],
-            note: `NPS abaixo de ${npsThreshold} ou sem atividade há mais de 60 dias sinaliza risco.`,
+            note: `Sentimento do Cliente abaixo de ${npsThreshold} ou sem atividade há mais de 60 dias sinaliza risco.`,
             tables: [
               {
                 title: "Contas",
-                columns: ["Empresa", "Segmento", "NPS", "Nota reunião", "Última atividade", "Risco"],
+                columns: ["Empresa", "Segmento", "Sentimento", "Nota reunião", "Última atividade", "Risco"],
                 rows: accountRows.map((r) => [
                   r.name,
                   r.segment ?? "—",
@@ -557,7 +557,7 @@ function RelatoriosPage() {
       return [
         {
           name: "Ranking",
-          columns: ["Vendedor", "Reuniões", "Nota média", "NPS médio", "Score oportunidade", "Conversão", "Ganhas", "Total oportunidades"],
+          columns: ["Vendedor", "Reuniões", "Nota média", "Sentimento médio", "Score oportunidade", "Conversão", "Ganhas", "Total oportunidades"],
           rows: teamRows.map((r) => [
             r.name, r.reunioes,
             r.nota != null ? +r.nota.toFixed(2) : "",
@@ -578,7 +578,7 @@ function RelatoriosPage() {
       return [
         {
           name: "Contas",
-          columns: ["Empresa", "CNPJ", "Segmento", "NPS médio", "Nota reunião", "Última atividade", "Classificação", "Em risco"],
+          columns: ["Empresa", "CNPJ", "Segmento", "Sentimento médio", "Nota reunião", "Última atividade", "Classificação", "Em risco"],
           rows: accountRows.map((r) => {
             const co = companies.find((c) => c.id === r.id);
             return [
@@ -740,7 +740,7 @@ function RelatoriosPage() {
                     <TableHead>Vendedor</TableHead>
                     <TableHead className="text-right">Reuniões</TableHead>
                     <TableHead className="text-right">Nota</TableHead>
-                    <TableHead className="text-right">NPS</TableHead>
+                    <TableHead className="text-right">Sentimento</TableHead>
                     <TableHead className="text-right">Score Op.</TableHead>
                     <TableHead className="text-right">Conversão</TableHead>
                     <TableHead className="text-right">Ganhas/Opps</TableHead>
@@ -805,11 +805,11 @@ function RelatoriosPage() {
                 <div>
                   <CardTitle className="text-base">Contas visíveis</CardTitle>
                   <CardDescription>
-                    Sinalização de risco: NPS &lt; {npsThreshold} ou sem atividade há mais de 60 dias.
+                    Sinalização de risco: Sentimento do Cliente NPS &lt; {npsThreshold}lt; {npsThreshold} ou sem atividade há mais de 60 dias.
                   </CardDescription>
                 </div>
                 <div className="w-[180px]">
-                  <Label className="text-xs text-muted-foreground">Limiar NPS para risco</Label>
+                  <Label className="text-xs text-muted-foreground">Limiar do sentimento para risco</Label>
                   <Input
                     type="number" min={0} max={10} step={1}
                     value={npsThreshold}
@@ -824,7 +824,7 @@ function RelatoriosPage() {
                   <TableRow>
                     <TableHead>Empresa</TableHead>
                     <TableHead>Segmento</TableHead>
-                    <TableHead className="text-right">NPS</TableHead>
+                    <TableHead className="text-right">Sentimento</TableHead>
                     <TableHead className="text-right">Nota</TableHead>
                     <TableHead>Última atividade</TableHead>
                     <TableHead>Classificação</TableHead>
