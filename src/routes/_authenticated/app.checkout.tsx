@@ -63,13 +63,13 @@ function CheckoutPage() {
 
   const applyCoupon = async () => {
     if (!coupon.trim()) return;
-    const { data } = await supabase.from("coupons").select("*").eq("code", coupon.trim().toUpperCase()).eq("active", true).maybeSingle();
-    if (!data) {
+    const res = await validateCoupon({ data: { code: coupon.trim() } });
+    if (!res.ok) {
       toast.error("Cupom inválido");
       return;
     }
-    setCouponApplied({ code: data.code, percent: data.percent_off ?? 0 });
-    toast.success(`Cupom ${data.code} aplicado`);
+    setCouponApplied({ code: res.code, percent: res.percent_off });
+    toast.success(`Cupom ${res.code} aplicado`);
   };
 
   const subscribe = async () => {
