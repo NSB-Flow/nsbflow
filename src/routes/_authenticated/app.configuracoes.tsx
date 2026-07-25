@@ -29,6 +29,7 @@ function Config() {
   const saveUrl = useServerFn(saveWebhookUrlFn);
   const [name, setName] = useState(fullName ?? "");
   const [sectorInput, setSectorInput] = useState(sector ?? "");
+  const [phone, setPhone] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
   const [webhook, setWebhook] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
