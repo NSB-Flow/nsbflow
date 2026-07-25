@@ -48,8 +48,8 @@ export const runAgentFn = createServerFn({ method: "POST" })
     // 4) consome crédito (workspace pool → user pool). Enterprise = ilimitado.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // 4a) resolve agente central por slug e valida min_plan
-    const { data: agentRow } = await supabase
+    // 4a) resolve agente central por slug e valida min_plan (via admin: agents é somente super_admin no cliente)
+    const { data: agentRow } = await supabaseAdmin
       .from("agents")
       .select("id, slug, display_name, min_plan, is_active")
       .eq("slug", data.agent)
