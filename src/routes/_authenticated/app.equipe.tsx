@@ -29,6 +29,7 @@ function EquipePage() {
   const qc = useQueryClient();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [email, setEmail] = useState("");
+  const [invitePhone, setInvitePhone] = useState("");
   const [role, setRole] = useState<AppRole>("vendedor");
 
   const { data: members = [] } = useQuery({
