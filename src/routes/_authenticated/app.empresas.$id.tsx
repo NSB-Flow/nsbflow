@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { CompanyForm, type CompanyFormValues } from "@/components/companies/CompanyForm";
+import { AccountAssignments } from "@/components/companies/AccountAssignments";
 import {
   OpportunityForm, OPPORTUNITY_STATUSES, type OpportunityFormValues, type OpportunityStatus,
 } from "@/components/companies/OpportunityForm";
@@ -391,6 +392,8 @@ function EmpresaDetail() {
           )}
         </CardContent>
       </Card>
+
+      <AccountAssignments companyId={company.id} companyWorkspaceId={company.workspace_id} />
 
       {/* Oportunidades */}
       <Card>
