@@ -661,3 +661,49 @@ function money(n: number | null): string {
   if (n == null) return "—";
   return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
+
+function NpsRealKpi({ companyId }: { companyId: string }) {
+  const { data } = useQuery({
+    queryKey: ["nps-real-latest", companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("nps_surveys")
+        .select("score, responded_at")
+        .eq("company_id", companyId)
+        .eq("status", "responded")
+        .not("responded_at", "is", null)
+        .order("responded_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const hasData = data && data.score != null;
+
+  return (
+    <Card>
+      <CardContent className="p-4 flex items-center gap-3">
+        <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center">
+          <TrendingUp className="h-5 w-5 text-primary" />
+        </div>
+        <div className="min-w-0">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">NPS Real</div>
+          {hasData ? (
+            <>
+              <div className="text-2xl font-bold font-display">{data!.score}</div>
+              <div className="text-xs text-muted-foreground mt-0.5">
+                {data!.responded_at
+                  ? `Última pesquisa: ${new Date(data!.responded_at).toLocaleDateString("pt-BR")}`
+                  : null}
+              </div>
+            </>
+          ) : (
+            <div className="text-sm text-muted-foreground">Sem dados ainda</div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
