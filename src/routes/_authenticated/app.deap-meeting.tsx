@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import {
   Loader2, FileText, Sparkles, Upload, FileAudio, Save, Star, Copy, FileDown,
-  AlertTriangle, Mic, Lock, Info, CheckCircle2, UploadCloud,
+  AlertTriangle, Mic, Lock, Info, CheckCircle2, UploadCloud, X,
 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { generateReportPdf, downloadBlob } from "@/lib/pdf-report";
@@ -169,12 +169,14 @@ function MicRecorder({
   uploading,
   uploadPct,
   savedName,
+  onCancelUpload,
 }: {
   disabled?: boolean;
   onRecorded: (file: File) => void | Promise<void>;
   uploading?: boolean;
   uploadPct?: number;
   savedName?: string | null;
+  onCancelUpload?: () => void;
 }) {
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -292,8 +294,8 @@ function MicRecorder({
             Encerrar reunião
           </Button>
         ) : uploading ? (
-          <Button size="sm" variant="outline" disabled>
-            <UploadCloud className="h-3.5 w-3.5 mr-1.5 animate-pulse" /> Enviando…
+          <Button size="sm" variant="outline" onClick={onCancelUpload} disabled={!onCancelUpload}>
+            <X className="h-3.5 w-3.5 mr-1.5" /> Cancelar
           </Button>
         ) : showSaved ? (
           <Button size="sm" variant="outline" onClick={start} disabled={disabled || starting}>
@@ -420,22 +422,50 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
   const [uploadPct, setUploadPct] = useState(0);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ runId?: string; data?: unknown; error?: string } | null>(null);
+  const canceledRef = useRef(false);
+  const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const cancelUpload = () => {
+    if (!uploading) return;
+    canceledRef.current = true;
+    if (progressTimerRef.current) {
+      clearInterval(progressTimerRef.current);
+      progressTimerRef.current = null;
+    }
+    setUploading(false);
+    setUploadPct(0);
+    toast.message("Upload cancelado");
+  };
 
   const onDrop = async (files: File[], opts?: { fromRecording?: boolean }) => {
     if (!files[0] || !user) return;
     const file = files[0];
     const fromRec = !!opts?.fromRecording;
+    canceledRef.current = false;
     setUploading(true);
     setUploadPct(0);
+    const path = `${user.id}/${Date.now()}-${file.name.replace(/[^\w.\-]/g, "_")}`;
     try {
-      const path = `${user.id}/${Date.now()}-${file.name.replace(/[^\w.\-]/g, "_")}`;
-      const t = setInterval(() => setUploadPct((p) => Math.min(90, p + 8)), 250);
+      progressTimerRef.current = setInterval(
+        () => setUploadPct((p) => Math.min(90, p + 8)),
+        250,
+      );
       const { error } = await supabase.storage.from("agent-uploads").upload(path, file, {
         cacheControl: "3600",
         upsert: false,
         contentType: file.type || "application/octet-stream",
       });
-      clearInterval(t);
+      if (progressTimerRef.current) {
+        clearInterval(progressTimerRef.current);
+        progressTimerRef.current = null;
+      }
+      if (canceledRef.current) {
+        // Upload já concluído, mas o usuário pediu cancelamento: remove o arquivo.
+        if (!error) {
+          void supabase.storage.from("agent-uploads").remove([path]);
+        }
+        return;
+      }
       if (error) throw error;
       const { data: signed, error: sErr } = await supabase.storage
         .from("agent-uploads")
@@ -445,10 +475,15 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
       setUploadPct(100);
       toast.success(fromRec ? "Gravação salva e anexada" : "Arquivo enviado");
     } catch (e) {
+      if (canceledRef.current) return;
       const msg = e instanceof Error ? e.message : "Falha no upload";
       toast.error(msg);
     } finally {
-      setUploading(false);
+      if (progressTimerRef.current) {
+        clearInterval(progressTimerRef.current);
+        progressTimerRef.current = null;
+      }
+      if (!canceledRef.current) setUploading(false);
     }
   };
 
@@ -536,7 +571,16 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
                 {form.attachment_name && !uploading ? "Anexo pronto — clique para trocar" : "até 512 MB"}
               </p>
             </div>
-            {uploading && <Progress value={uploadPct} className="mt-2 h-1.5" />}
+            {uploading && (
+              <div className="mt-2 space-y-1.5">
+                <Progress value={uploadPct} className="h-1.5" />
+                <div className="flex justify-end">
+                  <Button size="sm" variant="ghost" onClick={cancelUpload}>
+                    <X className="h-3.5 w-3.5 mr-1.5" /> Cancelar envio
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           {isEnterprise && (
@@ -545,6 +589,7 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
               uploading={uploading}
               uploadPct={uploadPct}
               savedName={form.attachment_name || null}
+              onCancelUpload={cancelUpload}
               onRecorded={async (file) => {
                 await onDrop([file], { fromRecording: true });
               }}
