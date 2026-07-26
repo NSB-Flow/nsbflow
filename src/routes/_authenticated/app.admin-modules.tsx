@@ -629,6 +629,11 @@ function BulkModulesPanel() {
                 className="mt-2"
               />
             )}
+            {featureKey !== "__custom__" && (
+              <p className="text-[11px] text-muted-foreground mt-1.5 leading-snug">
+                {KNOWN_MODULES.find((m) => m.key === featureKey)?.description}
+              </p>
+            )}
           </div>
           <div>
             <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Buscar</Label>
