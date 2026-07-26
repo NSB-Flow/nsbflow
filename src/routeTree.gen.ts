@@ -35,6 +35,7 @@ import { Route as AuthenticatedAppAjudaRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAppAdminWorkspaceAuditRouteImport } from './routes/_authenticated/app.admin-workspace-audit'
 import { Route as AuthenticatedAppAdminSecurityRouteImport } from './routes/_authenticated/app.admin-security'
 import { Route as AuthenticatedAppAdminRoleAuditRouteImport } from './routes/_authenticated/app.admin-role-audit'
+import { Route as AuthenticatedAppAdminModulesRouteImport } from './routes/_authenticated/app.admin-modules'
 import { Route as AuthenticatedAppAdminRouteImport } from './routes/_authenticated/app.admin'
 import { Route as AuthenticatedAppAcademyRouteImport } from './routes/_authenticated/app.academy'
 import { Route as AuthenticatedAppPessoasIndexRouteImport } from './routes/_authenticated/app.pessoas.index'
@@ -189,6 +190,12 @@ const AuthenticatedAppAdminRoleAuditRoute =
     path: '/admin-role-audit',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAdminModulesRoute =
+  AuthenticatedAppAdminModulesRouteImport.update({
+    id: '/admin-modules',
+    path: '/admin-modules',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAdminRoute = AuthenticatedAppAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -245,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/guias/prospeccao-de-clientes-b2b': typeof GuiasProspeccaoDeClientesB2bRoute
   '/app/academy': typeof AuthenticatedAppAcademyRoute
   '/app/admin': typeof AuthenticatedAppAdminRoute
+  '/app/admin-modules': typeof AuthenticatedAppAdminModulesRoute
   '/app/admin-role-audit': typeof AuthenticatedAppAdminRoleAuditRoute
   '/app/admin-security': typeof AuthenticatedAppAdminSecurityRoute
   '/app/admin-workspace-audit': typeof AuthenticatedAppAdminWorkspaceAuditRoute
@@ -279,6 +287,7 @@ export interface FileRoutesByTo {
   '/guias/prospeccao-de-clientes-b2b': typeof GuiasProspeccaoDeClientesB2bRoute
   '/app/academy': typeof AuthenticatedAppAcademyRoute
   '/app/admin': typeof AuthenticatedAppAdminRoute
+  '/app/admin-modules': typeof AuthenticatedAppAdminModulesRoute
   '/app/admin-role-audit': typeof AuthenticatedAppAdminRoleAuditRoute
   '/app/admin-security': typeof AuthenticatedAppAdminSecurityRoute
   '/app/admin-workspace-audit': typeof AuthenticatedAppAdminWorkspaceAuditRoute
@@ -316,6 +325,7 @@ export interface FileRoutesById {
   '/guias/prospeccao-de-clientes-b2b': typeof GuiasProspeccaoDeClientesB2bRoute
   '/_authenticated/app/academy': typeof AuthenticatedAppAcademyRoute
   '/_authenticated/app/admin': typeof AuthenticatedAppAdminRoute
+  '/_authenticated/app/admin-modules': typeof AuthenticatedAppAdminModulesRoute
   '/_authenticated/app/admin-role-audit': typeof AuthenticatedAppAdminRoleAuditRoute
   '/_authenticated/app/admin-security': typeof AuthenticatedAppAdminSecurityRoute
   '/_authenticated/app/admin-workspace-audit': typeof AuthenticatedAppAdminWorkspaceAuditRoute
@@ -353,6 +363,7 @@ export interface FileRouteTypes {
     | '/guias/prospeccao-de-clientes-b2b'
     | '/app/academy'
     | '/app/admin'
+    | '/app/admin-modules'
     | '/app/admin-role-audit'
     | '/app/admin-security'
     | '/app/admin-workspace-audit'
@@ -387,6 +398,7 @@ export interface FileRouteTypes {
     | '/guias/prospeccao-de-clientes-b2b'
     | '/app/academy'
     | '/app/admin'
+    | '/app/admin-modules'
     | '/app/admin-role-audit'
     | '/app/admin-security'
     | '/app/admin-workspace-audit'
@@ -423,6 +435,7 @@ export interface FileRouteTypes {
     | '/guias/prospeccao-de-clientes-b2b'
     | '/_authenticated/app/academy'
     | '/_authenticated/app/admin'
+    | '/_authenticated/app/admin-modules'
     | '/_authenticated/app/admin-role-audit'
     | '/_authenticated/app/admin-security'
     | '/_authenticated/app/admin-workspace-audit'
@@ -645,6 +658,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminRoleAuditRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin-modules': {
+      id: '/_authenticated/app/admin-modules'
+      path: '/admin-modules'
+      fullPath: '/app/admin-modules'
+      preLoaderRoute: typeof AuthenticatedAppAdminModulesRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/admin': {
       id: '/_authenticated/app/admin'
       path: '/admin'
@@ -721,6 +741,7 @@ const AuthenticatedAppHistoricoRouteWithChildren =
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAcademyRoute: typeof AuthenticatedAppAcademyRoute
   AuthenticatedAppAdminRoute: typeof AuthenticatedAppAdminRoute
+  AuthenticatedAppAdminModulesRoute: typeof AuthenticatedAppAdminModulesRoute
   AuthenticatedAppAdminRoleAuditRoute: typeof AuthenticatedAppAdminRoleAuditRoute
   AuthenticatedAppAdminSecurityRoute: typeof AuthenticatedAppAdminSecurityRoute
   AuthenticatedAppAdminWorkspaceAuditRoute: typeof AuthenticatedAppAdminWorkspaceAuditRoute
@@ -748,6 +769,7 @@ interface AuthenticatedAppRouteChildren {
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAcademyRoute: AuthenticatedAppAcademyRoute,
   AuthenticatedAppAdminRoute: AuthenticatedAppAdminRoute,
+  AuthenticatedAppAdminModulesRoute: AuthenticatedAppAdminModulesRoute,
   AuthenticatedAppAdminRoleAuditRoute: AuthenticatedAppAdminRoleAuditRoute,
   AuthenticatedAppAdminSecurityRoute: AuthenticatedAppAdminSecurityRoute,
   AuthenticatedAppAdminWorkspaceAuditRoute:
@@ -800,13 +822,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
