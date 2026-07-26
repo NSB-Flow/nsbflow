@@ -13,8 +13,8 @@ export const Route = createFileRoute("/api/public/v1/meeting-analyses")({
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         let q = supabaseAdmin
           .from("meeting_analyses")
-          .select("*, companies!inner(workspace_id)", { count: "exact" })
-          .eq("companies.workspace_id", auth.workspaceId)
+          .select("*", { count: "exact" })
+          .eq("workspace_id", auth.workspaceId)
           .order("created_at", { ascending: false })
           .range(offset, offset + limit - 1);
         if (from) q = q.gte("created_at", from);
