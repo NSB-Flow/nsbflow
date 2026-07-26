@@ -18,7 +18,18 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Palette, Search, Upload, Trash2, ImageOff } from "lucide-react";
+import { Palette, Search, Upload, Trash2, ImageOff, History, Undo2 } from "lucide-react";
+
+interface BrandingAuditRow {
+  id: string;
+  created_at: string;
+  old_logo_url: string | null;
+  new_logo_url: string | null;
+  old_company_name: string | null;
+  new_company_name: string | null;
+  actor_user_id: string | null;
+  ip: string | null;
+}
 
 interface WorkspaceRow {
   id: string;
