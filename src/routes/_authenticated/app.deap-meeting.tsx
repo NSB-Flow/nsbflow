@@ -249,37 +249,63 @@ function MicRecorder({
     recRef.current?.stop();
   };
 
+  const showSaved = !recording && !uploading && !!savedName;
+
   return (
-    <div className="rounded-lg border border-dashed p-3 flex items-center justify-between gap-3">
-      <div className="flex items-center gap-2 text-sm min-w-0">
-        <span className="relative flex h-3 w-3 shrink-0">
-          {recording && (
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-70" />
-          )}
-          <span
-            className={
-              "relative inline-flex rounded-full h-3 w-3 " + (recording ? "bg-destructive" : "bg-gold")
-            }
-          />
-        </span>
-        <div className="min-w-0">
-          <div className="font-medium truncate">
-            {recording ? "Gravando reunião…" : "Iniciar reunião"}
-          </div>
-          <div className="text-xs text-muted-foreground tabular-nums">
-            {recording ? formatDuration(elapsed) : "Captura pelo microfone (áudio anexado ao final)"}
+    <div className="rounded-lg border border-dashed p-3 space-y-2">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-sm min-w-0">
+          <span className="relative flex h-3 w-3 shrink-0">
+            {recording && (
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-70" />
+            )}
+            <span
+              className={
+                "relative inline-flex rounded-full h-3 w-3 " +
+                (recording ? "bg-destructive" : uploading ? "bg-accent" : showSaved ? "bg-emerald-500" : "bg-gold")
+              }
+            />
+          </span>
+          <div className="min-w-0">
+            <div className="font-medium truncate">
+              {recording
+                ? "Gravando reunião…"
+                : uploading
+                  ? "Enviando gravação…"
+                  : showSaved
+                    ? "Gravação salva"
+                    : "Iniciar reunião"}
+            </div>
+            <div className="text-xs text-muted-foreground tabular-nums truncate">
+              {recording
+                ? formatDuration(elapsed)
+                : uploading
+                  ? `${Math.round(uploadPct ?? 0)}%`
+                  : showSaved
+                    ? savedName
+                    : "Captura pelo microfone (áudio anexado ao final)"}
+            </div>
           </div>
         </div>
+        {recording ? (
+          <Button size="sm" variant="destructive" onClick={stop}>
+            Encerrar reunião
+          </Button>
+        ) : uploading ? (
+          <Button size="sm" variant="outline" disabled>
+            <UploadCloud className="h-3.5 w-3.5 mr-1.5 animate-pulse" /> Enviando…
+          </Button>
+        ) : showSaved ? (
+          <Button size="sm" variant="outline" onClick={start} disabled={disabled || starting}>
+            <CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-emerald-500" /> Regravar
+          </Button>
+        ) : (
+          <Button size="sm" variant="outline" onClick={start} disabled={disabled || starting}>
+            <Mic className="h-3.5 w-3.5 mr-1.5" /> {starting ? "..." : "Iniciar"}
+          </Button>
+        )}
       </div>
-      {recording ? (
-        <Button size="sm" variant="destructive" onClick={stop}>
-          Encerrar reunião
-        </Button>
-      ) : (
-        <Button size="sm" variant="outline" onClick={start} disabled={disabled || starting}>
-          <Mic className="h-3.5 w-3.5 mr-1.5" /> {starting ? "..." : "Iniciar"}
-        </Button>
-      )}
+      {uploading && <Progress value={uploadPct ?? 0} className="h-1.5" />}
     </div>
   );
 }
