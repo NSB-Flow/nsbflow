@@ -14,7 +14,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Shield, Package, Search, Plus, Trash2, Layers, CheckCircle2, XCircle } from "lucide-react";
+import { Shield, Package, Search, Plus, Trash2, Layers, CheckCircle2, XCircle, History } from "lucide-react";
+import { formatDistanceToNow, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export const Route = createFileRoute("/_authenticated/app/admin-modules")({
   head: () => ({ meta: [{ title: "Módulos Enterprise — NSB Flow" }] }),
