@@ -571,7 +571,16 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
                 {form.attachment_name && !uploading ? "Anexo pronto — clique para trocar" : "até 512 MB"}
               </p>
             </div>
-            {uploading && <Progress value={uploadPct} className="mt-2 h-1.5" />}
+            {uploading && (
+              <div className="mt-2 space-y-1.5">
+                <Progress value={uploadPct} className="h-1.5" />
+                <div className="flex justify-end">
+                  <Button size="sm" variant="ghost" onClick={cancelUpload}>
+                    <X className="h-3.5 w-3.5 mr-1.5" /> Cancelar envio
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           {isEnterprise && (
@@ -580,6 +589,7 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
               uploading={uploading}
               uploadPct={uploadPct}
               savedName={form.attachment_name || null}
+              onCancelUpload={cancelUpload}
               onRecorded={async (file) => {
                 await onDrop([file], { fromRecording: true });
               }}
