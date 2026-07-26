@@ -109,10 +109,22 @@ function Table({ table }: { table: ReportTable }) {
 }
 
 function ReportDoc({ input }: { input: ReportPdfInput }): ReactElement {
+  const brand = input.branding ?? null;
+  const brandName = (brand?.companyName?.trim() || "NSB · GROWTH BY METHOD").toUpperCase();
+  const footerBrand = brand?.companyName?.trim()
+    ? `${brand.companyName.trim()} · Relatórios · Confidencial`
+    : "NSB Flow · Relatórios · Confidencial";
+
   return (
     <Document title={input.title}>
       <Page size="A4" style={styles.cover}>
-        <Text style={styles.brand}>NSB · GROWTH BY METHOD</Text>
+        {brand?.logoDataUrl ? (
+          <Image
+            src={brand.logoDataUrl}
+            style={{ maxHeight: 48, maxWidth: 180, marginBottom: 12, objectFit: "contain" }}
+          />
+        ) : null}
+        <Text style={styles.brand}>{brandName}</Text>
         <Text style={styles.title}>{input.title}</Text>
         <View style={styles.rule} />
         <Text style={styles.subtitle}>Período: {input.period}</Text>
@@ -154,7 +166,7 @@ function ReportDoc({ input }: { input: ReportPdfInput }): ReactElement {
         ))}
 
         <View style={styles.footer} fixed>
-          <Text>NSB Flow · Relatórios · Confidencial</Text>
+          <Text>{footerBrand}</Text>
           <Text render={({ pageNumber, totalPages }) => `pág ${pageNumber}/${totalPages}`} />
         </View>
       </Page>
