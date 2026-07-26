@@ -59,7 +59,7 @@ export interface Entitlements {
   planId: string | null;
   billingCycle: "monthly" | "yearly";
   currentPeriodEnd: string | null;
-
+}
 
 const EMPTY: Entitlements = {
   loading: true,
@@ -75,6 +75,8 @@ const EMPTY: Entitlements = {
   seatsAvailable: null,
   features: new Set(),
   has: () => false,
+  moduleGrants: new Set(),
+  hasModule: () => false,
   subscriptionId: null,
   planId: null,
   billingCycle: "monthly",
