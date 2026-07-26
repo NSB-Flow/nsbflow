@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { BarChart3, FileDown, FileSpreadsheet, AlertTriangle, TrendingUp, Wallet } from "lucide-react";
 import { AGENT_DISPLAY_NAMES } from "@/lib/agent-names";
 import { generateReportsPdf, downloadBlob, downloadXlsx, type ReportPdfInput, type XlsxSheet } from "@/lib/reports-export";
+import { resolveReportBranding } from "@/lib/report-branding";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip as RTooltip, CartesianGrid } from "recharts";
 import { toast } from "sonner";
 import { format, startOfWeek, startOfMonth, startOfQuarter, endOfWeek, endOfMonth, endOfQuarter } from "date-fns";
@@ -644,16 +645,22 @@ function RelatoriosPage() {
 
   const exportPdf = async () => {
     try {
-      const blob = await generateReportsPdf(buildPdfInput());
+      const branding = await resolveReportBranding(workspaceId);
+      const blob = await generateReportsPdf({ ...buildPdfInput(), branding });
       downloadBlob(blob, `relatorio-${tab}-${format(from, "yyyyMMdd")}-${format(to, "yyyyMMdd")}.pdf`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao gerar PDF");
     }
   };
 
-  const exportXlsx = () => {
+  const exportXlsx = async () => {
     try {
-      downloadXlsx(buildXlsxSheets(), `relatorio-${tab}-${format(from, "yyyyMMdd")}-${format(to, "yyyyMMdd")}.xlsx`);
+      const branding = await resolveReportBranding(workspaceId);
+      downloadXlsx(
+        buildXlsxSheets(),
+        `relatorio-${tab}-${format(from, "yyyyMMdd")}-${format(to, "yyyyMMdd")}.xlsx`,
+        branding,
+      );
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao exportar Excel");
     }
