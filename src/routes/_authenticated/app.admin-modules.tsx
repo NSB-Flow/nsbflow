@@ -59,12 +59,18 @@ function AdminModulesPage() {
           <TabsTrigger value="bulk">
             <Layers className="h-3.5 w-3.5 mr-1.5" /> Em Lote
           </TabsTrigger>
+          <TabsTrigger value="audit">
+            <History className="h-3.5 w-3.5 mr-1.5" /> Auditoria
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="individual" className="mt-6">
           <ModulesManager />
         </TabsContent>
         <TabsContent value="bulk" className="mt-6">
           <BulkModulesPanel />
+        </TabsContent>
+        <TabsContent value="audit" className="mt-6">
+          <ModuleGrantAuditPanel />
         </TabsContent>
       </Tabs>
     </div>
