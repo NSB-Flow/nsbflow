@@ -410,3 +410,321 @@ function GrantsPanel({ ws }: { ws: WorkspaceRow }) {
     </Card>
   );
 }
+
+/* ---------------- Bulk actions ---------------- */
+
+interface BulkWsRow {
+  id: string;
+  name: string;
+  slug: string;
+  is_personal: boolean;
+  subscription_id: string | null;
+  plan_tier: string | null;
+  grant_id: string | null;
+  grant_enabled: boolean | null;
+}
+
+function BulkModulesPanel() {
+  const qc = useQueryClient();
+  const [featureKey, setFeatureKey] = useState<string>("meeting_recording");
+  const [customKey, setCustomKey] = useState("");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "enabled" | "disabled" | "none">("all");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [busy, setBusy] = useState(false);
+
+  const effectiveKey = (featureKey === "__custom__" ? customKey : featureKey).trim();
+
+  const { data: rows = [], isLoading, refetch } = useQuery({
+    queryKey: ["bulk-workspaces", effectiveKey],
+    enabled: !!effectiveKey,
+    queryFn: async (): Promise<BulkWsRow[]> => {
+      const { data: ws, error: wErr } = await supabase
+        .from("workspaces")
+        .select("id, name, slug, is_personal, subscriptions(id, plans(tier))")
+        .order("name", { ascending: true });
+      if (wErr) throw wErr;
+
+      const subIds = (ws ?? [])
+        .map((w: any) => {
+          const s = Array.isArray(w.subscriptions) ? w.subscriptions[0] : w.subscriptions;
+          return s?.id as string | undefined;
+        })
+        .filter((x): x is string => !!x);
+
+      let grantsBySub = new Map<string, { id: string; enabled: boolean }>();
+      if (subIds.length) {
+        const { data: grants, error: gErr } = await supabase
+          .from("enterprise_module_grants")
+          .select("id, subscription_id, enabled")
+          .eq("feature_key", effectiveKey)
+          .in("subscription_id", subIds);
+        if (gErr) throw gErr;
+        grantsBySub = new Map((grants ?? []).map((g: any) => [g.subscription_id, { id: g.id, enabled: g.enabled }]));
+      }
+
+      return (ws ?? []).map((w: any) => {
+        const s = Array.isArray(w.subscriptions) ? w.subscriptions[0] : w.subscriptions;
+        const plan = s ? (Array.isArray(s.plans) ? s.plans[0] : s.plans) : null;
+        const g = s?.id ? grantsBySub.get(s.id) : undefined;
+        return {
+          id: w.id,
+          name: w.name,
+          slug: w.slug,
+          is_personal: w.is_personal,
+          subscription_id: s?.id ?? null,
+          plan_tier: plan?.tier ?? null,
+          grant_id: g?.id ?? null,
+          grant_enabled: g ? g.enabled : null,
+        };
+      });
+    },
+  });
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return rows.filter((r) => {
+      if (q && !r.name.toLowerCase().includes(q) && !r.slug.toLowerCase().includes(q)) return false;
+      if (statusFilter === "enabled" && r.grant_enabled !== true) return false;
+      if (statusFilter === "disabled" && r.grant_enabled !== false) return false;
+      if (statusFilter === "none" && r.grant_id !== null) return false;
+      return true;
+    });
+  }, [rows, search, statusFilter]);
+
+  const selectableIds = filtered.filter((r) => r.subscription_id).map((r) => r.id);
+  const allSelected = selectableIds.length > 0 && selectableIds.every((id) => selected.has(id));
+  const someSelected = selectableIds.some((id) => selected.has(id));
+
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        selectableIds.forEach((id) => next.delete(id));
+        return next;
+      });
+    } else {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        selectableIds.forEach((id) => next.add(id));
+        return next;
+      });
+    }
+  };
+
+  const toggleOne = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const refresh = async () => {
+    await refetch();
+    qc.invalidateQueries({ queryKey: ["entitlements"] });
+    qc.invalidateQueries({ queryKey: ["emg-grants"] });
+  };
+
+  const applyBulk = async (action: "enable" | "disable" | "remove") => {
+    if (!effectiveKey) return toast.error("Informe uma chave de módulo.");
+    const targets = rows.filter((r) => selected.has(r.id) && r.subscription_id);
+    if (targets.length === 0) return toast.error("Selecione ao menos um workspace com assinatura.");
+
+    setBusy(true);
+    let ok = 0;
+    let fail = 0;
+
+    try {
+      if (action === "remove") {
+        const ids = targets.map((t) => t.grant_id).filter((x): x is string => !!x);
+        if (ids.length) {
+          const { error } = await supabase.from("enterprise_module_grants").delete().in("id", ids);
+          if (error) throw error;
+          ok = ids.length;
+        }
+      } else {
+        const enabled = action === "enable";
+        // Update existing grants
+        const withGrant = targets.filter((t) => t.grant_id);
+        const withoutGrant = targets.filter((t) => !t.grant_id);
+        if (withGrant.length) {
+          const { error } = await supabase
+            .from("enterprise_module_grants")
+            .update({ enabled })
+            .in(
+              "id",
+              withGrant.map((t) => t.grant_id!),
+            );
+          if (error) throw error;
+          ok += withGrant.length;
+        }
+        if (withoutGrant.length) {
+          const payload = withoutGrant.map((t) => ({
+            subscription_id: t.subscription_id!,
+            feature_key: effectiveKey,
+            enabled,
+          }));
+          const { error } = await supabase.from("enterprise_module_grants").insert(payload);
+          if (error) throw error;
+          ok += withoutGrant.length;
+        }
+      }
+
+      toast.success(
+        `${ok} workspace(s) atualizado(s)${fail ? ` · ${fail} falha(s)` : ""} · ${effectiveKey}`,
+      );
+      setSelected(new Set());
+      await refresh();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao aplicar ação em lote.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Layers className="h-4 w-4" /> Ações em lote
+        </CardTitle>
+        <p className="text-xs text-muted-foreground mt-1">
+          Habilite, desabilite ou remova um módulo em vários workspaces de uma vez.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-3">
+          <div>
+            <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Módulo</Label>
+            <Select value={featureKey} onValueChange={setFeatureKey}>
+              <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {KNOWN_MODULES.map((m) => (
+                  <SelectItem key={m.key} value={m.key}>{m.label}</SelectItem>
+                ))}
+                <SelectItem value="__custom__">Chave customizada…</SelectItem>
+              </SelectContent>
+            </Select>
+            {featureKey === "__custom__" && (
+              <Input
+                value={customKey}
+                onChange={(e) => setCustomKey(e.target.value)}
+                placeholder="feature_key"
+                className="mt-2"
+              />
+            )}
+          </div>
+          <div>
+            <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Buscar</Label>
+            <div className="relative mt-1">
+              <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Nome ou slug…"
+                className="pl-8"
+              />
+            </div>
+          </div>
+          <div>
+            <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Status atual</Label>
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+              <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="enabled">Habilitados</SelectItem>
+                <SelectItem value="disabled">Desabilitados</SelectItem>
+                <SelectItem value="none">Sem grant</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 border rounded-md p-2.5 bg-muted/30">
+          <div className="text-xs text-muted-foreground mr-auto">
+            {selected.size} selecionado(s) · {filtered.length} visível(is)
+          </div>
+          <Button size="sm" variant="outline" onClick={() => setSelected(new Set())} disabled={selected.size === 0 || busy}>
+            Limpar
+          </Button>
+          <Button size="sm" variant="default" onClick={() => applyBulk("enable")} disabled={selected.size === 0 || busy}>
+            <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" /> Habilitar
+          </Button>
+          <Button size="sm" variant="secondary" onClick={() => applyBulk("disable")} disabled={selected.size === 0 || busy}>
+            <XCircle className="h-3.5 w-3.5 mr-1.5" /> Desabilitar
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => applyBulk("remove")} disabled={selected.size === 0 || busy}>
+            <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Remover
+          </Button>
+        </div>
+
+        <div className="border rounded-md overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                    onCheckedChange={toggleAll}
+                    aria-label="Selecionar todos"
+                  />
+                </TableHead>
+                <TableHead>Workspace</TableHead>
+                <TableHead className="w-24">Plano</TableHead>
+                <TableHead className="w-32 text-center">Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow><TableCell colSpan={4} className="text-center text-sm text-muted-foreground py-6">Carregando…</TableCell></TableRow>
+              ) : filtered.length === 0 ? (
+                <TableRow><TableCell colSpan={4} className="text-center text-sm text-muted-foreground py-6">Nenhum workspace.</TableCell></TableRow>
+              ) : (
+                filtered.map((r) => {
+                  const disabled = !r.subscription_id;
+                  return (
+                    <TableRow key={r.id} className={disabled ? "opacity-60" : ""}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selected.has(r.id)}
+                          onCheckedChange={() => toggleOne(r.id)}
+                          disabled={disabled}
+                          aria-label={`Selecionar ${r.name}`}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm font-medium truncate">{r.name}</div>
+                        <div className="text-[11px] text-muted-foreground truncate">
+                          {r.slug} {r.is_personal && "· PF"}
+                          {disabled && " · sem assinatura"}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {r.plan_tier ? (
+                          <Badge variant="outline" className="text-[9px] uppercase h-4 px-1">{r.plan_tier}</Badge>
+                        ) : (
+                          <span className="text-[11px] text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {r.grant_id === null ? (
+                          <span className="text-[11px] text-muted-foreground">sem grant</span>
+                        ) : r.grant_enabled ? (
+                          <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 text-[10px]">habilitado</Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px]">desabilitado</Badge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
