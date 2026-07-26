@@ -294,8 +294,8 @@ function MicRecorder({
             Encerrar reunião
           </Button>
         ) : uploading ? (
-          <Button size="sm" variant="outline" disabled>
-            <UploadCloud className="h-3.5 w-3.5 mr-1.5 animate-pulse" /> Enviando…
+          <Button size="sm" variant="outline" onClick={onCancelUpload} disabled={!onCancelUpload}>
+            <X className="h-3.5 w-3.5 mr-1.5" /> Cancelar
           </Button>
         ) : showSaved ? (
           <Button size="sm" variant="outline" onClick={start} disabled={disabled || starting}>
