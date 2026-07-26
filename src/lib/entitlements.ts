@@ -53,11 +53,13 @@ export interface Entitlements {
   seatsAvailable: number | null;
   features: Set<FeatureKey>;
   has: (f: FeatureKey) => boolean;
+  moduleGrants: Set<string>;
+  hasModule: (key: string) => boolean;
   subscriptionId: string | null;
   planId: string | null;
   billingCycle: "monthly" | "yearly";
   currentPeriodEnd: string | null;
-}
+
 
 const EMPTY: Entitlements = {
   loading: true,
