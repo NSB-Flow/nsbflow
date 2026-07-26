@@ -370,20 +370,78 @@ function WhiteLabelEditor({ ws }: { ws: WorkspaceRow }) {
   );
 }
 
+type ChangeType = "all" | "logo" | "name" | "both";
+
 function BrandingHistory({ workspaceId, onRevert }: { workspaceId: string; onRevert: () => Promise<void> }) {
+  const [typeFilter, setTypeFilter] = useState<ChangeType>("all");
+  const [fromDate, setFromDate] = useState<string>("");
+  const [toDate, setToDate] = useState<string>("");
+  const [search, setSearch] = useState<string>("");
+
   const { data: rows = [], isLoading, refetch } = useQuery({
-    queryKey: ["wl-audit", workspaceId],
+    queryKey: ["wl-audit", workspaceId, fromDate, toDate],
     queryFn: async (): Promise<BrandingAuditRow[]> => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("workspace_branding_audit")
         .select("id, created_at, old_logo_url, new_logo_url, old_company_name, new_company_name, actor_user_id, ip")
         .eq("workspace_id", workspaceId)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(200);
+      if (fromDate) q = q.gte("created_at", new Date(fromDate).toISOString());
+      if (toDate) {
+        const end = new Date(toDate);
+        end.setHours(23, 59, 59, 999);
+        q = q.lte("created_at", end.toISOString());
+      }
+      const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as BrandingAuditRow[];
     },
   });
+
+  // Resolve actor names via profiles for display + user-filter
+  const actorIds = useMemo(
+    () => Array.from(new Set(rows.map((r) => r.actor_user_id).filter((x): x is string => !!x))),
+    [rows],
+  );
+  const { data: actorMap = {} } = useQuery({
+    queryKey: ["wl-audit-actors", actorIds.sort().join(",")],
+    enabled: actorIds.length > 0,
+    queryFn: async (): Promise<Record<string, string>> => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", actorIds);
+      const map: Record<string, string> = {};
+      for (const p of data ?? []) map[p.id] = (p as any).full_name ?? p.id;
+      return map;
+    },
+  });
+
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return rows.filter((r) => {
+      const nameChanged = r.old_company_name !== r.new_company_name;
+      const logoChanged = r.old_logo_url !== r.new_logo_url;
+      if (typeFilter === "logo" && !logoChanged) return false;
+      if (typeFilter === "name" && !nameChanged) return false;
+      if (typeFilter === "both" && !(logoChanged && nameChanged)) return false;
+      if (!term) return true;
+      const actor = r.actor_user_id ? (actorMap[r.actor_user_id] ?? r.actor_user_id) : "";
+      const hay = [
+        r.old_company_name ?? "",
+        r.new_company_name ?? "",
+        r.old_logo_url ?? "",
+        r.new_logo_url ?? "",
+        r.ip ?? "",
+        actor,
+        r.actor_user_id ?? "",
+      ]
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(term);
+    });
+  }, [rows, typeFilter, search, actorMap]);
 
   const [reverting, setReverting] = useState<string | null>(null);
 
@@ -408,6 +466,13 @@ function BrandingHistory({ workspaceId, onRevert }: { workspaceId: string; onRev
     }
   };
 
+  const clearFilters = () => {
+    setTypeFilter("all");
+    setFromDate("");
+    setToDate("");
+    setSearch("");
+  };
+
   const fmt = (v: string | null) => (v && v.trim() ? v : "—");
   const shortPath = (p: string | null) => {
     if (!p) return "—";
@@ -415,25 +480,73 @@ function BrandingHistory({ workspaceId, onRevert }: { workspaceId: string; onRev
     return parts[parts.length - 1] || p;
   };
 
+  const hasFilters = typeFilter !== "all" || !!fromDate || !!toDate || !!search.trim();
+
   return (
     <div>
       <Label className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
         <History className="h-3.5 w-3.5" /> Histórico de alterações
       </Label>
+
+      <div className="mt-2 grid grid-cols-2 md:grid-cols-[1fr_140px_140px_140px_auto] gap-2">
+        <div className="relative col-span-2 md:col-span-1">
+          <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por usuário, nome, arquivo, IP…"
+            className="pl-8 h-9"
+          />
+        </div>
+        <select
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value as ChangeType)}
+          className="h-9 rounded-md border bg-background px-2 text-sm"
+          aria-label="Tipo de alteração"
+        >
+          <option value="all">Todos os tipos</option>
+          <option value="logo">Apenas logo</option>
+          <option value="name">Apenas nome</option>
+          <option value="both">Logo + nome</option>
+        </select>
+        <Input
+          type="date"
+          value={fromDate}
+          onChange={(e) => setFromDate(e.target.value)}
+          className="h-9"
+          aria-label="De"
+        />
+        <Input
+          type="date"
+          value={toDate}
+          onChange={(e) => setToDate(e.target.value)}
+          className="h-9"
+          aria-label="Até"
+        />
+        {hasFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9">
+            Limpar
+          </Button>
+        )}
+      </div>
+
       <div className="mt-2 rounded-md border divide-y max-h-80 overflow-y-auto">
         {isLoading ? (
           <div className="p-3 text-xs text-muted-foreground">Carregando…</div>
-        ) : rows.length === 0 ? (
-          <div className="p-3 text-xs text-muted-foreground">Nenhuma alteração registrada.</div>
+        ) : filtered.length === 0 ? (
+          <div className="p-3 text-xs text-muted-foreground">
+            {rows.length === 0 ? "Nenhuma alteração registrada." : "Nenhum resultado para os filtros."}
+          </div>
         ) : (
-          rows.map((r) => {
+          filtered.map((r) => {
             const nameChanged = r.old_company_name !== r.new_company_name;
             const logoChanged = r.old_logo_url !== r.new_logo_url;
+            const actor = r.actor_user_id ? (actorMap[r.actor_user_id] ?? r.actor_user_id.slice(0, 8)) : "sistema";
             return (
               <div key={r.id} className="p-2.5 text-xs flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="text-[11px] text-muted-foreground">
-                    {new Date(r.created_at).toLocaleString("pt-BR")}
+                    {new Date(r.created_at).toLocaleString("pt-BR")} · {actor}
                     {r.ip ? ` · ${r.ip}` : ""}
                   </div>
                   {nameChanged && (
@@ -467,7 +580,7 @@ function BrandingHistory({ workspaceId, onRevert }: { workspaceId: string; onRev
         )}
       </div>
       <p className="text-[11px] text-muted-foreground mt-1.5">
-        Últimas 50 alterações. Reverter aplica o estado anterior a esse registro (nome + logo).
+        Exibindo {filtered.length} de {rows.length} (limite 200). Reverter aplica o estado anterior a esse registro.
       </p>
     </div>
   );
