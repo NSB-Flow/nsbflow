@@ -51,7 +51,20 @@ function AdminModulesPage() {
           </p>
         </div>
       </div>
-      <ModulesManager />
+      <Tabs defaultValue="individual">
+        <TabsList>
+          <TabsTrigger value="individual">Individual</TabsTrigger>
+          <TabsTrigger value="bulk">
+            <Layers className="h-3.5 w-3.5 mr-1.5" /> Em Lote
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="individual" className="mt-6">
+          <ModulesManager />
+        </TabsContent>
+        <TabsContent value="bulk" className="mt-6">
+          <BulkModulesPanel />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
