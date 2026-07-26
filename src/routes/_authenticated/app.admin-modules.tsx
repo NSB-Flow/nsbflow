@@ -14,8 +14,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Shield, Package, Search, Plus, Trash2, Layers, CheckCircle2, XCircle, History, Key } from "lucide-react";
+import { Shield, Package, Search, Plus, Trash2, Layers, CheckCircle2, XCircle, History, Key, Palette } from "lucide-react";
 import { ApiKeysPanel } from "@/components/admin/ApiKeysPanel";
+import { WhiteLabelPanel } from "@/components/admin/WhiteLabelPanel";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -72,6 +73,9 @@ function AdminModulesPage() {
           <TabsTrigger value="api-keys">
             <Key className="h-3.5 w-3.5 mr-1.5" /> Chaves de API
           </TabsTrigger>
+          <TabsTrigger value="white-label">
+            <Palette className="h-3.5 w-3.5 mr-1.5" /> White-Label
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="individual" className="mt-6">
           <ModulesManager />
@@ -84,6 +88,9 @@ function AdminModulesPage() {
         </TabsContent>
         <TabsContent value="api-keys" className="mt-6">
           <ApiKeysPanel />
+        </TabsContent>
+        <TabsContent value="white-label" className="mt-6">
+          <WhiteLabelPanel />
         </TabsContent>
       </Tabs>
     </div>
