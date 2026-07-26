@@ -169,12 +169,14 @@ function MicRecorder({
   uploading,
   uploadPct,
   savedName,
+  onCancelUpload,
 }: {
   disabled?: boolean;
   onRecorded: (file: File) => void | Promise<void>;
   uploading?: boolean;
   uploadPct?: number;
   savedName?: string | null;
+  onCancelUpload?: () => void;
 }) {
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
