@@ -535,6 +535,48 @@ export type Database = {
           },
         ]
       }
+      module_grant_audit: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          created_at: string
+          feature_key: string
+          id: string
+          ip: string | null
+          new_enabled: boolean | null
+          old_enabled: boolean | null
+          subscription_id: string | null
+          user_agent: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          created_at?: string
+          feature_key: string
+          id?: string
+          ip?: string | null
+          new_enabled?: boolean | null
+          old_enabled?: boolean | null
+          subscription_id?: string | null
+          user_agent?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          created_at?: string
+          feature_key?: string
+          id?: string
+          ip?: string | null
+          new_enabled?: boolean | null
+          old_enabled?: boolean | null
+          subscription_id?: string | null
+          user_agent?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
       nps_surveys: {
         Row: {
           company_id: string
