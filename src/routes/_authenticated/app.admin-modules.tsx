@@ -14,7 +14,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Shield, Package, Search, Plus, Trash2, Layers, CheckCircle2, XCircle, History } from "lucide-react";
+import { Shield, Package, Search, Plus, Trash2, Layers, CheckCircle2, XCircle, History, Key } from "lucide-react";
+import { ApiKeysPanel } from "@/components/admin/ApiKeysPanel";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -68,6 +69,9 @@ function AdminModulesPage() {
           <TabsTrigger value="audit">
             <History className="h-3.5 w-3.5 mr-1.5" /> Auditoria
           </TabsTrigger>
+          <TabsTrigger value="api-keys">
+            <Key className="h-3.5 w-3.5 mr-1.5" /> Chaves de API
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="individual" className="mt-6">
           <ModulesManager />
@@ -77,6 +81,9 @@ function AdminModulesPage() {
         </TabsContent>
         <TabsContent value="audit" className="mt-6">
           <ModuleGrantAuditPanel />
+        </TabsContent>
+        <TabsContent value="api-keys" className="mt-6">
+          <ApiKeysPanel />
         </TabsContent>
       </Tabs>
     </div>

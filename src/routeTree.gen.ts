@@ -40,6 +40,10 @@ import { Route as AuthenticatedAppAdminRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAppAcademyRouteImport } from './routes/_authenticated/app.academy'
 import { Route as AuthenticatedAppPessoasIndexRouteImport } from './routes/_authenticated/app.pessoas.index'
 import { Route as AuthenticatedAppEmpresasIndexRouteImport } from './routes/_authenticated/app.empresas.index'
+import { Route as ApiPublicV1OpportunitiesRouteImport } from './routes/api/public/v1/opportunities'
+import { Route as ApiPublicV1MeetingAnalysesRouteImport } from './routes/api/public/v1/meeting-analyses'
+import { Route as ApiPublicV1CompaniesRouteImport } from './routes/api/public/v1/companies'
+import { Route as ApiPublicV1AgentRunsRouteImport } from './routes/api/public/v1/agent-runs'
 import { Route as ApiPublicHooksProcessExportJobsRouteImport } from './routes/api/public/hooks/process-export-jobs'
 import { Route as AuthenticatedAppPessoasIdRouteImport } from './routes/_authenticated/app.pessoas.$id'
 import { Route as AuthenticatedAppHistoricoIdRouteImport } from './routes/_authenticated/app.historico.$id'
@@ -218,6 +222,28 @@ const AuthenticatedAppEmpresasIndexRoute =
     path: '/empresas/',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const ApiPublicV1OpportunitiesRoute =
+  ApiPublicV1OpportunitiesRouteImport.update({
+    id: '/api/public/v1/opportunities',
+    path: '/api/public/v1/opportunities',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicV1MeetingAnalysesRoute =
+  ApiPublicV1MeetingAnalysesRouteImport.update({
+    id: '/api/public/v1/meeting-analyses',
+    path: '/api/public/v1/meeting-analyses',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicV1CompaniesRoute = ApiPublicV1CompaniesRouteImport.update({
+  id: '/api/public/v1/companies',
+  path: '/api/public/v1/companies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1AgentRunsRoute = ApiPublicV1AgentRunsRouteImport.update({
+  id: '/api/public/v1/agent-runs',
+  path: '/api/public/v1/agent-runs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksProcessExportJobsRoute =
   ApiPublicHooksProcessExportJobsRouteImport.update({
     id: '/api/public/hooks/process-export-jobs',
@@ -276,6 +302,10 @@ export interface FileRoutesByFullPath {
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
+  '/api/public/v1/agent-runs': typeof ApiPublicV1AgentRunsRoute
+  '/api/public/v1/companies': typeof ApiPublicV1CompaniesRoute
+  '/api/public/v1/meeting-analyses': typeof ApiPublicV1MeetingAnalysesRoute
+  '/api/public/v1/opportunities': typeof ApiPublicV1OpportunitiesRoute
   '/app/empresas/': typeof AuthenticatedAppEmpresasIndexRoute
   '/app/pessoas/': typeof AuthenticatedAppPessoasIndexRoute
 }
@@ -311,6 +341,10 @@ export interface FileRoutesByTo {
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
+  '/api/public/v1/agent-runs': typeof ApiPublicV1AgentRunsRoute
+  '/api/public/v1/companies': typeof ApiPublicV1CompaniesRoute
+  '/api/public/v1/meeting-analyses': typeof ApiPublicV1MeetingAnalysesRoute
+  '/api/public/v1/opportunities': typeof ApiPublicV1OpportunitiesRoute
   '/app/empresas': typeof AuthenticatedAppEmpresasIndexRoute
   '/app/pessoas': typeof AuthenticatedAppPessoasIndexRoute
 }
@@ -349,6 +383,10 @@ export interface FileRoutesById {
   '/_authenticated/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/_authenticated/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
+  '/api/public/v1/agent-runs': typeof ApiPublicV1AgentRunsRoute
+  '/api/public/v1/companies': typeof ApiPublicV1CompaniesRoute
+  '/api/public/v1/meeting-analyses': typeof ApiPublicV1MeetingAnalysesRoute
+  '/api/public/v1/opportunities': typeof ApiPublicV1OpportunitiesRoute
   '/_authenticated/app/empresas/': typeof AuthenticatedAppEmpresasIndexRoute
   '/_authenticated/app/pessoas/': typeof AuthenticatedAppPessoasIndexRoute
 }
@@ -387,6 +425,10 @@ export interface FileRouteTypes {
     | '/app/historico/$id'
     | '/app/pessoas/$id'
     | '/api/public/hooks/process-export-jobs'
+    | '/api/public/v1/agent-runs'
+    | '/api/public/v1/companies'
+    | '/api/public/v1/meeting-analyses'
+    | '/api/public/v1/opportunities'
     | '/app/empresas/'
     | '/app/pessoas/'
   fileRoutesByTo: FileRoutesByTo
@@ -422,6 +464,10 @@ export interface FileRouteTypes {
     | '/app/historico/$id'
     | '/app/pessoas/$id'
     | '/api/public/hooks/process-export-jobs'
+    | '/api/public/v1/agent-runs'
+    | '/api/public/v1/companies'
+    | '/api/public/v1/meeting-analyses'
+    | '/api/public/v1/opportunities'
     | '/app/empresas'
     | '/app/pessoas'
   id:
@@ -459,6 +505,10 @@ export interface FileRouteTypes {
     | '/_authenticated/app/historico/$id'
     | '/_authenticated/app/pessoas/$id'
     | '/api/public/hooks/process-export-jobs'
+    | '/api/public/v1/agent-runs'
+    | '/api/public/v1/companies'
+    | '/api/public/v1/meeting-analyses'
+    | '/api/public/v1/opportunities'
     | '/_authenticated/app/empresas/'
     | '/_authenticated/app/pessoas/'
   fileRoutesById: FileRoutesById
@@ -472,6 +522,10 @@ export interface RootRouteChildren {
   GuiasProspeccaoDeClientesB2bRoute: typeof GuiasProspeccaoDeClientesB2bRoute
   ApiPublicReferralCheckRoute: typeof ApiPublicReferralCheckRoute
   ApiPublicHooksProcessExportJobsRoute: typeof ApiPublicHooksProcessExportJobsRoute
+  ApiPublicV1AgentRunsRoute: typeof ApiPublicV1AgentRunsRoute
+  ApiPublicV1CompaniesRoute: typeof ApiPublicV1CompaniesRoute
+  ApiPublicV1MeetingAnalysesRoute: typeof ApiPublicV1MeetingAnalysesRoute
+  ApiPublicV1OpportunitiesRoute: typeof ApiPublicV1OpportunitiesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -693,6 +747,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppEmpresasIndexRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/api/public/v1/opportunities': {
+      id: '/api/public/v1/opportunities'
+      path: '/api/public/v1/opportunities'
+      fullPath: '/api/public/v1/opportunities'
+      preLoaderRoute: typeof ApiPublicV1OpportunitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/meeting-analyses': {
+      id: '/api/public/v1/meeting-analyses'
+      path: '/api/public/v1/meeting-analyses'
+      fullPath: '/api/public/v1/meeting-analyses'
+      preLoaderRoute: typeof ApiPublicV1MeetingAnalysesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/companies': {
+      id: '/api/public/v1/companies'
+      path: '/api/public/v1/companies'
+      fullPath: '/api/public/v1/companies'
+      preLoaderRoute: typeof ApiPublicV1CompaniesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/agent-runs': {
+      id: '/api/public/v1/agent-runs'
+      path: '/api/public/v1/agent-runs'
+      fullPath: '/api/public/v1/agent-runs'
+      preLoaderRoute: typeof ApiPublicV1AgentRunsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/process-export-jobs': {
       id: '/api/public/hooks/process-export-jobs'
       path: '/api/public/hooks/process-export-jobs'
@@ -818,6 +900,10 @@ const rootRouteChildren: RootRouteChildren = {
   GuiasProspeccaoDeClientesB2bRoute: GuiasProspeccaoDeClientesB2bRoute,
   ApiPublicReferralCheckRoute: ApiPublicReferralCheckRoute,
   ApiPublicHooksProcessExportJobsRoute: ApiPublicHooksProcessExportJobsRoute,
+  ApiPublicV1AgentRunsRoute: ApiPublicV1AgentRunsRoute,
+  ApiPublicV1CompaniesRoute: ApiPublicV1CompaniesRoute,
+  ApiPublicV1MeetingAnalysesRoute: ApiPublicV1MeetingAnalysesRoute,
+  ApiPublicV1OpportunitiesRoute: ApiPublicV1OpportunitiesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
