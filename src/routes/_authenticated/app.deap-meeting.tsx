@@ -421,9 +421,10 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ runId?: string; data?: unknown; error?: string } | null>(null);
 
-  const onDrop = async (files: File[]) => {
+  const onDrop = async (files: File[], opts?: { fromRecording?: boolean }) => {
     if (!files[0] || !user) return;
     const file = files[0];
+    const fromRec = !!opts?.fromRecording;
     setUploading(true);
     setUploadPct(0);
     try {
@@ -442,7 +443,7 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
       if (sErr || !signed) throw sErr ?? new Error("Não foi possível gerar URL assinada");
       setForm((f) => ({ ...f, attachment_url: signed.signedUrl, attachment_name: file.name }));
       setUploadPct(100);
-      toast.success("Arquivo enviado");
+      toast.success(fromRec ? "Gravação salva e anexada" : "Arquivo enviado");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Falha no upload";
       toast.error(msg);
