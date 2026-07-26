@@ -586,7 +586,7 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
             )}
           </div>
 
-          {isEnterprise && (
+          {canRecordMeeting && (
             <MicRecorder
               disabled={uploading || loading}
               uploading={uploading}
