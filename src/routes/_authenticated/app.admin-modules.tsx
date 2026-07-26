@@ -32,6 +32,12 @@ const KNOWN_MODULES: { key: string; label: string; description: string }[] = [
   { key: "deap.assessment.process", label: "Process & Execution AI", description: "Assessment de processos e execução." },
   { key: "deap.assessment.executive", label: "Executive Intelligence AI", description: "Assessment executivo." },
   { key: "dashboard.executive", label: "Dashboard Executivo", description: "Painel executivo consolidado." },
+  { key: "whatsapp_integration", label: "WhatsApp Cloud API", description: "Integração com WhatsApp Cloud API (oficial). Reservado para ativação futura." },
+  { key: "report_white_label", label: "Relatórios White-Label", description: "Relatórios com marca do cliente (PDF/Excel). Reservado para ativação futura." },
+  { key: "crm_integration", label: "Integração com CRM", description: "Integração com CRM externo (Salesforce/HubSpot/Pipedrive). Reservado para ativação futura." },
+  { key: "sso_saml", label: "SSO/SAML", description: "Login corporativo via SSO/SAML. Reservado para ativação futura." },
+  { key: "custom_domain", label: "Domínio White-Label", description: "Domínio/subdomínio white-label. Reservado para ativação futura." },
+  { key: "data_export_api", label: "API de Exportação de Dados", description: "API de exportação de dados para BI. Reservado para ativação futura." },
 ];
 
 function AdminModulesPage() {
