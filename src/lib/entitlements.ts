@@ -155,6 +155,8 @@ export function useEntitlements(): Entitlements {
     seatsAvailable: sub.seats != null ? Math.max(0, sub.seats - seatsUsed) : null,
     features,
     has: (f) => features.has(f),
+    moduleGrants,
+    hasModule: (k) => moduleGrants.has(k),
     subscriptionId: sub.id,
     planId: sub.plan_id,
     billingCycle: sub.billing_cycle as "monthly" | "yearly",
