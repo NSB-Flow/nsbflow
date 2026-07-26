@@ -53,6 +53,8 @@ export interface Entitlements {
   seatsAvailable: number | null;
   features: Set<FeatureKey>;
   has: (f: FeatureKey) => boolean;
+  moduleGrants: Set<string>;
+  hasModule: (key: string) => boolean;
   subscriptionId: string | null;
   planId: string | null;
   billingCycle: "monthly" | "yearly";
@@ -73,6 +75,8 @@ const EMPTY: Entitlements = {
   seatsAvailable: null,
   features: new Set(),
   has: () => false,
+  moduleGrants: new Set(),
+  hasModule: () => false,
   subscriptionId: null,
   planId: null,
   billingCycle: "monthly",
@@ -103,10 +107,16 @@ export function useEntitlements(): Entitlements {
       ]);
 
       const features = new Set<FeatureKey>();
+      const moduleGrants = new Set<string>();
       for (const f of pf ?? []) if (f.enabled) features.add(f.feature_key as FeatureKey);
       for (const g of grants ?? []) {
-        if (g.enabled) features.add(g.feature_key as FeatureKey);
-        else features.delete(g.feature_key as FeatureKey);
+        if (g.enabled) {
+          features.add(g.feature_key as FeatureKey);
+          moduleGrants.add(g.feature_key);
+        } else {
+          features.delete(g.feature_key as FeatureKey);
+          moduleGrants.delete(g.feature_key);
+        }
       }
 
       const plan = Array.isArray(sub.plans) ? sub.plans[0] : sub.plans;
@@ -115,6 +125,7 @@ export function useEntitlements(): Entitlements {
         sub,
         plan,
         features,
+        moduleGrants,
         seatsUsed: seatsUsed ?? 0,
       };
     },
@@ -123,7 +134,7 @@ export function useEntitlements(): Entitlements {
 
   if (isLoading || !data) return { ...EMPTY, loading: isLoading };
 
-  const { sub, plan, features, seatsUsed } = data;
+  const { sub, plan, features, moduleGrants, seatsUsed } = data;
   const trialEndsAt = sub.trial_ends_at as string | null;
   const trialMs = trialEndsAt ? new Date(trialEndsAt).getTime() - Date.now() : 0;
   const trialDaysLeft = trialMs > 0 ? Math.ceil(trialMs / 86400000) : 0;
@@ -144,6 +155,8 @@ export function useEntitlements(): Entitlements {
     seatsAvailable: sub.seats != null ? Math.max(0, sub.seats - seatsUsed) : null,
     features,
     has: (f) => features.has(f),
+    moduleGrants,
+    hasModule: (k) => moduleGrants.has(k),
     subscriptionId: sub.id,
     planId: sub.plan_id,
     billingCycle: sub.billing_cycle as "monthly" | "yearly",

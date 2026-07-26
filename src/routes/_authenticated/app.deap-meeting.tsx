@@ -408,8 +408,8 @@ const ACCEPT = {
 
 function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
   const runAgent = useServerFn(runAgentFn);
-  const { user } = useAuth();
-  const { workspaceId } = useWorkspace();
+  const { user, roles } = useAuth();
+  const { workspaceId, role: workspaceRole } = useWorkspace();
   const ent = useEntitlements();
   const [company, setCompany] = useState<Company | null>(
     initialCompanyId ? { id: initialCompanyId, razao_social: "", cnpj: null } : null,
@@ -529,7 +529,10 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
     }
   };
 
-  const isEnterprise = ent.planTier === "enterprise";
+  const canRecordMeeting =
+    roles.includes("super_admin") ||
+    workspaceRole === "admin_empresa" ||
+    ent.hasModule("meeting_recording");
 
   return (
     <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
@@ -583,7 +586,7 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
             )}
           </div>
 
-          {isEnterprise && (
+          {canRecordMeeting && (
             <MicRecorder
               disabled={uploading || loading}
               uploading={uploading}
