@@ -3,7 +3,7 @@
  * PDF uses @react-pdf/renderer with the NSB brand palette;
  * Excel uses SheetJS (xlsx).
  */
-import { Document, Page, Text, View, StyleSheet, pdf } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, pdf, Image } from "@react-pdf/renderer";
 import type { ReactElement } from "react";
 import * as XLSX from "xlsx";
 
@@ -60,12 +60,21 @@ export interface ReportSectionPdf {
   note?: string;
 }
 
+export interface ReportBrandingInput {
+  /** Nome do cliente que substitui "NSB · Growth by Method" no cabeçalho. */
+  companyName?: string | null;
+  /** Data URL (base64) do logo do cliente. */
+  logoDataUrl?: string | null;
+}
+
 export interface ReportPdfInput {
   title: string;
   period: string;
   author?: string;
   workspace?: string;
   sections: ReportSectionPdf[];
+  /** Aplica branding White-Label quando presente e não-nulo. */
+  branding?: ReportBrandingInput | null;
 }
 
 function Table({ table }: { table: ReportTable }) {
@@ -100,10 +109,22 @@ function Table({ table }: { table: ReportTable }) {
 }
 
 function ReportDoc({ input }: { input: ReportPdfInput }): ReactElement {
+  const brand = input.branding ?? null;
+  const brandName = (brand?.companyName?.trim() || "NSB · GROWTH BY METHOD").toUpperCase();
+  const footerBrand = brand?.companyName?.trim()
+    ? `${brand.companyName.trim()} · Relatórios · Confidencial`
+    : "NSB Flow · Relatórios · Confidencial";
+
   return (
     <Document title={input.title}>
       <Page size="A4" style={styles.cover}>
-        <Text style={styles.brand}>NSB · GROWTH BY METHOD</Text>
+        {brand?.logoDataUrl ? (
+          <Image
+            src={brand.logoDataUrl}
+            style={{ maxHeight: 48, maxWidth: 180, marginBottom: 12, objectFit: "contain" }}
+          />
+        ) : null}
+        <Text style={styles.brand}>{brandName}</Text>
         <Text style={styles.title}>{input.title}</Text>
         <View style={styles.rule} />
         <Text style={styles.subtitle}>Período: {input.period}</Text>
@@ -145,7 +166,7 @@ function ReportDoc({ input }: { input: ReportPdfInput }): ReactElement {
         ))}
 
         <View style={styles.footer} fixed>
-          <Text>NSB Flow · Relatórios · Confidencial</Text>
+          <Text>{footerBrand}</Text>
           <Text render={({ pageNumber, totalPages }) => `pág ${pageNumber}/${totalPages}`} />
         </View>
       </Page>
@@ -174,14 +195,28 @@ export interface XlsxSheet {
   rows: (string | number | null | undefined)[][];
 }
 
-export function downloadXlsx(sheets: XlsxSheet[], filename: string) {
+export function downloadXlsx(
+  sheets: XlsxSheet[],
+  filename: string,
+  branding?: ReportBrandingInput | null,
+) {
+  const brandLabel = branding?.companyName?.trim() || "NSB Flow · Growth by Method";
   const wb = XLSX.utils.book_new();
+  wb.Props = { Title: filename, Company: brandLabel };
   for (const s of sheets) {
-    const data = [s.columns, ...s.rows.map((r) => r.map((c) => (c == null ? "" : c)))];
+    // Cabeçalho institucional aparece antes das colunas da planilha, para que
+    // exports abertos diretamente já mostrem a marca do cliente (ou NSB).
+    const data = [
+      [brandLabel],
+      [],
+      s.columns,
+      ...s.rows.map((r) => r.map((c) => (c == null ? "" : c))),
+    ];
     const ws = XLSX.utils.aoa_to_sheet(data);
     ws["!cols"] = s.columns.map((c, i) => ({
       wch: Math.max(
         c.length,
+        brandLabel.length,
         ...s.rows.map((r) => String(r[i] ?? "").length),
       ) + 2,
     }));

@@ -1322,6 +1322,8 @@ export type Database = {
       }
       workspaces: {
         Row: {
+          branding_company_name: string | null
+          branding_logo_url: string | null
           created_at: string
           id: string
           is_personal: boolean
@@ -1332,6 +1334,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          branding_company_name?: string | null
+          branding_logo_url?: string | null
           created_at?: string
           id?: string
           is_personal?: boolean
@@ -1342,6 +1346,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          branding_company_name?: string | null
+          branding_logo_url?: string | null
           created_at?: string
           id?: string
           is_personal?: boolean
