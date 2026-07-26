@@ -195,14 +195,28 @@ export interface XlsxSheet {
   rows: (string | number | null | undefined)[][];
 }
 
-export function downloadXlsx(sheets: XlsxSheet[], filename: string) {
+export function downloadXlsx(
+  sheets: XlsxSheet[],
+  filename: string,
+  branding?: ReportBrandingInput | null,
+) {
+  const brandLabel = branding?.companyName?.trim() || "NSB Flow · Growth by Method";
   const wb = XLSX.utils.book_new();
+  wb.Props = { Title: filename, Company: brandLabel };
   for (const s of sheets) {
-    const data = [s.columns, ...s.rows.map((r) => r.map((c) => (c == null ? "" : c)))];
+    // Cabeçalho institucional aparece antes das colunas da planilha, para que
+    // exports abertos diretamente já mostrem a marca do cliente (ou NSB).
+    const data = [
+      [brandLabel],
+      [],
+      s.columns,
+      ...s.rows.map((r) => r.map((c) => (c == null ? "" : c))),
+    ];
     const ws = XLSX.utils.aoa_to_sheet(data);
     ws["!cols"] = s.columns.map((c, i) => ({
       wch: Math.max(
         c.length,
+        brandLabel.length,
         ...s.rows.map((r) => String(r[i] ?? "").length),
       ) + 2,
     }));
