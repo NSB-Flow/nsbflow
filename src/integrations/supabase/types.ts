@@ -1164,6 +1164,53 @@ export type Database = {
         }
         Relationships: []
       }
+      workspace_branding_audit: {
+        Row: {
+          actor_user_id: string | null
+          created_at: string
+          id: string
+          ip: string | null
+          new_company_name: string | null
+          new_logo_url: string | null
+          old_company_name: string | null
+          old_logo_url: string | null
+          user_agent: string | null
+          workspace_id: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          ip?: string | null
+          new_company_name?: string | null
+          new_logo_url?: string | null
+          old_company_name?: string | null
+          old_logo_url?: string | null
+          user_agent?: string | null
+          workspace_id: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          ip?: string | null
+          new_company_name?: string | null
+          new_logo_url?: string | null
+          old_company_name?: string | null
+          old_logo_url?: string | null
+          user_agent?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_branding_audit_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_credit_transactions: {
         Row: {
           amount: number

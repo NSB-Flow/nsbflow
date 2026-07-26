@@ -18,7 +18,18 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Palette, Search, Upload, Trash2, ImageOff } from "lucide-react";
+import { Palette, Search, Upload, Trash2, ImageOff, History, Undo2 } from "lucide-react";
+
+interface BrandingAuditRow {
+  id: string;
+  created_at: string;
+  old_logo_url: string | null;
+  new_logo_url: string | null;
+  old_company_name: string | null;
+  new_company_name: string | null;
+  actor_user_id: string | null;
+  ip: string | null;
+}
 
 interface WorkspaceRow {
   id: string;
@@ -347,6 +358,8 @@ function WhiteLabelEditor({ ws }: { ws: WorkspaceRow }) {
           )}
         </div>
 
+        <BrandingHistory workspaceId={ws.id} onRevert={async () => { await refetch(); }} />
+
         <div className="flex justify-end gap-2 pt-2 border-t">
           <Button onClick={save} disabled={saving || isLoading}>
             {saving ? "Salvando…" : "Salvar"}
@@ -354,5 +367,108 @@ function WhiteLabelEditor({ ws }: { ws: WorkspaceRow }) {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function BrandingHistory({ workspaceId, onRevert }: { workspaceId: string; onRevert: () => Promise<void> }) {
+  const { data: rows = [], isLoading, refetch } = useQuery({
+    queryKey: ["wl-audit", workspaceId],
+    queryFn: async (): Promise<BrandingAuditRow[]> => {
+      const { data, error } = await supabase
+        .from("workspace_branding_audit")
+        .select("id, created_at, old_logo_url, new_logo_url, old_company_name, new_company_name, actor_user_id, ip")
+        .eq("workspace_id", workspaceId)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return (data ?? []) as BrandingAuditRow[];
+    },
+  });
+
+  const [reverting, setReverting] = useState<string | null>(null);
+
+  const revertTo = async (row: BrandingAuditRow) => {
+    if (!confirm("Reverter o branding para os valores anteriores a esta alteração?")) return;
+    setReverting(row.id);
+    try {
+      const { error } = await supabase
+        .from("workspaces")
+        .update({
+          branding_logo_url: row.old_logo_url,
+          branding_company_name: row.old_company_name,
+        })
+        .eq("id", workspaceId);
+      if (error) throw error;
+      toast.success("Branding revertido.");
+      await Promise.all([refetch(), onRevert()]);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Falha ao reverter.");
+    } finally {
+      setReverting(null);
+    }
+  };
+
+  const fmt = (v: string | null) => (v && v.trim() ? v : "—");
+  const shortPath = (p: string | null) => {
+    if (!p) return "—";
+    const parts = p.split("/");
+    return parts[parts.length - 1] || p;
+  };
+
+  return (
+    <div>
+      <Label className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+        <History className="h-3.5 w-3.5" /> Histórico de alterações
+      </Label>
+      <div className="mt-2 rounded-md border divide-y max-h-80 overflow-y-auto">
+        {isLoading ? (
+          <div className="p-3 text-xs text-muted-foreground">Carregando…</div>
+        ) : rows.length === 0 ? (
+          <div className="p-3 text-xs text-muted-foreground">Nenhuma alteração registrada.</div>
+        ) : (
+          rows.map((r) => {
+            const nameChanged = r.old_company_name !== r.new_company_name;
+            const logoChanged = r.old_logo_url !== r.new_logo_url;
+            return (
+              <div key={r.id} className="p-2.5 text-xs flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] text-muted-foreground">
+                    {new Date(r.created_at).toLocaleString("pt-BR")}
+                    {r.ip ? ` · ${r.ip}` : ""}
+                  </div>
+                  {nameChanged && (
+                    <div className="mt-1">
+                      <span className="text-muted-foreground">Nome:</span>{" "}
+                      <span className="line-through text-muted-foreground">{fmt(r.old_company_name)}</span>{" "}
+                      → <span className="font-medium">{fmt(r.new_company_name)}</span>
+                    </div>
+                  )}
+                  {logoChanged && (
+                    <div className="mt-0.5">
+                      <span className="text-muted-foreground">Logo:</span>{" "}
+                      <span className="line-through text-muted-foreground">{shortPath(r.old_logo_url)}</span>{" "}
+                      → <span className="font-medium">{shortPath(r.new_logo_url)}</span>
+                    </div>
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => revertTo(r)}
+                  disabled={reverting === r.id}
+                  className="shrink-0"
+                >
+                  <Undo2 className="h-3 w-3 mr-1" />
+                  {reverting === r.id ? "Revertendo…" : "Reverter"}
+                </Button>
+              </div>
+            );
+          })
+        )}
+      </div>
+      <p className="text-[11px] text-muted-foreground mt-1.5">
+        Últimas 50 alterações. Reverter aplica o estado anterior a esse registro (nome + logo).
+      </p>
+    </div>
   );
 }
