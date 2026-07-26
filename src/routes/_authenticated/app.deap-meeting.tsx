@@ -422,22 +422,50 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
   const [uploadPct, setUploadPct] = useState(0);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ runId?: string; data?: unknown; error?: string } | null>(null);
+  const canceledRef = useRef(false);
+  const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const cancelUpload = () => {
+    if (!uploading) return;
+    canceledRef.current = true;
+    if (progressTimerRef.current) {
+      clearInterval(progressTimerRef.current);
+      progressTimerRef.current = null;
+    }
+    setUploading(false);
+    setUploadPct(0);
+    toast.message("Upload cancelado");
+  };
 
   const onDrop = async (files: File[], opts?: { fromRecording?: boolean }) => {
     if (!files[0] || !user) return;
     const file = files[0];
     const fromRec = !!opts?.fromRecording;
+    canceledRef.current = false;
     setUploading(true);
     setUploadPct(0);
+    const path = `${user.id}/${Date.now()}-${file.name.replace(/[^\w.\-]/g, "_")}`;
     try {
-      const path = `${user.id}/${Date.now()}-${file.name.replace(/[^\w.\-]/g, "_")}`;
-      const t = setInterval(() => setUploadPct((p) => Math.min(90, p + 8)), 250);
+      progressTimerRef.current = setInterval(
+        () => setUploadPct((p) => Math.min(90, p + 8)),
+        250,
+      );
       const { error } = await supabase.storage.from("agent-uploads").upload(path, file, {
         cacheControl: "3600",
         upsert: false,
         contentType: file.type || "application/octet-stream",
       });
-      clearInterval(t);
+      if (progressTimerRef.current) {
+        clearInterval(progressTimerRef.current);
+        progressTimerRef.current = null;
+      }
+      if (canceledRef.current) {
+        // Upload já concluído, mas o usuário pediu cancelamento: remove o arquivo.
+        if (!error) {
+          void supabase.storage.from("agent-uploads").remove([path]);
+        }
+        return;
+      }
       if (error) throw error;
       const { data: signed, error: sErr } = await supabase.storage
         .from("agent-uploads")
@@ -447,10 +475,15 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
       setUploadPct(100);
       toast.success(fromRec ? "Gravação salva e anexada" : "Arquivo enviado");
     } catch (e) {
+      if (canceledRef.current) return;
       const msg = e instanceof Error ? e.message : "Falha no upload";
       toast.error(msg);
     } finally {
-      setUploading(false);
+      if (progressTimerRef.current) {
+        clearInterval(progressTimerRef.current);
+        progressTimerRef.current = null;
+      }
+      if (!canceledRef.current) setUploading(false);
     }
   };
 
