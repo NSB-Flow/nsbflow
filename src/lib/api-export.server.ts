@@ -70,12 +70,6 @@ export async function authenticateApiKey(
     return jsonError(429, "Rate limit exceeded");
   }
 
-  const { data: grant } = await supabaseAdmin
-    .from("enterprise_module_grants")
-    .select("enabled")
-    .eq("subscription_id", "")
-    .maybeSingle();
-  // enterprise_module_grants uses subscription_id — resolve via subscription
   const { data: sub } = await supabaseAdmin
     .from("subscriptions")
     .select("id")
@@ -92,8 +86,6 @@ export async function authenticateApiKey(
       .maybeSingle();
     hasGrant = !!g?.enabled;
   }
-  // fallback silence unused
-  void grant;
 
   if (!hasGrant) {
     return jsonError(403, "Data Export API not enabled for this workspace");
