@@ -529,7 +529,10 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
     }
   };
 
-  const isEnterprise = ent.planTier === "enterprise";
+  const canRecordMeeting =
+    roles.includes("super_admin") ||
+    workspaceRole === "admin_empresa" ||
+    ent.hasModule("meeting_recording");
 
   return (
     <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
