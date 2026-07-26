@@ -516,15 +516,25 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
               }
             >
               <input {...getInputProps()} />
-              <Upload className="h-6 w-6 mx-auto text-muted-foreground" />
+              {form.attachment_name && !uploading ? (
+                <CheckCircle2 className="h-6 w-6 mx-auto text-emerald-500" />
+              ) : uploading ? (
+                <UploadCloud className="h-6 w-6 mx-auto text-accent animate-pulse" />
+              ) : (
+                <Upload className="h-6 w-6 mx-auto text-muted-foreground" />
+              )}
               <p className="text-sm mt-2">
-                {form.attachment_name ? (
+                {uploading ? (
+                  <span className="text-muted-foreground">Enviando… {Math.round(uploadPct)}%</span>
+                ) : form.attachment_name ? (
                   <span className="font-medium text-foreground">{form.attachment_name}</span>
                 ) : (
                   <>Arraste um arquivo ou clique para selecionar</>
                 )}
               </p>
-              <p className="text-xs text-muted-foreground mt-1">até 512 MB</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {form.attachment_name && !uploading ? "Anexo pronto — clique para trocar" : "até 512 MB"}
+              </p>
             </div>
             {uploading && <Progress value={uploadPct} className="mt-2 h-1.5" />}
           </div>
@@ -532,8 +542,11 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
           {isEnterprise && (
             <MicRecorder
               disabled={uploading || loading}
+              uploading={uploading}
+              uploadPct={uploadPct}
+              savedName={form.attachment_name || null}
               onRecorded={async (file) => {
-                await onDrop([file]);
+                await onDrop([file], { fromRecording: true });
               }}
             />
           )}
