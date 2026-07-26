@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_authenticated/app/admin-modules")({
 });
 
 const KNOWN_MODULES: { key: string; label: string; description: string }[] = [
-  { key: "meeting_recording", label: "Gravação de Reunião", description: "Habilita o botão 'Iniciar Reunião' com captura de áudio no Deap Intelligence." },
+  { key: "meeting_recording", label: "Gravação de Reunião", description: "Habilita o botão 'Iniciar Reunião' no Deap Intelligence, com captura de áudio direto pelo navegador e upload automático para análise." },
   { key: "deap.meeting.briefing", label: "Deap Briefing AI", description: "Acesso ao agente de briefing pré-reunião." },
   { key: "deap.meeting.intelligence", label: "Deap Intelligence AI", description: "Acesso ao agente de análise pós-reunião." },
   { key: "deap.assessment.sales", label: "Sales Development AI", description: "Assessment de desenvolvimento comercial." },
@@ -32,12 +32,12 @@ const KNOWN_MODULES: { key: string; label: string; description: string }[] = [
   { key: "deap.assessment.process", label: "Process & Execution AI", description: "Assessment de processos e execução." },
   { key: "deap.assessment.executive", label: "Executive Intelligence AI", description: "Assessment executivo." },
   { key: "dashboard.executive", label: "Dashboard Executivo", description: "Painel executivo consolidado." },
-  { key: "whatsapp_integration", label: "WhatsApp Cloud API", description: "Integração com WhatsApp Cloud API (oficial). Reservado para ativação futura." },
-  { key: "report_white_label", label: "Relatórios White-Label", description: "Relatórios com marca do cliente (PDF/Excel). Reservado para ativação futura." },
-  { key: "crm_integration", label: "Integração com CRM", description: "Integração com CRM externo (Salesforce/HubSpot/Pipedrive). Reservado para ativação futura." },
-  { key: "sso_saml", label: "SSO/SAML", description: "Login corporativo via SSO/SAML. Reservado para ativação futura." },
-  { key: "custom_domain", label: "Domínio White-Label", description: "Domínio/subdomínio white-label. Reservado para ativação futura." },
-  { key: "data_export_api", label: "API de Exportação de Dados", description: "API de exportação de dados para BI. Reservado para ativação futura." },
+  { key: "whatsapp_integration", label: "WhatsApp Cloud API", description: "Integração oficial com WhatsApp para atendimento via agentes DEAP, sem risco de banimento (alternativa à Evolution API usada em testes internos)." },
+  { key: "report_white_label", label: "Relatórios White-Label", description: "Exportação de relatórios (PDF/Excel) com a marca do cliente em vez da marca NSB, para uso interno e apresentações executivas do cliente." },
+  { key: "crm_integration", label: "Integração com CRM Externo", description: "Sincroniza oportunidades e contas bidirecionalmente com o CRM que o cliente já usa (Salesforce, HubSpot, Pipedrive). Remove a objeção de migração — o NSB Flow passa a ser uma camada de inteligência sobre o CRM existente, não um substituto." },
+  { key: "sso_saml", label: "Login Corporativo (SSO/SAML)", description: "Permite login via provedor de identidade corporativo do cliente. Frequentemente exigido por política de segurança em empresas grandes — pode ser bloqueador de compra, não apenas bônus." },
+  { key: "custom_domain", label: "Domínio White-Label", description: "Permite acessar a plataforma por um domínio próprio do cliente (ex: app.clientedoenterprise.com) em vez do domínio NSB Flow." },
+  { key: "data_export_api", label: "API de Exportação de Dados", description: "Endpoint de leitura para o time de BI do cliente consumir os dados do NSB Flow em ferramentas próprias (Power BI, Looker, etc.)." },
 ];
 
 function AdminModulesPage() {
