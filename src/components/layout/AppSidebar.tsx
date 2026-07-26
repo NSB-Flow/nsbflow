@@ -191,6 +191,14 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
+                    <SidebarMenuButton asChild tooltip="Módulos Enterprise" isActive={isActive("/app/admin-modules")}>
+                      <Link to="/app/admin-modules" className="flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-gold" />
+                        {!collapsed && <span className="text-gold">Módulos</span>}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
                     <SidebarMenuButton asChild tooltip="Auditoria" isActive={isActive("/app/admin-security")}>
                       <Link to="/app/admin-security" className="flex items-center gap-2">
                         <Shield className="h-4 w-4 text-gold" />
