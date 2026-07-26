@@ -166,9 +166,15 @@ function formatDuration(sec: number) {
 function MicRecorder({
   disabled,
   onRecorded,
+  uploading,
+  uploadPct,
+  savedName,
 }: {
   disabled?: boolean;
   onRecorded: (file: File) => void | Promise<void>;
+  uploading?: boolean;
+  uploadPct?: number;
+  savedName?: string | null;
 }) {
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
