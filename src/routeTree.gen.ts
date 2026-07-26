@@ -40,6 +40,7 @@ import { Route as AuthenticatedAppAdminRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAppAcademyRouteImport } from './routes/_authenticated/app.academy'
 import { Route as AuthenticatedAppPessoasIndexRouteImport } from './routes/_authenticated/app.pessoas.index'
 import { Route as AuthenticatedAppEmpresasIndexRouteImport } from './routes/_authenticated/app.empresas.index'
+import { Route as ApiPublicV1CompaniesRouteImport } from './routes/api/public/v1/companies'
 import { Route as ApiPublicHooksProcessExportJobsRouteImport } from './routes/api/public/hooks/process-export-jobs'
 import { Route as AuthenticatedAppPessoasIdRouteImport } from './routes/_authenticated/app.pessoas.$id'
 import { Route as AuthenticatedAppHistoricoIdRouteImport } from './routes/_authenticated/app.historico.$id'
@@ -218,6 +219,11 @@ const AuthenticatedAppEmpresasIndexRoute =
     path: '/empresas/',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const ApiPublicV1CompaniesRoute = ApiPublicV1CompaniesRouteImport.update({
+  id: '/api/public/v1/companies',
+  path: '/api/public/v1/companies',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksProcessExportJobsRoute =
   ApiPublicHooksProcessExportJobsRouteImport.update({
     id: '/api/public/hooks/process-export-jobs',
@@ -276,6 +282,7 @@ export interface FileRoutesByFullPath {
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
+  '/api/public/v1/companies': typeof ApiPublicV1CompaniesRoute
   '/app/empresas/': typeof AuthenticatedAppEmpresasIndexRoute
   '/app/pessoas/': typeof AuthenticatedAppPessoasIndexRoute
 }
@@ -311,6 +318,7 @@ export interface FileRoutesByTo {
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
+  '/api/public/v1/companies': typeof ApiPublicV1CompaniesRoute
   '/app/empresas': typeof AuthenticatedAppEmpresasIndexRoute
   '/app/pessoas': typeof AuthenticatedAppPessoasIndexRoute
 }
@@ -349,6 +357,7 @@ export interface FileRoutesById {
   '/_authenticated/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/_authenticated/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
+  '/api/public/v1/companies': typeof ApiPublicV1CompaniesRoute
   '/_authenticated/app/empresas/': typeof AuthenticatedAppEmpresasIndexRoute
   '/_authenticated/app/pessoas/': typeof AuthenticatedAppPessoasIndexRoute
 }
@@ -387,6 +396,7 @@ export interface FileRouteTypes {
     | '/app/historico/$id'
     | '/app/pessoas/$id'
     | '/api/public/hooks/process-export-jobs'
+    | '/api/public/v1/companies'
     | '/app/empresas/'
     | '/app/pessoas/'
   fileRoutesByTo: FileRoutesByTo
@@ -422,6 +432,7 @@ export interface FileRouteTypes {
     | '/app/historico/$id'
     | '/app/pessoas/$id'
     | '/api/public/hooks/process-export-jobs'
+    | '/api/public/v1/companies'
     | '/app/empresas'
     | '/app/pessoas'
   id:
@@ -459,6 +470,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/historico/$id'
     | '/_authenticated/app/pessoas/$id'
     | '/api/public/hooks/process-export-jobs'
+    | '/api/public/v1/companies'
     | '/_authenticated/app/empresas/'
     | '/_authenticated/app/pessoas/'
   fileRoutesById: FileRoutesById
@@ -472,6 +484,7 @@ export interface RootRouteChildren {
   GuiasProspeccaoDeClientesB2bRoute: typeof GuiasProspeccaoDeClientesB2bRoute
   ApiPublicReferralCheckRoute: typeof ApiPublicReferralCheckRoute
   ApiPublicHooksProcessExportJobsRoute: typeof ApiPublicHooksProcessExportJobsRoute
+  ApiPublicV1CompaniesRoute: typeof ApiPublicV1CompaniesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -693,6 +706,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppEmpresasIndexRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/api/public/v1/companies': {
+      id: '/api/public/v1/companies'
+      path: '/api/public/v1/companies'
+      fullPath: '/api/public/v1/companies'
+      preLoaderRoute: typeof ApiPublicV1CompaniesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/process-export-jobs': {
       id: '/api/public/hooks/process-export-jobs'
       path: '/api/public/hooks/process-export-jobs'
@@ -818,6 +838,7 @@ const rootRouteChildren: RootRouteChildren = {
   GuiasProspeccaoDeClientesB2bRoute: GuiasProspeccaoDeClientesB2bRoute,
   ApiPublicReferralCheckRoute: ApiPublicReferralCheckRoute,
   ApiPublicHooksProcessExportJobsRoute: ApiPublicHooksProcessExportJobsRoute,
+  ApiPublicV1CompaniesRoute: ApiPublicV1CompaniesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
