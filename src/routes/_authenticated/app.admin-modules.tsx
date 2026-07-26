@@ -736,3 +736,270 @@ function BulkModulesPanel() {
     </Card>
   );
 }
+
+// ============================================================
+// AUDIT PANEL
+// ============================================================
+
+interface AuditRow {
+  id: string;
+  subscription_id: string | null;
+  workspace_id: string | null;
+  feature_key: string;
+  action: string;
+  old_enabled: boolean | null;
+  new_enabled: boolean | null;
+  actor_user_id: string | null;
+  ip: string | null;
+  user_agent: string | null;
+  created_at: string;
+}
+
+const ACTION_META: Record<string, { label: string; className: string }> = {
+  created: { label: "Criado", className: "bg-sky-500/15 text-sky-600 border-sky-500/30" },
+  enabled: { label: "Habilitado", className: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30" },
+  disabled: { label: "Desabilitado", className: "bg-amber-500/15 text-amber-600 border-amber-500/30" },
+  updated: { label: "Atualizado", className: "bg-muted text-muted-foreground border-border" },
+  removed: { label: "Removido", className: "bg-rose-500/15 text-rose-600 border-rose-500/30" },
+};
+
+function ModuleGrantAuditPanel() {
+  const [featureFilter, setFeatureFilter] = useState<string>("all");
+  const [actionFilter, setActionFilter] = useState<string>("all");
+  const [workspaceSearch, setWorkspaceSearch] = useState("");
+  const [days, setDays] = useState<string>("30");
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["module-grant-audit", featureFilter, actionFilter, days],
+    queryFn: async () => {
+      let q = supabase
+        .from("module_grant_audit")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (featureFilter !== "all") q = q.eq("feature_key", featureFilter);
+      if (actionFilter !== "all") q = q.eq("action", actionFilter);
+      if (days !== "all") {
+        const since = new Date(Date.now() - Number(days) * 86400_000).toISOString();
+        q = q.gte("created_at", since);
+      }
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as AuditRow[];
+    },
+  });
+
+  const workspaceIds = useMemo(() => Array.from(new Set((data ?? []).map(r => r.workspace_id).filter(Boolean))) as string[], [data]);
+  const actorIds = useMemo(() => Array.from(new Set((data ?? []).map(r => r.actor_user_id).filter(Boolean))) as string[], [data]);
+
+  const { data: workspaces } = useQuery({
+    queryKey: ["audit-workspaces", workspaceIds],
+    enabled: workspaceIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("workspaces").select("id,name,slug").in("id", workspaceIds);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: actors } = useQuery({
+    queryKey: ["audit-actors", actorIds],
+    enabled: actorIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("id,full_name").in("id", actorIds);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const wsMap = useMemo(() => {
+    const m = new Map<string, { name: string; slug: string }>();
+    (workspaces ?? []).forEach((w: any) => m.set(w.id, { name: w.name, slug: w.slug }));
+    return m;
+  }, [workspaces]);
+  const actorMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (actors ?? []).forEach((a: any) => m.set(a.id, a.full_name || a.id));
+    return m;
+  }, [actors]);
+
+  const filtered = useMemo(() => {
+    const q = workspaceSearch.trim().toLowerCase();
+    if (!q) return data ?? [];
+    return (data ?? []).filter(r => {
+      const ws = r.workspace_id ? wsMap.get(r.workspace_id) : null;
+      return (
+        (ws?.name.toLowerCase().includes(q) ?? false) ||
+        (ws?.slug.toLowerCase().includes(q) ?? false) ||
+        r.feature_key.toLowerCase().includes(q)
+      );
+    });
+  }, [data, workspaceSearch, wsMap]);
+
+  function exportCsv() {
+    const rows = filtered.map(r => {
+      const ws = r.workspace_id ? wsMap.get(r.workspace_id) : null;
+      return {
+        data: format(new Date(r.created_at), "yyyy-MM-dd HH:mm:ss"),
+        acao: ACTION_META[r.action]?.label ?? r.action,
+        modulo: r.feature_key,
+        workspace: ws?.name ?? r.workspace_id ?? "",
+        slug: ws?.slug ?? "",
+        de: r.old_enabled === null ? "" : r.old_enabled ? "on" : "off",
+        para: r.new_enabled === null ? "" : r.new_enabled ? "on" : "off",
+        ator: r.actor_user_id ? (actorMap.get(r.actor_user_id) ?? r.actor_user_id) : "",
+        ip: r.ip ?? "",
+      };
+    });
+    const headers = Object.keys(rows[0] ?? { data: "" });
+    const csv = [
+      headers.join(","),
+      ...rows.map(r => headers.map(h => `"${String((r as any)[h]).replace(/"/g, '""')}"`).join(",")),
+    ].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `module-grant-audit-${format(new Date(), "yyyyMMdd-HHmm")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <History className="h-4 w-4 text-gold" /> Histórico de alterações
+        </CardTitle>
+        <p className="text-xs text-muted-foreground">
+          Cada mudança em concessões de módulos (criação, habilitar, desabilitar, remover) é registrada aqui.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div>
+            <Label className="text-xs">Módulo</Label>
+            <Select value={featureFilter} onValueChange={setFeatureFilter}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                {KNOWN_MODULES.map(m => (
+                  <SelectItem key={m.key} value={m.key}>{m.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Ação</Label>
+            <Select value={actionFilter} onValueChange={setActionFilter}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
+                <SelectItem value="created">Criado</SelectItem>
+                <SelectItem value="enabled">Habilitado</SelectItem>
+                <SelectItem value="disabled">Desabilitado</SelectItem>
+                <SelectItem value="removed">Removido</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Período</Label>
+            <Select value={days} onValueChange={setDays}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">Últimas 24h</SelectItem>
+                <SelectItem value="7">Últimos 7 dias</SelectItem>
+                <SelectItem value="30">Últimos 30 dias</SelectItem>
+                <SelectItem value="90">Últimos 90 dias</SelectItem>
+                <SelectItem value="all">Tudo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Buscar workspace</Label>
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                className="pl-7"
+                placeholder="nome ou slug"
+                value={workspaceSearch}
+                onChange={e => setWorkspaceSearch(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="text-xs text-muted-foreground">
+            {isLoading ? "carregando..." : `${filtered.length} evento(s)`}
+          </div>
+          <Button size="sm" variant="outline" onClick={exportCsv} disabled={filtered.length === 0}>
+            Exportar CSV
+          </Button>
+        </div>
+
+        <div className="rounded-md border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Quando</TableHead>
+                <TableHead>Ação</TableHead>
+                <TableHead>Módulo</TableHead>
+                <TableHead>Workspace</TableHead>
+                <TableHead>De → Para</TableHead>
+                <TableHead>Quem</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-8">Carregando...</TableCell></TableRow>
+              ) : filtered.length === 0 ? (
+                <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-8">Nenhum evento no período.</TableCell></TableRow>
+              ) : (
+                filtered.map(r => {
+                  const ws = r.workspace_id ? wsMap.get(r.workspace_id) : null;
+                  const meta = ACTION_META[r.action] ?? { label: r.action, className: "bg-muted text-muted-foreground border-border" };
+                  const knownMod = KNOWN_MODULES.find(m => m.key === r.feature_key);
+                  return (
+                    <TableRow key={r.id}>
+                      <TableCell className="whitespace-nowrap">
+                        <div className="text-xs">{format(new Date(r.created_at), "dd/MM/yyyy HH:mm")}</div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {formatDistanceToNow(new Date(r.created_at), { addSuffix: true, locale: ptBR })}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={`text-[10px] ${meta.className}`}>{meta.label}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-xs font-medium">{knownMod?.label ?? r.feature_key}</div>
+                        <div className="text-[10px] text-muted-foreground font-mono">{r.feature_key}</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-xs">{ws?.name ?? "—"}</div>
+                        {ws?.slug && <div className="text-[10px] text-muted-foreground font-mono">{ws.slug}</div>}
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-[11px] font-mono">
+                          {r.old_enabled === null ? "∅" : r.old_enabled ? "on" : "off"}
+                          {" → "}
+                          {r.new_enabled === null ? "∅" : r.new_enabled ? "on" : "off"}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-xs">
+                          {r.actor_user_id ? (actorMap.get(r.actor_user_id) ?? "—") : "—"}
+                        </div>
+                        {r.ip && <div className="text-[10px] text-muted-foreground font-mono">{r.ip}</div>}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
