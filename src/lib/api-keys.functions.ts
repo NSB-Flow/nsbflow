@@ -19,17 +19,9 @@ function randomKey() {
   return `nsb_live_${hex}`;
 }
 
-async function assertWorkspaceAdmin(
-  supabase: Awaited<
-    ReturnType<
-      typeof import("@/integrations/supabase/client.server")
-    >["supabaseAdmin"]["auth"]["getUser"]
-  > extends never
-    ? never
-    : import("@supabase/supabase-js").SupabaseClient,
-  userId: string,
-  workspaceId: string,
-) {
+type Sb = import("@supabase/supabase-js").SupabaseClient;
+
+async function assertWorkspaceAdmin(supabase: Sb, userId: string, workspaceId: string) {
   const [{ data: isSuper }, { data: isAdmin }] = await Promise.all([
     supabase.rpc("is_super_admin", { _user_id: userId }),
     supabase.rpc("is_workspace_admin", {
