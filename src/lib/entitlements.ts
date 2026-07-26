@@ -107,10 +107,16 @@ export function useEntitlements(): Entitlements {
       ]);
 
       const features = new Set<FeatureKey>();
+      const moduleGrants = new Set<string>();
       for (const f of pf ?? []) if (f.enabled) features.add(f.feature_key as FeatureKey);
       for (const g of grants ?? []) {
-        if (g.enabled) features.add(g.feature_key as FeatureKey);
-        else features.delete(g.feature_key as FeatureKey);
+        if (g.enabled) {
+          features.add(g.feature_key as FeatureKey);
+          moduleGrants.add(g.feature_key);
+        } else {
+          features.delete(g.feature_key as FeatureKey);
+          moduleGrants.delete(g.feature_key);
+        }
       }
 
       const plan = Array.isArray(sub.plans) ? sub.plans[0] : sub.plans;
@@ -119,6 +125,7 @@ export function useEntitlements(): Entitlements {
         sub,
         plan,
         features,
+        moduleGrants,
         seatsUsed: seatsUsed ?? 0,
       };
     },
