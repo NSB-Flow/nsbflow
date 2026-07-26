@@ -3,7 +3,7 @@
  * PDF uses @react-pdf/renderer with the NSB brand palette;
  * Excel uses SheetJS (xlsx).
  */
-import { Document, Page, Text, View, StyleSheet, pdf } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, pdf, Image } from "@react-pdf/renderer";
 import type { ReactElement } from "react";
 import * as XLSX from "xlsx";
 
@@ -60,12 +60,21 @@ export interface ReportSectionPdf {
   note?: string;
 }
 
+export interface ReportBrandingInput {
+  /** Nome do cliente que substitui "NSB · Growth by Method" no cabeçalho. */
+  companyName?: string | null;
+  /** Data URL (base64) do logo do cliente. */
+  logoDataUrl?: string | null;
+}
+
 export interface ReportPdfInput {
   title: string;
   period: string;
   author?: string;
   workspace?: string;
   sections: ReportSectionPdf[];
+  /** Aplica branding White-Label quando presente e não-nulo. */
+  branding?: ReportBrandingInput | null;
 }
 
 function Table({ table }: { table: ReportTable }) {
