@@ -134,7 +134,7 @@ export function useEntitlements(): Entitlements {
 
   if (isLoading || !data) return { ...EMPTY, loading: isLoading };
 
-  const { sub, plan, features, seatsUsed } = data;
+  const { sub, plan, features, moduleGrants, seatsUsed } = data;
   const trialEndsAt = sub.trial_ends_at as string | null;
   const trialMs = trialEndsAt ? new Date(trialEndsAt).getTime() - Date.now() : 0;
   const trialDaysLeft = trialMs > 0 ? Math.ceil(trialMs / 86400000) : 0;
