@@ -455,7 +455,7 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: ACCEPT,
     multiple: false,
-    onDrop,
+    onDrop: (files) => onDrop(files),
     maxSize: 512 * 1024 * 1024,
   });
 
