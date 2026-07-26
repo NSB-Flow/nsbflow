@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import {
   Loader2, FileText, Sparkles, Upload, FileAudio, Save, Star, Copy, FileDown,
-  AlertTriangle, Mic, Lock, Info,
+  AlertTriangle, Mic, Lock, Info, CheckCircle2, UploadCloud,
 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { generateReportPdf, downloadBlob } from "@/lib/pdf-report";
@@ -166,9 +166,15 @@ function formatDuration(sec: number) {
 function MicRecorder({
   disabled,
   onRecorded,
+  uploading,
+  uploadPct,
+  savedName,
 }: {
   disabled?: boolean;
   onRecorded: (file: File) => void | Promise<void>;
+  uploading?: boolean;
+  uploadPct?: number;
+  savedName?: string | null;
 }) {
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -243,37 +249,63 @@ function MicRecorder({
     recRef.current?.stop();
   };
 
+  const showSaved = !recording && !uploading && !!savedName;
+
   return (
-    <div className="rounded-lg border border-dashed p-3 flex items-center justify-between gap-3">
-      <div className="flex items-center gap-2 text-sm min-w-0">
-        <span className="relative flex h-3 w-3 shrink-0">
-          {recording && (
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-70" />
-          )}
-          <span
-            className={
-              "relative inline-flex rounded-full h-3 w-3 " + (recording ? "bg-destructive" : "bg-gold")
-            }
-          />
-        </span>
-        <div className="min-w-0">
-          <div className="font-medium truncate">
-            {recording ? "Gravando reunião…" : "Iniciar reunião"}
-          </div>
-          <div className="text-xs text-muted-foreground tabular-nums">
-            {recording ? formatDuration(elapsed) : "Captura pelo microfone (áudio anexado ao final)"}
+    <div className="rounded-lg border border-dashed p-3 space-y-2">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-sm min-w-0">
+          <span className="relative flex h-3 w-3 shrink-0">
+            {recording && (
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-70" />
+            )}
+            <span
+              className={
+                "relative inline-flex rounded-full h-3 w-3 " +
+                (recording ? "bg-destructive" : uploading ? "bg-accent" : showSaved ? "bg-emerald-500" : "bg-gold")
+              }
+            />
+          </span>
+          <div className="min-w-0">
+            <div className="font-medium truncate">
+              {recording
+                ? "Gravando reunião…"
+                : uploading
+                  ? "Enviando gravação…"
+                  : showSaved
+                    ? "Gravação salva"
+                    : "Iniciar reunião"}
+            </div>
+            <div className="text-xs text-muted-foreground tabular-nums truncate">
+              {recording
+                ? formatDuration(elapsed)
+                : uploading
+                  ? `${Math.round(uploadPct ?? 0)}%`
+                  : showSaved
+                    ? savedName
+                    : "Captura pelo microfone (áudio anexado ao final)"}
+            </div>
           </div>
         </div>
+        {recording ? (
+          <Button size="sm" variant="destructive" onClick={stop}>
+            Encerrar reunião
+          </Button>
+        ) : uploading ? (
+          <Button size="sm" variant="outline" disabled>
+            <UploadCloud className="h-3.5 w-3.5 mr-1.5 animate-pulse" /> Enviando…
+          </Button>
+        ) : showSaved ? (
+          <Button size="sm" variant="outline" onClick={start} disabled={disabled || starting}>
+            <CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-emerald-500" /> Regravar
+          </Button>
+        ) : (
+          <Button size="sm" variant="outline" onClick={start} disabled={disabled || starting}>
+            <Mic className="h-3.5 w-3.5 mr-1.5" /> {starting ? "..." : "Iniciar"}
+          </Button>
+        )}
       </div>
-      {recording ? (
-        <Button size="sm" variant="destructive" onClick={stop}>
-          Encerrar reunião
-        </Button>
-      ) : (
-        <Button size="sm" variant="outline" onClick={start} disabled={disabled || starting}>
-          <Mic className="h-3.5 w-3.5 mr-1.5" /> {starting ? "..." : "Iniciar"}
-        </Button>
-      )}
+      {uploading && <Progress value={uploadPct ?? 0} className="h-1.5" />}
     </div>
   );
 }
@@ -389,9 +421,10 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ runId?: string; data?: unknown; error?: string } | null>(null);
 
-  const onDrop = async (files: File[]) => {
+  const onDrop = async (files: File[], opts?: { fromRecording?: boolean }) => {
     if (!files[0] || !user) return;
     const file = files[0];
+    const fromRec = !!opts?.fromRecording;
     setUploading(true);
     setUploadPct(0);
     try {
@@ -410,7 +443,7 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
       if (sErr || !signed) throw sErr ?? new Error("Não foi possível gerar URL assinada");
       setForm((f) => ({ ...f, attachment_url: signed.signedUrl, attachment_name: file.name }));
       setUploadPct(100);
-      toast.success("Arquivo enviado");
+      toast.success(fromRec ? "Gravação salva e anexada" : "Arquivo enviado");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Falha no upload";
       toast.error(msg);
@@ -422,7 +455,7 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: ACCEPT,
     multiple: false,
-    onDrop,
+    onDrop: (files) => onDrop(files),
     maxSize: 512 * 1024 * 1024,
   });
 
@@ -483,15 +516,25 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
               }
             >
               <input {...getInputProps()} />
-              <Upload className="h-6 w-6 mx-auto text-muted-foreground" />
+              {form.attachment_name && !uploading ? (
+                <CheckCircle2 className="h-6 w-6 mx-auto text-emerald-500" />
+              ) : uploading ? (
+                <UploadCloud className="h-6 w-6 mx-auto text-accent animate-pulse" />
+              ) : (
+                <Upload className="h-6 w-6 mx-auto text-muted-foreground" />
+              )}
               <p className="text-sm mt-2">
-                {form.attachment_name ? (
+                {uploading ? (
+                  <span className="text-muted-foreground">Enviando… {Math.round(uploadPct)}%</span>
+                ) : form.attachment_name ? (
                   <span className="font-medium text-foreground">{form.attachment_name}</span>
                 ) : (
                   <>Arraste um arquivo ou clique para selecionar</>
                 )}
               </p>
-              <p className="text-xs text-muted-foreground mt-1">até 512 MB</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {form.attachment_name && !uploading ? "Anexo pronto — clique para trocar" : "até 512 MB"}
+              </p>
             </div>
             {uploading && <Progress value={uploadPct} className="mt-2 h-1.5" />}
           </div>
@@ -499,8 +542,11 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
           {isEnterprise && (
             <MicRecorder
               disabled={uploading || loading}
+              uploading={uploading}
+              uploadPct={uploadPct}
+              savedName={form.attachment_name || null}
               onRecorded={async (file) => {
-                await onDrop([file]);
+                await onDrop([file], { fromRecording: true });
               }}
             />
           )}
