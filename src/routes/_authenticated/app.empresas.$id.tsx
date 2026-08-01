@@ -238,6 +238,7 @@ function EmpresaDetail() {
     const { error } = await supabase.from("companies").update(v).eq("id", company.id);
     setSaving(false);
     if (error) return toast.error(error.message);
+    pushToCrm(workspaceId, "company", company.id);
     toast.success("Conta atualizada");
     setEditOpen(false);
     qc.invalidateQueries({ queryKey: ["empresa", id] });
@@ -259,18 +260,20 @@ function EmpresaDetail() {
       const { error } = await supabase.from("opportunities").update(v).eq("id", oppEdit.id);
       setSaving(false);
       if (error) return toast.error(error.message);
+      pushToCrm(workspaceId, "opportunity", oppEdit.id);
       toast.success("Oportunidade atualizada");
     } else {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setSaving(false); return toast.error("Sessão expirada"); }
-      const { error } = await supabase.from("opportunities").insert({
+      const { data: created, error } = await supabase.from("opportunities").insert({
         ...v,
         company_id: company.id,
         workspace_id: workspaceId,
         created_by: user.id,
-      });
+      }).select("id").single();
       setSaving(false);
       if (error) return toast.error(error.message);
+      pushToCrm(workspaceId, "opportunity", created?.id);
       toast.success("Oportunidade criada");
     }
     setOppOpen(false);
@@ -282,8 +285,10 @@ function EmpresaDetail() {
   const changeOppStatus = async (opp: Opportunity, status: OpportunityStatus) => {
     const { error } = await supabase.from("opportunities").update({ status }).eq("id", opp.id);
     if (error) return toast.error(error.message);
+    pushToCrm(workspaceId, "opportunity", opp.id);
     qc.invalidateQueries({ queryKey: ["empresa-opps", id] });
   };
+
 
   const deleteOpportunity = async () => {
     if (!oppDelete) return;
