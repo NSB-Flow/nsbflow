@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { pushToCrm } from "@/lib/crm-push";
 import { useWorkspace } from "@/lib/workspace-context";
 import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent } from "@/components/ui/card";
@@ -122,13 +123,14 @@ function EmpresasPage() {
   const create = async (v: CompanyFormValues) => {
     if (!workspaceId || !user) return;
     setSaving(true);
-    const { error } = await supabase.from("companies").insert({
+    const { data: created, error } = await supabase.from("companies").insert({
       workspace_id: workspaceId,
       created_by: user.id,
       ...v,
-    });
+    }).select("id").single();
     setSaving(false);
     if (error) return toast.error(error.message);
+    pushToCrm(workspaceId, "company", created?.id);
     toast.success("Conta criada");
     setCreateOpen(false);
     qc.invalidateQueries({ queryKey: ["empresas-list"] });

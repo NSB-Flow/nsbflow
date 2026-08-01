@@ -14,9 +14,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Shield, Package, Search, Plus, Trash2, Layers, CheckCircle2, XCircle, History, Key, Palette } from "lucide-react";
+import { Shield, Package, Search, Plus, Trash2, Layers, CheckCircle2, XCircle, History, Key, Palette, PlugZap } from "lucide-react";
 import { ApiKeysPanel } from "@/components/admin/ApiKeysPanel";
 import { WhiteLabelPanel } from "@/components/admin/WhiteLabelPanel";
+import { CrmIntegrationPanel } from "@/components/admin/CrmIntegrationPanel";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -61,7 +62,13 @@ function AdminModulesPage() {
           </p>
         </div>
       </div>
-      <Tabs defaultValue="individual">
+      <Tabs
+        defaultValue={
+          typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tab") === "crm"
+            ? "crm"
+            : "individual"
+        }
+      >
         <TabsList>
           <TabsTrigger value="individual">Individual</TabsTrigger>
           <TabsTrigger value="bulk">
@@ -75,6 +82,9 @@ function AdminModulesPage() {
           </TabsTrigger>
           <TabsTrigger value="white-label">
             <Palette className="h-3.5 w-3.5 mr-1.5" /> White-Label
+          </TabsTrigger>
+          <TabsTrigger value="crm">
+            <PlugZap className="h-3.5 w-3.5 mr-1.5" /> CRM
           </TabsTrigger>
         </TabsList>
         <TabsContent value="individual" className="mt-6">
@@ -91,6 +101,9 @@ function AdminModulesPage() {
         </TabsContent>
         <TabsContent value="white-label" className="mt-6">
           <WhiteLabelPanel />
+        </TabsContent>
+        <TabsContent value="crm" className="mt-6">
+          <CrmIntegrationPanel />
         </TabsContent>
       </Tabs>
     </div>
