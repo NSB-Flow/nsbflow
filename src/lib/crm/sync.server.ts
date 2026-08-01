@@ -101,25 +101,99 @@ const TABLE_FOR: Record<NsbObject, "companies" | "opportunities"> = {
   opportunity: "opportunities",
 };
 
-/** Pushes one NSB record to Salesforce. Safe to call fire-and-forget. */
-export async function syncRecordOutbound(
-  workspaceId: string,
-  object: NsbObject,
-  recordId: string,
-): Promise<{ ok: boolean; skipped?: string; crmId?: string }> {
-  const conn = await loadConnection(workspaceId);
-  if (!conn || conn.status !== "active" || !conn.instance_url) {
-    return { ok: false, skipped: "no_active_connection" };
+// ------------------------------------------------- matching (cascade strategy)
+
+export type MatchMethod = "salesforce_id" | "cnpj" | "name" | "created";
+
+const MATCH_LABEL: Record<MatchMethod, string> = {
+  salesforce_id: "vínculo existente (salesforce_id)",
+  cnpj: "CNPJ (Account.CNPJ__c)",
+  name: "nome (Account.Name)",
+  created: "novo registro criado",
+};
+
+function soqlQuote(v: string) {
+  return `'${v.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`;
+}
+
+/** Digits-only CNPJ, so 12.345.678/0001-99 matches 12345678000199. */
+function cnpjDigits(v: unknown): string | null {
+  if (typeof v !== "string") return null;
+  const d = v.replace(/\D/g, "");
+  return d.length >= 11 ? d : null;
+}
+
+function isMissingCnpjField(message: string) {
+  return /INVALID_FIELD|No such column|INVALID_TYPE/i.test(message) && /CNPJ__c/i.test(message);
+}
+
+/**
+ * Finds the Salesforce Account for an NSB company: CNPJ first, then Name.
+ * A missing CNPJ__c field in the client's org degrades silently to name matching.
+ */
+async function findSfAccount(
+  conn: CrmConnection,
+  opts: { cnpj?: unknown; name?: unknown },
+): Promise<{ id: string; method: Exclude<MatchMethod, "salesforce_id" | "created"> } | null> {
+  const digits = cnpjDigits(opts.cnpj);
+  if (digits) {
+    try {
+      const rows = await soql<{ Id: string }>(
+        conn,
+        `SELECT Id FROM Account WHERE ${SF_CNPJ_FIELD} = ${soqlQuote(digits)} ` +
+          `OR ${SF_CNPJ_FIELD} = ${soqlQuote(String(opts.cnpj))} LIMIT 1`,
+      );
+      if (rows[0]?.Id) return { id: rows[0].Id, method: "cnpj" };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (!isMissingCnpjField(msg)) throw e;
+      // CNPJ__c not present in this org — continue with name matching.
+    }
   }
 
+  const name = typeof opts.name === "string" ? opts.name.trim() : "";
+  if (name) {
+    const rows = await soql<{ Id: string }>(
+      conn,
+      `SELECT Id FROM Account WHERE Name = ${soqlQuote(name)} LIMIT 1`,
+    );
+    if (rows[0]?.Id) return { id: rows[0].Id, method: "name" };
+  }
+  return null;
+}
+
+/** Finds the NSB company matching a Salesforce Account: CNPJ first, then razão social. */
+async function findNsbCompany(
+  workspaceId: string,
+  opts: { cnpj?: unknown; name?: unknown },
+): Promise<{ id: string; updated_at: string; method: "cnpj" | "name" } | null> {
   const db = await admin();
-  const { data: record } = await db
-    .from(TABLE_FOR[object])
-    .select("*")
-    .eq("id", recordId)
-    .eq("workspace_id", workspaceId)
-    .maybeSingle();
-  if (!record) return { ok: false, skipped: "record_not_found" };
+  const digits = cnpjDigits(opts.cnpj);
+  if (digits) {
+    const { data } = await db
+      .from("companies")
+      .select("id, updated_at, cnpj, salesforce_id")
+      .eq("workspace_id", workspaceId)
+      .is("salesforce_id", null)
+      .not("cnpj", "is", null);
+    const hit = (data ?? []).find((r) => cnpjDigits(r.cnpj) === digits);
+    if (hit) return { id: hit.id, updated_at: hit.updated_at as string, method: "cnpj" };
+  }
+  const name = typeof opts.name === "string" ? opts.name.trim() : "";
+  if (name) {
+    const { data } = await db
+      .from("companies")
+      .select("id, updated_at")
+      .eq("workspace_id", workspaceId)
+      .is("salesforce_id", null)
+      .eq("razao_social", name)
+      .limit(1)
+      .maybeSingle();
+    if (data) return { id: data.id, updated_at: data.updated_at as string, method: "name" };
+  }
+  return null;
+}
+
 
   try {
     const mappings = (await loadMappings(workspaceId, object)).filter(
