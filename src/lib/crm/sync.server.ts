@@ -515,7 +515,7 @@ async function pullObject(
           nsb_record_id: created.id,
           crm_record_id: rec.Id,
           status: "success",
-          detail: "Oportunidade criada a partir do Salesforce",
+          detail: `Correspondência: ${MATCH_LABEL["created"]}. Oportunidade criada a partir do Salesforce.`,
         });
         stats.created++;
       }
