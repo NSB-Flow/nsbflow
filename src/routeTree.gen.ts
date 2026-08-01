@@ -45,6 +45,7 @@ import { Route as ApiPublicV1MeetingAnalysesRouteImport } from './routes/api/pub
 import { Route as ApiPublicV1CompaniesRouteImport } from './routes/api/public/v1/companies'
 import { Route as ApiPublicV1AgentRunsRouteImport } from './routes/api/public/v1/agent-runs'
 import { Route as ApiPublicHooksProcessExportJobsRouteImport } from './routes/api/public/hooks/process-export-jobs'
+import { Route as ApiPublicHooksCrmSyncRouteImport } from './routes/api/public/hooks/crm-sync'
 import { Route as AuthenticatedAppPessoasIdRouteImport } from './routes/_authenticated/app.pessoas.$id'
 import { Route as AuthenticatedAppHistoricoIdRouteImport } from './routes/_authenticated/app.historico.$id'
 import { Route as AuthenticatedAppEmpresasIdRouteImport } from './routes/_authenticated/app.empresas.$id'
@@ -251,6 +252,11 @@ const ApiPublicHooksProcessExportJobsRoute =
     path: '/api/public/hooks/process-export-jobs',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksCrmSyncRoute = ApiPublicHooksCrmSyncRouteImport.update({
+  id: '/api/public/hooks/crm-sync',
+  path: '/api/public/hooks/crm-sync',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAppPessoasIdRoute =
   AuthenticatedAppPessoasIdRouteImport.update({
     id: '/pessoas/$id',
@@ -308,6 +314,7 @@ export interface FileRoutesByFullPath {
   '/app/empresas/$id': typeof AuthenticatedAppEmpresasIdRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
+  '/api/public/hooks/crm-sync': typeof ApiPublicHooksCrmSyncRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
   '/api/public/v1/agent-runs': typeof ApiPublicV1AgentRunsRoute
   '/api/public/v1/companies': typeof ApiPublicV1CompaniesRoute
@@ -348,6 +355,7 @@ export interface FileRoutesByTo {
   '/app/empresas/$id': typeof AuthenticatedAppEmpresasIdRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
+  '/api/public/hooks/crm-sync': typeof ApiPublicHooksCrmSyncRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
   '/api/public/v1/agent-runs': typeof ApiPublicV1AgentRunsRoute
   '/api/public/v1/companies': typeof ApiPublicV1CompaniesRoute
@@ -391,6 +399,7 @@ export interface FileRoutesById {
   '/_authenticated/app/empresas/$id': typeof AuthenticatedAppEmpresasIdRoute
   '/_authenticated/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/_authenticated/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
+  '/api/public/hooks/crm-sync': typeof ApiPublicHooksCrmSyncRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
   '/api/public/v1/agent-runs': typeof ApiPublicV1AgentRunsRoute
   '/api/public/v1/companies': typeof ApiPublicV1CompaniesRoute
@@ -434,6 +443,7 @@ export interface FileRouteTypes {
     | '/app/empresas/$id'
     | '/app/historico/$id'
     | '/app/pessoas/$id'
+    | '/api/public/hooks/crm-sync'
     | '/api/public/hooks/process-export-jobs'
     | '/api/public/v1/agent-runs'
     | '/api/public/v1/companies'
@@ -474,6 +484,7 @@ export interface FileRouteTypes {
     | '/app/empresas/$id'
     | '/app/historico/$id'
     | '/app/pessoas/$id'
+    | '/api/public/hooks/crm-sync'
     | '/api/public/hooks/process-export-jobs'
     | '/api/public/v1/agent-runs'
     | '/api/public/v1/companies'
@@ -516,6 +527,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/empresas/$id'
     | '/_authenticated/app/historico/$id'
     | '/_authenticated/app/pessoas/$id'
+    | '/api/public/hooks/crm-sync'
     | '/api/public/hooks/process-export-jobs'
     | '/api/public/v1/agent-runs'
     | '/api/public/v1/companies'
@@ -534,6 +546,7 @@ export interface RootRouteChildren {
   GuiasFollowUpEmailTemplatesRoute: typeof GuiasFollowUpEmailTemplatesRoute
   GuiasProspeccaoDeClientesB2bRoute: typeof GuiasProspeccaoDeClientesB2bRoute
   ApiPublicReferralCheckRoute: typeof ApiPublicReferralCheckRoute
+  ApiPublicHooksCrmSyncRoute: typeof ApiPublicHooksCrmSyncRoute
   ApiPublicHooksProcessExportJobsRoute: typeof ApiPublicHooksProcessExportJobsRoute
   ApiPublicV1AgentRunsRoute: typeof ApiPublicV1AgentRunsRoute
   ApiPublicV1CompaniesRoute: typeof ApiPublicV1CompaniesRoute
@@ -796,6 +809,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksProcessExportJobsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/crm-sync': {
+      id: '/api/public/hooks/crm-sync'
+      path: '/api/public/hooks/crm-sync'
+      fullPath: '/api/public/hooks/crm-sync'
+      preLoaderRoute: typeof ApiPublicHooksCrmSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/app/pessoas/$id': {
       id: '/_authenticated/app/pessoas/$id'
       path: '/pessoas/$id'
@@ -920,6 +940,7 @@ const rootRouteChildren: RootRouteChildren = {
   GuiasFollowUpEmailTemplatesRoute: GuiasFollowUpEmailTemplatesRoute,
   GuiasProspeccaoDeClientesB2bRoute: GuiasProspeccaoDeClientesB2bRoute,
   ApiPublicReferralCheckRoute: ApiPublicReferralCheckRoute,
+  ApiPublicHooksCrmSyncRoute: ApiPublicHooksCrmSyncRoute,
   ApiPublicHooksProcessExportJobsRoute: ApiPublicHooksProcessExportJobsRoute,
   ApiPublicV1AgentRunsRoute: ApiPublicV1AgentRunsRoute,
   ApiPublicV1CompaniesRoute: ApiPublicV1CompaniesRoute,
