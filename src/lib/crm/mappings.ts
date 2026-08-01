@@ -43,9 +43,13 @@ export const CRM_OBJECT_FOR: Record<NsbObject, string> = {
   opportunity: "Opportunity",
 };
 
+/** Salesforce custom field used to match NSB companies by CNPJ (must exist in the client's org). */
+export const SF_CNPJ_FIELD = "CNPJ__c";
+
 export const SALESFORCE_FIELDS: Record<string, string[]> = {
   Account: [
     "Name",
+    SF_CNPJ_FIELD,
     "AccountNumber",
     "Phone",
     "Website",
@@ -56,6 +60,7 @@ export const SALESFORCE_FIELDS: Record<string, string[]> = {
     "Type",
     "Sic",
   ],
+
   Opportunity: [
     "Name",
     "StageName",
