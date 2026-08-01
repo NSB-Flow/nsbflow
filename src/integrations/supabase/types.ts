@@ -311,6 +311,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          parent_company_id: string | null
           razao_social: string
           salesforce_id: string | null
           segment: string | null
@@ -328,6 +329,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          parent_company_id?: string | null
           razao_social: string
           salesforce_id?: string | null
           segment?: string | null
@@ -345,6 +347,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          parent_company_id?: string | null
           razao_social?: string
           salesforce_id?: string | null
           segment?: string | null
@@ -352,6 +355,13 @@ export type Database = {
           workspace_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "companies_parent_company_id_fkey"
+            columns: ["parent_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "companies_workspace_id_fkey"
             columns: ["workspace_id"]

@@ -7,6 +7,7 @@ import {
   CRM_OBJECT_FOR,
   DEFAULT_MAPPINGS,
   SF_CNPJ_FIELD,
+  SF_PARENT_FIELD,
   STAGE_TO_STATUS,
   STATUS_TO_STAGE,
   nsbFieldType,
@@ -197,6 +198,154 @@ async function findNsbCompany(
 }
 
 
+// ------------------------------------------------- economic group (Account.ParentId)
+
+/**
+ * Resolves the Salesforce Account id for an NSB parent company, syncing the
+ * parent first when it has no link yet. Returns null when it cannot be resolved.
+ */
+async function resolveParentSfId(
+  workspaceId: string,
+  parentCompanyId: string,
+  depth = 0,
+): Promise<string | null> {
+  if (depth > 5) return null;
+  const db = await admin();
+  const { data } = await db
+    .from("companies")
+    .select("id, salesforce_id")
+    .eq("id", parentCompanyId)
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+  if (!data) return null;
+  if (data.salesforce_id) return data.salesforce_id;
+  const res = await syncRecordOutbound(workspaceId, "company", parentCompanyId);
+  return res.crmId ?? null;
+}
+
+/**
+ * Resolves (importing when needed) the NSB company that matches a Salesforce
+ * parent Account, so companies.parent_company_id can be filled inbound.
+ */
+async function resolveParentCompanyId(
+  conn: CrmConnection,
+  parentSfId: string,
+  depth = 0,
+): Promise<string | null> {
+  if (!parentSfId || depth > 5) return null;
+  const workspaceId = conn.workspace_id;
+  const db = await admin();
+
+  const { data: linked } = await db
+    .from("companies")
+    .select("id")
+    .eq("workspace_id", workspaceId)
+    .eq("salesforce_id", parentSfId)
+    .maybeSingle();
+  if (linked) return linked.id;
+
+  // Not imported yet -> fetch the parent Account and import it.
+  let acc: Record<string, unknown> | null = null;
+  try {
+    acc = (await getSfRecord(conn, "Account", parentSfId, [
+      "Id",
+      "Name",
+      SF_CNPJ_FIELD,
+      SF_PARENT_FIELD,
+    ])) as Record<string, unknown>;
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (!isMissingCnpjField(msg)) return null;
+    try {
+      acc = (await getSfRecord(conn, "Account", parentSfId, [
+        "Id",
+        "Name",
+        SF_PARENT_FIELD,
+      ])) as Record<string, unknown>;
+    } catch {
+      return null;
+    }
+  }
+  if (!acc) return null;
+
+  const found = await findNsbCompany(workspaceId, {
+    cnpj: acc[SF_CNPJ_FIELD],
+    name: acc["Name"],
+  });
+  if (found) {
+    await db.from("companies").update({ salesforce_id: parentSfId }).eq("id", found.id);
+    return found.id;
+  }
+
+  const grandParentSfId = (acc[SF_PARENT_FIELD] as string | null) ?? null;
+  const grandParentId = grandParentSfId
+    ? await resolveParentCompanyId(conn, grandParentSfId, depth + 1)
+    : null;
+
+  const { data: created, error } = await db
+    .from("companies")
+    .insert({
+      workspace_id: workspaceId,
+      razao_social: String(acc["Name"] ?? "Conta do Salesforce"),
+      cnpj: typeof acc[SF_CNPJ_FIELD] === "string" ? (acc[SF_CNPJ_FIELD] as string) : null,
+      salesforce_id: parentSfId,
+      parent_company_id: grandParentId,
+      created_by: conn.connected_by ?? null,
+    } as never)
+    .select("id")
+    .single();
+  if (error) return null;
+
+  await log({
+    workspace_id: workspaceId,
+    direction: "from_crm",
+    nsb_object: "company",
+    nsb_record_id: created.id,
+    crm_record_id: parentSfId,
+    status: "success",
+    detail: "Hierarquia: empresa-mãe importada do Salesforce (Parent Account).",
+  });
+  return created.id;
+}
+
+/** Applies the inbound economic-group link on an NSB company. */
+async function applyInboundParent(
+  conn: CrmConnection,
+  companyId: string,
+  parentSfId: unknown,
+) {
+  const db = await admin();
+  if (typeof parentSfId !== "string" || !parentSfId) {
+    return;
+  }
+  const parentId = await resolveParentCompanyId(conn, parentSfId);
+  if (!parentId || parentId === companyId) return;
+
+  const { data: current } = await db
+    .from("companies")
+    .select("parent_company_id")
+    .eq("id", companyId)
+    .maybeSingle();
+  if (current?.parent_company_id === parentId) return;
+
+  const { error } = await db
+    .from("companies")
+    .update({ parent_company_id: parentId })
+    .eq("id", companyId);
+
+  await log({
+    workspace_id: conn.workspace_id,
+    direction: "from_crm",
+    nsb_object: "company",
+    nsb_record_id: companyId,
+    crm_record_id: parentSfId,
+    status: error ? "error" : "success",
+    detail: error
+      ? `Hierarquia (grupo econômico) não aplicada: ${error.message}`
+      : "Hierarquia: grupo econômico sincronizado a partir de Account.ParentId.",
+  });
+}
+
 /** Pushes one NSB record to Salesforce. Safe to call fire-and-forget. */
 export async function syncRecordOutbound(
   workspaceId: string,
@@ -264,6 +413,23 @@ export async function syncRecordOutbound(
       fields["Name"] = String(row["razao_social"] ?? "Conta");
     }
 
+    // Economic group -> native Account.ParentId (NSB uuid is never sent as-is).
+    let hierarchyNote = "";
+    if (object === "company") {
+      delete fields[SF_PARENT_FIELD];
+      const parentCompanyId = (row["parent_company_id"] as string | null) ?? null;
+      if (parentCompanyId && parentCompanyId !== recordId) {
+        const parentSfId = await resolveParentSfId(workspaceId, parentCompanyId);
+        if (parentSfId) {
+          fields[SF_PARENT_FIELD] = parentSfId;
+          hierarchyNote = ` Hierarquia: ParentId=${parentSfId} (grupo econômico).`;
+        } else {
+          hierarchyNote =
+            " Hierarquia pendente: empresa-mãe ainda não sincronizada no Salesforce; será resolvida na próxima sincronização.";
+        }
+      }
+    }
+
     if (crmId) {
       try {
         await updateSfRecord(conn, crmObject, crmId, fields);
@@ -295,7 +461,7 @@ export async function syncRecordOutbound(
       nsb_record_id: recordId,
       crm_record_id: crmId,
       status: "success",
-      detail: `Correspondência: ${MATCH_LABEL[match]}. Campos enviados: ${Object.keys(fields).join(", ")}`,
+      detail: `Correspondência: ${MATCH_LABEL[match]}. Campos enviados: ${Object.keys(fields).join(", ")}.${hierarchyNote}`,
     });
     return { ok: true, crmId: crmId ?? undefined, match };
 
@@ -355,6 +521,7 @@ async function pullObject(
   const crmObject = CRM_OBJECT_FOR[object];
   const selectFields = ["Id", "LastModifiedDate", ...crmFieldsFor(mappings)];
   if (object === "opportunity") selectFields.push("AccountId");
+  if (object === "company") selectFields.push(SF_PARENT_FIELD);
   const buildQuery = (fields: string[]) =>
     `SELECT ${Array.from(new Set(fields)).join(", ")} FROM ${crmObject} ` +
     `WHERE LastModifiedDate > ${new Date(since).toISOString()} ORDER BY LastModifiedDate ASC LIMIT 200`;
@@ -377,6 +544,8 @@ async function pullObject(
     try {
       const patch: Record<string, unknown> = {};
       for (const m of mappings) {
+        // parent_company_id holds an NSB uuid; the Salesforce ParentId is resolved separately.
+        if (object === "company" && m.nsb_field === "parent_company_id") continue;
         const v = toNsbValue(object, m.nsb_field, rec[m.crm_field]);
         if (v !== null) patch[m.nsb_field] = v;
       }
@@ -429,6 +598,9 @@ async function pullObject(
           .update(patch as never)
           .eq("id", existing.id as string);
         if (error) throw new Error(error.message);
+        if (object === "company") {
+          await applyInboundParent(conn, existing.id as string, rec[SF_PARENT_FIELD]);
+        }
         await log({
           workspace_id: workspaceId,
           direction: "from_crm",
@@ -461,6 +633,7 @@ async function pullObject(
           .select("id")
           .single();
         if (error) throw new Error(error.message);
+        await applyInboundParent(conn, created.id, rec[SF_PARENT_FIELD]);
         await log({
           workspace_id: workspaceId,
           direction: "from_crm",

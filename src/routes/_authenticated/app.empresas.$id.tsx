@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/table";
 import {
   ArrowLeft, Building2, Pencil, Plus, Trash2, ExternalLink, Users,
-  FileText, MessagesSquare, Loader2, TrendingUp, TrendingDown, Minus,
+  FileText, MessagesSquare, Loader2, TrendingUp, TrendingDown, Minus, Network,
 } from "lucide-react";
 import { toast } from "sonner";
 import { CompanyForm, type CompanyFormValues } from "@/components/companies/CompanyForm";
@@ -52,6 +52,7 @@ type Company = {
   segment: string | null;
   company_size: string | null;
   assigned_to: string | null;
+  parent_company_id: string | null;
   workspace_id: string;
   created_at: string;
 };
@@ -166,6 +167,32 @@ function EmpresaDetail() {
         lastOpportunity: last?.opportunity_score ?? null,
         lastNps: last?.nps_estimate ?? null,
       };
+    },
+  });
+
+  const { data: group } = useQuery({
+    queryKey: ["empresa-grupo", id, company?.parent_company_id, company?.workspace_id],
+    enabled: !!company,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("companies")
+        .select("id, razao_social, cnpj, parent_company_id")
+        .eq("workspace_id", company!.workspace_id);
+      if (error) throw error;
+      const rows = (data ?? []) as Array<{
+        id: string;
+        razao_social: string;
+        cnpj: string | null;
+        parent_company_id: string | null;
+      }>;
+      const parent = company!.parent_company_id
+        ? rows.find((r) => r.id === company!.parent_company_id) ?? null
+        : null;
+      const children = rows.filter((r) => r.parent_company_id === company!.id);
+      const siblings = company!.parent_company_id
+        ? rows.filter((r) => r.parent_company_id === company!.parent_company_id && r.id !== company!.id)
+        : [];
+      return { parent, children, siblings };
     },
   });
 
@@ -400,6 +427,47 @@ function EmpresaDetail() {
         </CardContent>
       </Card>
 
+      {/* Grupo econômico */}
+      {group && (group.parent || group.children.length > 0 || group.siblings.length > 0) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Network className="h-4 w-4" /> Grupo econômico
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5 text-sm">
+            {group.parent && (
+              <div>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1.5">
+                  Empresa-mãe
+                </div>
+                <GroupLink company={group.parent} />
+              </div>
+            )}
+            {group.siblings.length > 0 && (
+              <div>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1.5">
+                  Empresas do mesmo grupo
+                </div>
+                <div className="space-y-1.5">
+                  {group.siblings.map((c) => <GroupLink key={c.id} company={c} />)}
+                </div>
+              </div>
+            )}
+            {group.children.length > 0 && (
+              <div>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1.5">
+                  Empresas vinculadas a esta conta
+                </div>
+                <div className="space-y-1.5">
+                  {group.children.map((c) => <GroupLink key={c.id} company={c} />)}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       <AccountAssignments companyId={company.id} companyWorkspaceId={company.workspace_id} />
 
       {/* Oportunidades */}
@@ -516,6 +584,7 @@ function EmpresaDetail() {
             <DialogDescription>Atualize os dados cadastrais da empresa.</DialogDescription>
           </DialogHeader>
           <CompanyForm
+            companyId={company.id}
             initial={company}
             submitting={saving}
             onSubmit={saveCompany}
@@ -575,6 +644,21 @@ function EmpresaDetail() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+function GroupLink({ company }: { company: { id: string; razao_social: string; cnpj: string | null } }) {
+  return (
+    <Link
+      to="/app/empresas/$id"
+      params={{ id: company.id }}
+      className="flex items-center gap-2 rounded-md border px-3 py-2 hover:bg-muted/40"
+    >
+      <Building2 className="h-4 w-4 text-primary shrink-0" />
+      <span className="font-medium truncate">{company.razao_social}</span>
+      {company.cnpj && <span className="text-xs text-muted-foreground">{company.cnpj}</span>}
+      <ExternalLink className="h-3.5 w-3.5 ml-auto text-muted-foreground" />
+    </Link>
   );
 }
 
