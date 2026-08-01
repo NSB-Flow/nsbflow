@@ -6,11 +6,13 @@
 import {
   CRM_OBJECT_FOR,
   DEFAULT_MAPPINGS,
+  SF_CNPJ_FIELD,
   STAGE_TO_STATUS,
   STATUS_TO_STAGE,
   nsbFieldType,
   type NsbObject,
 } from "./mappings";
+
 import {
   createSfRecord,
   getSfRecord,
@@ -101,12 +103,106 @@ const TABLE_FOR: Record<NsbObject, "companies" | "opportunities"> = {
   opportunity: "opportunities",
 };
 
+// ------------------------------------------------- matching (cascade strategy)
+
+export type MatchMethod = "salesforce_id" | "cnpj" | "name" | "created";
+
+const MATCH_LABEL: Record<MatchMethod, string> = {
+  salesforce_id: "vínculo existente (salesforce_id)",
+  cnpj: "CNPJ (Account.CNPJ__c)",
+  name: "nome (Account.Name)",
+  created: "novo registro criado",
+};
+
+function soqlQuote(v: string) {
+  return `'${v.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`;
+}
+
+/** Digits-only CNPJ, so 12.345.678/0001-99 matches 12345678000199. */
+function cnpjDigits(v: unknown): string | null {
+  if (typeof v !== "string") return null;
+  const d = v.replace(/\D/g, "");
+  return d.length >= 11 ? d : null;
+}
+
+function isMissingCnpjField(message: string) {
+  return /INVALID_FIELD|No such column|INVALID_TYPE/i.test(message) && /CNPJ__c/i.test(message);
+}
+
+/**
+ * Finds the Salesforce Account for an NSB company: CNPJ first, then Name.
+ * A missing CNPJ__c field in the client's org degrades silently to name matching.
+ */
+async function findSfAccount(
+  conn: CrmConnection,
+  opts: { cnpj?: unknown; name?: unknown },
+): Promise<{ id: string; method: Exclude<MatchMethod, "salesforce_id" | "created"> } | null> {
+  const digits = cnpjDigits(opts.cnpj);
+  if (digits) {
+    try {
+      const rows = await soql<{ Id: string }>(
+        conn,
+        `SELECT Id FROM Account WHERE ${SF_CNPJ_FIELD} = ${soqlQuote(digits)} ` +
+          `OR ${SF_CNPJ_FIELD} = ${soqlQuote(String(opts.cnpj))} LIMIT 1`,
+      );
+      if (rows[0]?.Id) return { id: rows[0].Id, method: "cnpj" };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (!isMissingCnpjField(msg)) throw e;
+      // CNPJ__c not present in this org — continue with name matching.
+    }
+  }
+
+  const name = typeof opts.name === "string" ? opts.name.trim() : "";
+  if (name) {
+    const rows = await soql<{ Id: string }>(
+      conn,
+      `SELECT Id FROM Account WHERE Name = ${soqlQuote(name)} LIMIT 1`,
+    );
+    if (rows[0]?.Id) return { id: rows[0].Id, method: "name" };
+  }
+  return null;
+}
+
+/** Finds the NSB company matching a Salesforce Account: CNPJ first, then razão social. */
+async function findNsbCompany(
+  workspaceId: string,
+  opts: { cnpj?: unknown; name?: unknown },
+): Promise<{ id: string; updated_at: string; method: "cnpj" | "name" } | null> {
+  const db = await admin();
+  const digits = cnpjDigits(opts.cnpj);
+  if (digits) {
+    const { data } = await db
+      .from("companies")
+      .select("id, updated_at, cnpj, salesforce_id")
+      .eq("workspace_id", workspaceId)
+      .is("salesforce_id", null)
+      .not("cnpj", "is", null);
+    const hit = (data ?? []).find((r) => cnpjDigits(r.cnpj) === digits);
+    if (hit) return { id: hit.id, updated_at: hit.updated_at as string, method: "cnpj" };
+  }
+  const name = typeof opts.name === "string" ? opts.name.trim() : "";
+  if (name) {
+    const { data } = await db
+      .from("companies")
+      .select("id, updated_at")
+      .eq("workspace_id", workspaceId)
+      .is("salesforce_id", null)
+      .eq("razao_social", name)
+      .limit(1)
+      .maybeSingle();
+    if (data) return { id: data.id, updated_at: data.updated_at as string, method: "name" };
+  }
+  return null;
+}
+
+
 /** Pushes one NSB record to Salesforce. Safe to call fire-and-forget. */
 export async function syncRecordOutbound(
   workspaceId: string,
   object: NsbObject,
   recordId: string,
-): Promise<{ ok: boolean; skipped?: string; crmId?: string }> {
+): Promise<{ ok: boolean; skipped?: string; crmId?: string; match?: MatchMethod }> {
   const conn = await loadConnection(workspaceId);
   if (!conn || conn.status !== "active" || !conn.instance_url) {
     return { ok: false, skipped: "no_active_connection" };
@@ -134,6 +230,20 @@ export async function syncRecordOutbound(
 
     const crmObject = CRM_OBJECT_FOR[object];
     let crmId = (row["salesforce_id"] as string | null) ?? null;
+    let match: MatchMethod = crmId ? "salesforce_id" : "created";
+
+    // (b)/(c) No link yet -> try CNPJ, then name, before creating a new Account.
+    if (!crmId && object === "company") {
+      const found = await findSfAccount(conn, {
+        cnpj: row["cnpj"],
+        name: row["razao_social"],
+      });
+      if (found) {
+        crmId = found.id;
+        match = found.method;
+        await db.from("companies").update({ salesforce_id: crmId }).eq("id", recordId);
+      }
+    }
 
     if (object === "opportunity") {
       if (!fields["Name"]) fields["Name"] = String(row["title"] ?? "Oportunidade");
@@ -155,9 +265,26 @@ export async function syncRecordOutbound(
     }
 
     if (crmId) {
-      await updateSfRecord(conn, crmObject, crmId, fields);
+      try {
+        await updateSfRecord(conn, crmObject, crmId, fields);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        // Org without CNPJ__c: retry without the custom field so the sync keeps working.
+        if (isMissingCnpjField(msg) && SF_CNPJ_FIELD in fields) {
+          delete fields[SF_CNPJ_FIELD];
+          await updateSfRecord(conn, crmObject, crmId, fields);
+        } else throw e;
+      }
     } else {
-      crmId = await createSfRecord(conn, crmObject, fields);
+      try {
+        crmId = await createSfRecord(conn, crmObject, fields);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        if (isMissingCnpjField(msg) && SF_CNPJ_FIELD in fields) {
+          delete fields[SF_CNPJ_FIELD];
+          crmId = await createSfRecord(conn, crmObject, fields);
+        } else throw e;
+      }
       await db.from(TABLE_FOR[object]).update({ salesforce_id: crmId }).eq("id", recordId);
     }
 
@@ -168,9 +295,10 @@ export async function syncRecordOutbound(
       nsb_record_id: recordId,
       crm_record_id: crmId,
       status: "success",
-      detail: `Campos enviados: ${Object.keys(fields).join(", ")}`,
+      detail: `Correspondência: ${MATCH_LABEL[match]}. Campos enviados: ${Object.keys(fields).join(", ")}`,
     });
-    return { ok: true, crmId: crmId ?? undefined };
+    return { ok: true, crmId: crmId ?? undefined, match };
+
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     await log({
@@ -227,11 +355,22 @@ async function pullObject(
   const crmObject = CRM_OBJECT_FOR[object];
   const selectFields = ["Id", "LastModifiedDate", ...crmFieldsFor(mappings)];
   if (object === "opportunity") selectFields.push("AccountId");
-  const query =
-    `SELECT ${Array.from(new Set(selectFields)).join(", ")} FROM ${crmObject} ` +
+  const buildQuery = (fields: string[]) =>
+    `SELECT ${Array.from(new Set(fields)).join(", ")} FROM ${crmObject} ` +
     `WHERE LastModifiedDate > ${new Date(since).toISOString()} ORDER BY LastModifiedDate ASC LIMIT 200`;
 
-  const records = await soql<SfAccount>(conn, query);
+  let records: SfAccount[];
+  try {
+    records = await soql<SfAccount>(conn, buildQuery(selectFields));
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    // Org without the CNPJ__c custom field: keep syncing by name only.
+    if (!isMissingCnpjField(msg)) throw e;
+    records = await soql<SfAccount>(
+      conn,
+      buildQuery(selectFields.filter((f) => f !== SF_CNPJ_FIELD)),
+    );
+  }
   const db = await admin();
 
   for (const rec of records) {
@@ -242,12 +381,27 @@ async function pullObject(
         if (v !== null) patch[m.nsb_field] = v;
       }
 
-      const { data: existing } = await db
+      let matchMethod: MatchMethod = "salesforce_id";
+      let { data: existing } = await db
         .from(TABLE_FOR[object])
         .select("id, updated_at")
         .eq("workspace_id", workspaceId)
         .eq("salesforce_id", rec.Id)
         .maybeSingle();
+
+      // (b)/(c) Not linked yet -> match companies by CNPJ, then by name.
+      if (!existing && object === "company") {
+        const found = await findNsbCompany(workspaceId, {
+          cnpj: rec[SF_CNPJ_FIELD] ?? patch["cnpj"],
+          name: rec["Name"] ?? patch["razao_social"],
+        });
+        if (found) {
+          matchMethod = found.method;
+          existing = { id: found.id, updated_at: found.updated_at };
+          await db.from("companies").update({ salesforce_id: rec.Id }).eq("id", found.id);
+        }
+      }
+
 
       if (existing) {
         const nsbUpdated = new Date(existing.updated_at as string).getTime();
@@ -264,7 +418,7 @@ async function pullObject(
             nsb_record_id: existing.id as string,
             crm_record_id: rec.Id,
             status: "conflict_resolved",
-            detail: "Conflito resolvido: versão do NSB Flow é mais recente e venceu (last-write-wins).",
+            detail: `Correspondência: ${MATCH_LABEL[matchMethod]}. Conflito resolvido: versão do NSB Flow é mais recente e venceu (last-write-wins).`,
           });
           stats.conflicts++;
           continue;
@@ -283,9 +437,10 @@ async function pullObject(
           crm_record_id: rec.Id,
           status: nsbTouchedSince ? "conflict_resolved" : "success",
           detail: nsbTouchedSince
-            ? "Conflito resolvido: versão do Salesforce é mais recente e venceu (last-write-wins)."
-            : `Campos aplicados: ${Object.keys(patch).join(", ")}`,
+            ? `Correspondência: ${MATCH_LABEL[matchMethod]}. Conflito resolvido: versão do Salesforce é mais recente e venceu (last-write-wins).`
+            : `Correspondência: ${MATCH_LABEL[matchMethod]}. Campos aplicados: ${Object.keys(patch).join(", ")}`,
         });
+
         if (nsbTouchedSince) stats.conflicts++;
         else stats.applied++;
         continue;
@@ -313,7 +468,7 @@ async function pullObject(
           nsb_record_id: created.id,
           crm_record_id: rec.Id,
           status: "success",
-          detail: "Empresa criada a partir do Salesforce",
+          detail: `Correspondência: ${MATCH_LABEL["created"]}. Empresa criada a partir do Salesforce.`,
         });
         stats.created++;
       } else {
@@ -360,7 +515,7 @@ async function pullObject(
           nsb_record_id: created.id,
           crm_record_id: rec.Id,
           status: "success",
-          detail: "Oportunidade criada a partir do Salesforce",
+          detail: `Correspondência: ${MATCH_LABEL["created"]}. Oportunidade criada a partir do Salesforce.`,
         });
         stats.created++;
       }

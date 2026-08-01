@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Loader2, Plug, PlugZap, RefreshCw, Trash2, Plus } from "lucide-react";
+import { Loader2, Plug, PlugZap, RefreshCw, Trash2, Plus, Info } from "lucide-react";
 import { useWorkspace } from "@/lib/workspace-context";
 import {
   getCrmStatusFn,
@@ -26,6 +26,8 @@ import {
   NSB_FIELDS,
   NSB_OBJECT_LABELS,
   SALESFORCE_FIELDS,
+  SF_CNPJ_FIELD,
+
   SYNC_DIRECTION_LABELS,
   type NsbObject,
   type SyncDirection,
@@ -293,6 +295,22 @@ export function CrmIntegrationPanel() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
+          <div className="rounded-lg border border-gold/40 bg-gold/5 p-4 text-sm space-y-1.5">
+            <p className="font-medium flex items-center gap-2">
+              <Info className="h-4 w-4 text-gold" /> Correspondência por CNPJ (recomendado)
+            </p>
+            <p className="text-muted-foreground text-xs leading-relaxed">
+              A correspondência usa esta ordem: vínculo já existente → CNPJ → nome da conta. Para a
+              camada de CNPJ funcionar, o Salesforce do cliente precisa de um campo customizado{" "}
+              <code className="font-mono">{SF_CNPJ_FIELD}</code> no objeto Account. Crie em{" "}
+              <strong>Setup → Object Manager → Account → Fields &amp; Relationships → New</strong>,
+              tipo <strong>Text</strong>, com nome da API <code className="font-mono">CNPJ</code>.
+              Se o campo não existir, a sincronização continua funcionando normalmente apenas por
+              nome — sem a confiabilidade extra do CNPJ.
+            </p>
+          </div>
+
+
           <div className="grid gap-3 md:grid-cols-5 items-end">
             <div className="space-y-1.5">
               <Label className="text-xs">Objeto NSB</Label>

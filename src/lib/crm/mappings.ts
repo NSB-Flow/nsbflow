@@ -43,9 +43,13 @@ export const CRM_OBJECT_FOR: Record<NsbObject, string> = {
   opportunity: "Opportunity",
 };
 
+/** Salesforce custom field used to match NSB companies by CNPJ (must exist in the client's org). */
+export const SF_CNPJ_FIELD = "CNPJ__c";
+
 export const SALESFORCE_FIELDS: Record<string, string[]> = {
   Account: [
     "Name",
+    SF_CNPJ_FIELD,
     "AccountNumber",
     "Phone",
     "Website",
@@ -56,6 +60,7 @@ export const SALESFORCE_FIELDS: Record<string, string[]> = {
     "Type",
     "Sic",
   ],
+
   Opportunity: [
     "Name",
     "StageName",
@@ -84,6 +89,8 @@ export interface DefaultMapping {
 
 export const DEFAULT_MAPPINGS: DefaultMapping[] = [
   { nsb_object: "company", nsb_field: "razao_social", crm_object: "Account", crm_field: "Name", sync_direction: "both" },
+  { nsb_object: "company", nsb_field: "cnpj", crm_object: "Account", crm_field: SF_CNPJ_FIELD, sync_direction: "both" },
+
   { nsb_object: "opportunity", nsb_field: "title", crm_object: "Opportunity", crm_field: "Name", sync_direction: "both" },
   { nsb_object: "opportunity", nsb_field: "status", crm_object: "Opportunity", crm_field: "StageName", sync_direction: "both" },
   { nsb_object: "opportunity", nsb_field: "total_contract_value", crm_object: "Opportunity", crm_field: "Amount", sync_direction: "both" },
