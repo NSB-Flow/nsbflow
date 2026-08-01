@@ -6,11 +6,13 @@
 import {
   CRM_OBJECT_FOR,
   DEFAULT_MAPPINGS,
+  SF_CNPJ_FIELD,
   STAGE_TO_STATUS,
   STATUS_TO_STAGE,
   nsbFieldType,
   type NsbObject,
 } from "./mappings";
+
 import {
   createSfRecord,
   getSfRecord,
