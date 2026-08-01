@@ -17,6 +17,7 @@ export interface CrmConnection {
   token_expires_at: string | null;
   last_sync_at: string | null;
   status: string;
+  connected_by?: string;
 }
 
 export function salesforceCredentials() {
@@ -92,7 +93,7 @@ export async function loadConnection(workspaceId: string): Promise<CrmConnection
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
     .from("crm_connections")
-    .select("id, workspace_id, provider, access_token, refresh_token, instance_url, token_expires_at, last_sync_at, status")
+    .select("id, workspace_id, provider, access_token, refresh_token, instance_url, token_expires_at, last_sync_at, status, connected_by")
     .eq("workspace_id", workspaceId)
     .eq("provider", "salesforce")
     .maybeSingle();
