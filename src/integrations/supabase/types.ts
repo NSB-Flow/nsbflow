@@ -312,6 +312,7 @@ export type Database = {
           created_by: string | null
           id: string
           razao_social: string
+          salesforce_id: string | null
           segment: string | null
           updated_at: string
           workspace_id: string | null
@@ -328,6 +329,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           razao_social: string
+          salesforce_id?: string | null
           segment?: string | null
           updated_at?: string
           workspace_id?: string | null
@@ -344,6 +346,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           razao_social?: string
+          salesforce_id?: string | null
           segment?: string | null
           updated_at?: string
           workspace_id?: string | null
@@ -426,6 +429,150 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      crm_connections: {
+        Row: {
+          access_token: string | null
+          connected_at: string
+          connected_by: string
+          id: string
+          instance_url: string | null
+          last_error: string | null
+          last_sync_at: string | null
+          provider: string
+          refresh_token: string | null
+          status: string
+          token_expires_at: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          connected_at?: string
+          connected_by: string
+          id?: string
+          instance_url?: string | null
+          last_error?: string | null
+          last_sync_at?: string | null
+          provider?: string
+          refresh_token?: string | null
+          status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          access_token?: string | null
+          connected_at?: string
+          connected_by?: string
+          id?: string
+          instance_url?: string | null
+          last_error?: string | null
+          last_sync_at?: string | null
+          provider?: string
+          refresh_token?: string | null
+          status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_connections_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_field_mappings: {
+        Row: {
+          created_at: string
+          crm_field: string
+          crm_object: string
+          id: string
+          nsb_field: string
+          nsb_object: string
+          provider: string
+          sync_direction: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          crm_field: string
+          crm_object: string
+          id?: string
+          nsb_field: string
+          nsb_object: string
+          provider?: string
+          sync_direction?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          crm_field?: string
+          crm_object?: string
+          id?: string
+          nsb_field?: string
+          nsb_object?: string
+          provider?: string
+          sync_direction?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_field_mappings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_sync_log: {
+        Row: {
+          crm_record_id: string | null
+          detail: string | null
+          direction: string
+          id: string
+          nsb_object: string
+          nsb_record_id: string | null
+          status: string
+          synced_at: string
+          workspace_id: string
+        }
+        Insert: {
+          crm_record_id?: string | null
+          detail?: string | null
+          direction: string
+          id?: string
+          nsb_object: string
+          nsb_record_id?: string | null
+          status: string
+          synced_at?: string
+          workspace_id: string
+        }
+        Update: {
+          crm_record_id?: string | null
+          detail?: string | null
+          direction?: string
+          id?: string
+          nsb_object?: string
+          nsb_record_id?: string | null
+          status?: string
+          synced_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_sync_log_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       enterprise_module_grants: {
         Row: {
@@ -680,6 +827,7 @@ export type Database = {
           id: string
           monthly_value: number | null
           quantity: number | null
+          salesforce_id: string | null
           status: string
           title: string
           total_contract_value: number | null
@@ -696,6 +844,7 @@ export type Database = {
           id?: string
           monthly_value?: number | null
           quantity?: number | null
+          salesforce_id?: string | null
           status?: string
           title: string
           total_contract_value?: number | null
@@ -712,6 +861,7 @@ export type Database = {
           id?: string
           monthly_value?: number | null
           quantity?: number | null
+          salesforce_id?: string | null
           status?: string
           title?: string
           total_contract_value?: number | null
