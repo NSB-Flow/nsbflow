@@ -195,6 +195,26 @@ async function findNsbCompany(
 }
 
 
+/** Pushes one NSB record to Salesforce. Safe to call fire-and-forget. */
+export async function syncRecordOutbound(
+  workspaceId: string,
+  object: NsbObject,
+  recordId: string,
+): Promise<{ ok: boolean; skipped?: string; crmId?: string; match?: MatchMethod }> {
+  const conn = await loadConnection(workspaceId);
+  if (!conn || conn.status !== "active" || !conn.instance_url) {
+    return { ok: false, skipped: "no_active_connection" };
+  }
+
+  const db = await admin();
+  const { data: record } = await db
+    .from(TABLE_FOR[object])
+    .select("*")
+    .eq("id", recordId)
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+  if (!record) return { ok: false, skipped: "record_not_found" };
+
   try {
     const mappings = (await loadMappings(workspaceId, object)).filter(
       (m) => m.sync_direction === "both" || m.sync_direction === "to_crm",
@@ -208,6 +228,20 @@ async function findNsbCompany(
 
     const crmObject = CRM_OBJECT_FOR[object];
     let crmId = (row["salesforce_id"] as string | null) ?? null;
+    let match: MatchMethod = crmId ? "salesforce_id" : "created";
+
+    // (b)/(c) No link yet -> try CNPJ, then name, before creating a new Account.
+    if (!crmId && object === "company") {
+      const found = await findSfAccount(conn, {
+        cnpj: row["cnpj"],
+        name: row["razao_social"],
+      });
+      if (found) {
+        crmId = found.id;
+        match = found.method;
+        await db.from("companies").update({ salesforce_id: crmId }).eq("id", recordId);
+      }
+    }
 
     if (object === "opportunity") {
       if (!fields["Name"]) fields["Name"] = String(row["title"] ?? "Oportunidade");
@@ -229,9 +263,26 @@ async function findNsbCompany(
     }
 
     if (crmId) {
-      await updateSfRecord(conn, crmObject, crmId, fields);
+      try {
+        await updateSfRecord(conn, crmObject, crmId, fields);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        // Org without CNPJ__c: retry without the custom field so the sync keeps working.
+        if (isMissingCnpjField(msg) && SF_CNPJ_FIELD in fields) {
+          delete fields[SF_CNPJ_FIELD];
+          await updateSfRecord(conn, crmObject, crmId, fields);
+        } else throw e;
+      }
     } else {
-      crmId = await createSfRecord(conn, crmObject, fields);
+      try {
+        crmId = await createSfRecord(conn, crmObject, fields);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        if (isMissingCnpjField(msg) && SF_CNPJ_FIELD in fields) {
+          delete fields[SF_CNPJ_FIELD];
+          crmId = await createSfRecord(conn, crmObject, fields);
+        } else throw e;
+      }
       await db.from(TABLE_FOR[object]).update({ salesforce_id: crmId }).eq("id", recordId);
     }
 
@@ -242,9 +293,10 @@ async function findNsbCompany(
       nsb_record_id: recordId,
       crm_record_id: crmId,
       status: "success",
-      detail: `Campos enviados: ${Object.keys(fields).join(", ")}`,
+      detail: `Correspondência: ${MATCH_LABEL[match]}. Campos enviados: ${Object.keys(fields).join(", ")}`,
     });
-    return { ok: true, crmId: crmId ?? undefined };
+    return { ok: true, crmId: crmId ?? undefined, match };
+
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     await log({
