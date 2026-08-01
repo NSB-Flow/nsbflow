@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/lib/workspace-context";
@@ -7,7 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
+import { Check, ChevronsUpDown, Loader2, Network, X } from "lucide-react";
 import { toast } from "sonner";
 
 export interface CompanyFormValues {
@@ -20,9 +23,12 @@ export interface CompanyFormValues {
   segment: string | null;
   company_size: string | null;
   assigned_to: string | null;
+  parent_company_id: string | null;
 }
 
 interface Props {
+  /** Company being edited — excluded (with its descendants) from the group picker. */
+  companyId?: string;
   initial?: Partial<CompanyFormValues>;
   submitting?: boolean;
   onSubmit: (v: CompanyFormValues) => void | Promise<unknown>;
@@ -39,9 +45,10 @@ const EMPTY: CompanyFormValues = {
   segment: null,
   company_size: null,
   assigned_to: null,
+  parent_company_id: null,
 };
 
-export function CompanyForm({ initial, submitting, onSubmit, onCancel }: Props) {
+export function CompanyForm({ companyId, initial, submitting, onSubmit, onCancel }: Props) {
   const { workspaceId } = useWorkspace();
   const [v, setV] = useState<CompanyFormValues>({ ...EMPTY, ...initial });
 
@@ -66,6 +73,54 @@ export function CompanyForm({ initial, submitting, onSubmit, onCancel }: Props) 
     staleTime: 60_000,
   });
 
+  const { data: groupOptions = [] } = useQuery({
+    queryKey: ["companies-for-group", workspaceId],
+    enabled: !!workspaceId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("companies")
+        .select("id, razao_social, cnpj, parent_company_id")
+        .eq("workspace_id", workspaceId!)
+        .order("razao_social", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as Array<{
+        id: string;
+        razao_social: string;
+        cnpj: string | null;
+        parent_company_id: string | null;
+      }>;
+    },
+    staleTime: 30_000,
+  });
+
+  // Exclude the company itself and every descendant, so no cycle can be created.
+  const eligibleParents = useMemo(() => {
+    if (!companyId) return groupOptions;
+    const blocked = new Set<string>([companyId]);
+    let grew = true;
+    while (grew) {
+      grew = false;
+      for (const c of groupOptions) {
+        if (c.parent_company_id && blocked.has(c.parent_company_id) && !blocked.has(c.id)) {
+          blocked.add(c.id);
+          grew = true;
+        }
+      }
+    }
+    return groupOptions.filter((c) => !blocked.has(c.id));
+  }, [groupOptions, companyId]);
+
+  const [groupOpen, setGroupOpen] = useState(false);
+  const [groupQuery, setGroupQuery] = useState("");
+  const filteredParents = useMemo(() => {
+    const s = groupQuery.trim().toLowerCase();
+    if (!s) return eligibleParents;
+    return eligibleParents.filter(
+      (c) => c.razao_social.toLowerCase().includes(s) || (c.cnpj ?? "").toLowerCase().includes(s),
+    );
+  }, [eligibleParents, groupQuery]);
+  const selectedParent = eligibleParents.find((c) => c.id === v.parent_company_id) ?? null;
+
   const set = <K extends keyof CompanyFormValues>(k: K, val: CompanyFormValues[K]) =>
     setV((cur) => ({ ...cur, [k]: val }));
 
@@ -81,6 +136,7 @@ export function CompanyForm({ initial, submitting, onSubmit, onCancel }: Props) 
       segment: v.segment?.trim() || null,
       company_size: v.company_size || null,
       assigned_to: v.assigned_to || null,
+      parent_company_id: v.parent_company_id || null,
     });
   };
 
@@ -122,6 +178,75 @@ export function CompanyForm({ initial, submitting, onSubmit, onCancel }: Props) 
             </SelectContent>
           </Select>
         </div>
+        <div className="space-y-1.5 md:col-span-2">
+          <Label>Faz parte do grupo econômico de:</Label>
+          <div className="flex items-center gap-2">
+            <Popover open={groupOpen} onOpenChange={setGroupOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={groupOpen}
+                  className={cn("flex-1 justify-between font-normal", !selectedParent && "text-muted-foreground")}
+                >
+                  <span className="flex items-center gap-2 truncate">
+                    <Network className="h-4 w-4 shrink-0 opacity-60" />
+                    {selectedParent ? selectedParent.razao_social : "Nenhum grupo (empresa independente)"}
+                  </span>
+                  <ChevronsUpDown className="h-4 w-4 opacity-60" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[360px] p-0" align="start">
+                <Command shouldFilter={false}>
+                  <CommandInput
+                    placeholder="Buscar empresa-mãe por razão social ou CNPJ..."
+                    value={groupQuery}
+                    onValueChange={setGroupQuery}
+                  />
+                  <CommandList>
+                    <CommandEmpty className="py-4 text-center text-sm text-muted-foreground">
+                      Nenhuma empresa disponível.
+                    </CommandEmpty>
+                    <CommandGroup>
+                      {filteredParents.map((c) => (
+                        <CommandItem
+                          key={c.id}
+                          value={c.id}
+                          onSelect={() => {
+                            set("parent_company_id", c.id === v.parent_company_id ? null : c.id);
+                            setGroupOpen(false);
+                          }}
+                        >
+                          <Check className={cn("mr-2 h-4 w-4", v.parent_company_id === c.id ? "opacity-100" : "opacity-0")} />
+                          <div className="flex flex-col">
+                            <span className="text-sm">{c.razao_social}</span>
+                            {c.cnpj && <span className="text-xs text-muted-foreground">{c.cnpj}</span>}
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            {selectedParent && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label="Remover vínculo de grupo"
+                onClick={() => set("parent_company_id", null)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Opcional. A empresa-mãe precisa ser do mesmo workspace; vínculos circulares são bloqueados.
+          </p>
+        </div>
+
         <div className="space-y-1.5 md:col-span-2">
           <Label>Endereço</Label>
           <Textarea rows={2} value={v.address ?? ""} onChange={(e) => set("address", e.target.value)} />
