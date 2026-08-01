@@ -468,7 +468,7 @@ async function pullObject(
           nsb_record_id: created.id,
           crm_record_id: rec.Id,
           status: "success",
-          detail: "Empresa criada a partir do Salesforce",
+          detail: `Correspondência: ${MATCH_LABEL["created"]}. Empresa criada a partir do Salesforce.`,
         });
         stats.created++;
       } else {
