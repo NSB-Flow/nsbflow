@@ -21,6 +21,7 @@ export const NSB_FIELDS: Record<NsbObject, NsbFieldMeta[]> = {
     { field: "contact_email", label: "Contato — e-mail", type: "text" },
     { field: "segment", label: "Segmento", type: "text" },
     { field: "company_size", label: "Porte", type: "text" },
+    { field: "parent_company_id", label: "Grupo econômico (empresa-mãe)", type: "text" },
   ],
   opportunity: [
     { field: "title", label: "Título", type: "text" },
@@ -46,10 +47,14 @@ export const CRM_OBJECT_FOR: Record<NsbObject, string> = {
 /** Salesforce custom field used to match NSB companies by CNPJ (must exist in the client's org). */
 export const SF_CNPJ_FIELD = "CNPJ__c";
 
+/** Native Salesforce "Parent Account" lookup used for economic-group hierarchy. */
+export const SF_PARENT_FIELD = "ParentId";
+
 export const SALESFORCE_FIELDS: Record<string, string[]> = {
   Account: [
     "Name",
     SF_CNPJ_FIELD,
+    "ParentId",
     "AccountNumber",
     "Phone",
     "Website",
@@ -90,6 +95,7 @@ export interface DefaultMapping {
 export const DEFAULT_MAPPINGS: DefaultMapping[] = [
   { nsb_object: "company", nsb_field: "razao_social", crm_object: "Account", crm_field: "Name", sync_direction: "both" },
   { nsb_object: "company", nsb_field: "cnpj", crm_object: "Account", crm_field: SF_CNPJ_FIELD, sync_direction: "both" },
+  { nsb_object: "company", nsb_field: "parent_company_id", crm_object: "Account", crm_field: "ParentId", sync_direction: "both" },
 
   { nsb_object: "opportunity", nsb_field: "title", crm_object: "Opportunity", crm_field: "Name", sync_direction: "both" },
   { nsb_object: "opportunity", nsb_field: "status", crm_object: "Opportunity", crm_field: "StageName", sync_direction: "both" },
