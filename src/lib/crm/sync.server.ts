@@ -355,11 +355,22 @@ async function pullObject(
   const crmObject = CRM_OBJECT_FOR[object];
   const selectFields = ["Id", "LastModifiedDate", ...crmFieldsFor(mappings)];
   if (object === "opportunity") selectFields.push("AccountId");
-  const query =
-    `SELECT ${Array.from(new Set(selectFields)).join(", ")} FROM ${crmObject} ` +
+  const buildQuery = (fields: string[]) =>
+    `SELECT ${Array.from(new Set(fields)).join(", ")} FROM ${crmObject} ` +
     `WHERE LastModifiedDate > ${new Date(since).toISOString()} ORDER BY LastModifiedDate ASC LIMIT 200`;
 
-  const records = await soql<SfAccount>(conn, query);
+  let records: SfAccount[];
+  try {
+    records = await soql<SfAccount>(conn, buildQuery(selectFields));
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    // Org without the CNPJ__c custom field: keep syncing by name only.
+    if (!isMissingCnpjField(msg)) throw e;
+    records = await soql<SfAccount>(
+      conn,
+      buildQuery(selectFields.filter((f) => f !== SF_CNPJ_FIELD)),
+    );
+  }
   const db = await admin();
 
   for (const rec of records) {
@@ -370,12 +381,27 @@ async function pullObject(
         if (v !== null) patch[m.nsb_field] = v;
       }
 
-      const { data: existing } = await db
+      let matchMethod: MatchMethod = "salesforce_id";
+      let { data: existing } = await db
         .from(TABLE_FOR[object])
         .select("id, updated_at")
         .eq("workspace_id", workspaceId)
         .eq("salesforce_id", rec.Id)
         .maybeSingle();
+
+      // (b)/(c) Not linked yet -> match companies by CNPJ, then by name.
+      if (!existing && object === "company") {
+        const found = await findNsbCompany(workspaceId, {
+          cnpj: rec[SF_CNPJ_FIELD] ?? patch["cnpj"],
+          name: rec["Name"] ?? patch["razao_social"],
+        });
+        if (found) {
+          matchMethod = found.method;
+          existing = { id: found.id, updated_at: found.updated_at };
+          await db.from("companies").update({ salesforce_id: rec.Id }).eq("id", found.id);
+        }
+      }
+
 
       if (existing) {
         const nsbUpdated = new Date(existing.updated_at as string).getTime();
