@@ -272,7 +272,7 @@ async function pullObject(
 
         const { error } = await db
           .from(TABLE_FOR[object])
-          .update(patch)
+          .update(patch as never)
           .eq("id", existing.id as string);
         if (error) throw new Error(error.message);
         await log({
@@ -302,7 +302,7 @@ async function pullObject(
         };
         const { data: created, error } = await db
           .from("companies")
-          .insert(insert)
+          .insert(insert as never)
           .select("id")
           .single();
         if (error) throw new Error(error.message);
@@ -349,7 +349,7 @@ async function pullObject(
         };
         const { data: created, error } = await db
           .from("opportunities")
-          .insert(insert)
+          .insert(insert as never)
           .select("id")
           .single();
         if (error) throw new Error(error.message);
