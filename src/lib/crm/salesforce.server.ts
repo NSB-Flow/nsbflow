@@ -106,7 +106,7 @@ export async function saveConnectionTokens(
   tokens: TokenResponse,
 ) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const payload: Record<string, unknown> = {
+  const payload = {
     workspace_id: workspaceId,
     provider: "salesforce",
     access_token: await encryptToken(tokens.access_token),
@@ -115,8 +115,10 @@ export async function saveConnectionTokens(
     connected_at: new Date().toISOString(),
     status: "active",
     last_error: null,
+    ...(tokens.refresh_token
+      ? { refresh_token: await encryptToken(tokens.refresh_token) }
+      : {}),
   };
-  if (tokens.refresh_token) payload["refresh_token"] = await encryptToken(tokens.refresh_token);
   const { error } = await supabaseAdmin
     .from("crm_connections")
     .upsert(payload, { onConflict: "workspace_id,provider" });
