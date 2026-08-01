@@ -293,6 +293,22 @@ export function CrmIntegrationPanel() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
+          <div className="rounded-lg border border-gold/40 bg-gold/5 p-4 text-sm space-y-1.5">
+            <p className="font-medium flex items-center gap-2">
+              <Info className="h-4 w-4 text-gold" /> Correspondência por CNPJ (recomendado)
+            </p>
+            <p className="text-muted-foreground text-xs leading-relaxed">
+              A correspondência usa esta ordem: vínculo já existente → CNPJ → nome da conta. Para a
+              camada de CNPJ funcionar, o Salesforce do cliente precisa de um campo customizado{" "}
+              <code className="font-mono">{SF_CNPJ_FIELD}</code> no objeto Account. Crie em{" "}
+              <strong>Setup → Object Manager → Account → Fields &amp; Relationships → New</strong>,
+              tipo <strong>Text</strong>, com nome da API <code className="font-mono">CNPJ</code>.
+              Se o campo não existir, a sincronização continua funcionando normalmente apenas por
+              nome — sem a confiabilidade extra do CNPJ.
+            </p>
+          </div>
+
+
           <div className="grid gap-3 md:grid-cols-5 items-end">
             <div className="space-y-1.5">
               <Label className="text-xs">Objeto NSB</Label>
