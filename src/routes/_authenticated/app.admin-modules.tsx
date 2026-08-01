@@ -14,9 +14,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Shield, Package, Search, Plus, Trash2, Layers, CheckCircle2, XCircle, History, Key, Palette } from "lucide-react";
+import { Shield, Package, Search, Plus, Trash2, Layers, CheckCircle2, XCircle, History, Key, Palette, PlugZap } from "lucide-react";
 import { ApiKeysPanel } from "@/components/admin/ApiKeysPanel";
 import { WhiteLabelPanel } from "@/components/admin/WhiteLabelPanel";
+import { CrmIntegrationPanel } from "@/components/admin/CrmIntegrationPanel";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
