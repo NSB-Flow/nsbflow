@@ -61,7 +61,13 @@ function AdminModulesPage() {
           </p>
         </div>
       </div>
-      <Tabs defaultValue="individual">
+      <Tabs
+        defaultValue={
+          typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tab") === "crm"
+            ? "crm"
+            : "individual"
+        }
+      >
         <TabsList>
           <TabsTrigger value="individual">Individual</TabsTrigger>
           <TabsTrigger value="bulk">
@@ -75,6 +81,9 @@ function AdminModulesPage() {
           </TabsTrigger>
           <TabsTrigger value="white-label">
             <Palette className="h-3.5 w-3.5 mr-1.5" /> White-Label
+          </TabsTrigger>
+          <TabsTrigger value="crm">
+            <PlugZap className="h-3.5 w-3.5 mr-1.5" /> CRM
           </TabsTrigger>
         </TabsList>
         <TabsContent value="individual" className="mt-6">
@@ -91,6 +100,9 @@ function AdminModulesPage() {
         </TabsContent>
         <TabsContent value="white-label" className="mt-6">
           <WhiteLabelPanel />
+        </TabsContent>
+        <TabsContent value="crm" className="mt-6">
+          <CrmIntegrationPanel />
         </TabsContent>
       </Tabs>
     </div>
