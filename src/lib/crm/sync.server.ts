@@ -418,7 +418,7 @@ async function pullObject(
             nsb_record_id: existing.id as string,
             crm_record_id: rec.Id,
             status: "conflict_resolved",
-            detail: "Conflito resolvido: versão do NSB Flow é mais recente e venceu (last-write-wins).",
+            detail: `Correspondência: ${MATCH_LABEL[matchMethod]}. Conflito resolvido: versão do NSB Flow é mais recente e venceu (last-write-wins).`,
           });
           stats.conflicts++;
           continue;
@@ -437,9 +437,10 @@ async function pullObject(
           crm_record_id: rec.Id,
           status: nsbTouchedSince ? "conflict_resolved" : "success",
           detail: nsbTouchedSince
-            ? "Conflito resolvido: versão do Salesforce é mais recente e venceu (last-write-wins)."
-            : `Campos aplicados: ${Object.keys(patch).join(", ")}`,
+            ? `Correspondência: ${MATCH_LABEL[matchMethod]}. Conflito resolvido: versão do Salesforce é mais recente e venceu (last-write-wins).`
+            : `Correspondência: ${MATCH_LABEL[matchMethod]}. Campos aplicados: ${Object.keys(patch).join(", ")}`,
         });
+
         if (nsbTouchedSince) stats.conflicts++;
         else stats.applied++;
         continue;
