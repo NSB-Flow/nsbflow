@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Loader2, Plug, PlugZap, RefreshCw, Trash2, Plus } from "lucide-react";
+import { Loader2, Plug, PlugZap, RefreshCw, Trash2, Plus, Info } from "lucide-react";
 import { useWorkspace } from "@/lib/workspace-context";
 import {
   getCrmStatusFn,
@@ -26,6 +26,8 @@ import {
   NSB_FIELDS,
   NSB_OBJECT_LABELS,
   SALESFORCE_FIELDS,
+  SF_CNPJ_FIELD,
+
   SYNC_DIRECTION_LABELS,
   type NsbObject,
   type SyncDirection,
