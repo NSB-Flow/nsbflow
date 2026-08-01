@@ -9,9 +9,9 @@ function b64encode(bytes: Uint8Array): string {
   return btoa(s);
 }
 
-function b64decode(value: string): Uint8Array {
+function b64decode(value: string): Uint8Array<ArrayBuffer> {
   const bin = atob(value);
-  const out = new Uint8Array(bin.length);
+  const out = new Uint8Array(new ArrayBuffer(bin.length));
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
   return out;
 }
@@ -20,7 +20,7 @@ function b64url(bytes: Uint8Array): string {
   return b64encode(bytes).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-function b64urlDecode(value: string): Uint8Array {
+function b64urlDecode(value: string): Uint8Array<ArrayBuffer> {
   const pad = value.length % 4 === 0 ? "" : "=".repeat(4 - (value.length % 4));
   return b64decode(value.replace(/-/g, "+").replace(/_/g, "/") + pad);
 }
@@ -37,12 +37,12 @@ async function aesKey(): Promise<CryptoKey> {
 }
 
 export async function encryptToken(plaintext: string): Promise<string> {
-  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const iv = crypto.getRandomValues(new Uint8Array(new ArrayBuffer(12)));
   const key = await aesKey();
   const ct = new Uint8Array(
-    await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(plaintext)),
+    (await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(plaintext))) as ArrayBuffer,
   );
-  const packed = new Uint8Array(iv.length + ct.length);
+  const packed = new Uint8Array(new ArrayBuffer(iv.length + ct.length));
   packed.set(iv, 0);
   packed.set(ct, iv.length);
   return b64encode(packed);
@@ -71,7 +71,7 @@ async function hmacKey(): Promise<CryptoKey> {
 export async function signState(payload: Record<string, unknown>): Promise<string> {
   const body = b64url(new TextEncoder().encode(JSON.stringify(payload)));
   const sig = new Uint8Array(
-    await crypto.subtle.sign("HMAC", await hmacKey(), new TextEncoder().encode(body)),
+    (await crypto.subtle.sign("HMAC", await hmacKey(), new TextEncoder().encode(body))) as ArrayBuffer,
   );
   return `${body}.${b64url(sig)}`;
 }
