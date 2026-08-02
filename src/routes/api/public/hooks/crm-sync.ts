@@ -2,12 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 
 /**
  * Inbound CRM polling (Salesforce -> NSB Flow).
- * Called by pg_cron every 15 minutes.
+ * Called by pg_cron every 15 minutes. Requires the CRON_SECRET shared secret.
  */
 export const Route = createFileRoute("/api/public/hooks/crm-sync")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        const { assertCronCaller } = await import("@/lib/cron-auth.server");
+        const denied = assertCronCaller(request);
+        if (denied) return denied;
         try {
           const { runInboundSyncAll } = await import("@/lib/crm/sync.server");
           const result = await runInboundSyncAll();

@@ -1095,6 +1095,79 @@ export type Database = {
           },
         ]
       }
+      subscription_requests: {
+        Row: {
+          amount_cents: number
+          billing_cycle: Database["public"]["Enums"]["billing_cycle"]
+          coupon_code: string | null
+          created_at: string
+          id: string
+          invoice_id: string | null
+          plan_id: string
+          requested_by: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          seats: number
+          status: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          amount_cents?: number
+          billing_cycle?: Database["public"]["Enums"]["billing_cycle"]
+          coupon_code?: string | null
+          created_at?: string
+          id?: string
+          invoice_id?: string | null
+          plan_id: string
+          requested_by: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          seats?: number
+          status?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          amount_cents?: number
+          billing_cycle?: Database["public"]["Enums"]["billing_cycle"]
+          coupon_code?: string | null
+          created_at?: string
+          id?: string
+          invoice_id?: string | null
+          plan_id?: string
+          requested_by?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          seats?: number
+          status?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_requests_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_requests_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_requests_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           billing_cycle: Database["public"]["Enums"]["billing_cycle"]
