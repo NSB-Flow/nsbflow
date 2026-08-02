@@ -369,6 +369,81 @@ function CompaniesTab() {
 }
 
 /* ---------------- Subscriptions ---------------- */
+function SubscriptionRequestsCard() {
+  const qc = useQueryClient();
+  const review = useServerFn(reviewSubscriptionRequestFn);
+  const [busy, setBusy] = useState<string | null>(null);
+  const { data = [] } = useQuery({
+    queryKey: ["admin-sub-requests"],
+    queryFn: async () => (await supabase.from("subscription_requests")
+      .select("id,status,seats,billing_cycle,amount_cents,coupon_code,created_at,workspaces(name),plans(name,tier)")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })).data ?? [],
+  });
+
+  const act = async (id: string, action: "approve" | "reject") => {
+    setBusy(id);
+    try {
+      await review({ data: { requestId: id, action } });
+      toast.success(action === "approve" ? "Assinatura ativada" : "Solicitação rejeitada");
+      qc.invalidateQueries({ queryKey: ["admin-sub-requests"] });
+      qc.invalidateQueries({ queryKey: ["admin-subs"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao revisar");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  return (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle className="font-display">Solicitações de assinatura pendentes</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {data.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhuma solicitação aguardando confirmação de pagamento.</p>
+        ) : (
+          <Table>
+            <TableHeader><TableRow>
+              <TableHead>Workspace</TableHead><TableHead>Plano</TableHead><TableHead>Ciclo</TableHead>
+              <TableHead>Licenças</TableHead><TableHead>Valor</TableHead><TableHead>Solicitado</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
+            </TableRow></TableHeader>
+            <TableBody>
+              {data.map((r: any) => {
+                const ws = Array.isArray(r.workspaces) ? r.workspaces[0] : r.workspaces;
+                const pl = Array.isArray(r.plans) ? r.plans[0] : r.plans;
+                return (
+                  <TableRow key={r.id}>
+                    <TableCell className="font-medium">{ws?.name ?? "—"}</TableCell>
+                    <TableCell><Badge variant="outline" className="uppercase">{pl?.tier}</Badge> {pl?.name}</TableCell>
+                    <TableCell>{r.billing_cycle}</TableCell>
+                    <TableCell>{r.seats}</TableCell>
+                    <TableCell>
+                      {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format((r.amount_cents ?? 0) / 100)}
+                      {r.coupon_code ? <span className="text-xs text-muted-foreground ml-1">({r.coupon_code})</span> : null}
+                    </TableCell>
+                    <TableCell>{fmtDate(r.created_at)}</TableCell>
+                    <TableCell className="text-right space-x-2">
+                      <Button size="sm" disabled={busy === r.id} onClick={() => act(r.id, "approve")}>
+                        Confirmar pagamento
+                      </Button>
+                      <Button size="sm" variant="outline" disabled={busy === r.id} onClick={() => act(r.id, "reject")}>
+                        Rejeitar
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function SubscriptionsTab() {
   const { data = [] } = useQuery({
     queryKey: ["admin-subs"],
@@ -377,8 +452,11 @@ function SubscriptionsTab() {
       .order("created_at", { ascending: false })).data ?? [],
   });
   return (
+    <>
+    <SubscriptionRequestsCard />
     <Card>
       <CardHeader><CardTitle className="font-display">Todas as assinaturas</CardTitle></CardHeader>
+
       <CardContent>
         <Table>
           <TableHeader><TableRow>
