@@ -223,9 +223,3 @@ export const reviewSubscriptionRequestFn = createServerFn({ method: "POST" })
 
     return { ok: true as const, status: "approved" as const };
   });
-
-const listSchema = z.object({
-  workspaceId: z.string().uuid().optional(),
-  status: z.enum(["pending", "approved", "rejected"]).optional(),
-  limit: z.number().int().min(1).max(100).default 20,
-});
