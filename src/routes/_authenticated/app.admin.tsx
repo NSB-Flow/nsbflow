@@ -482,5 +482,7 @@ function SubscriptionsTab() {
         </Table>
       </CardContent>
     </Card>
+    </>
   );
 }
+
