@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { useWorkspace } from "@/lib/workspace-context";
 import { applyReferralPaidFn } from "@/lib/credits.functions";
 import { validateCouponFn } from "@/lib/coupons.functions";
+import { requestSubscriptionFn } from "@/lib/subscriptions.functions";
 import { toast } from "sonner";
 import { CreditCard, Lock, Loader2, Users as UsersIcon } from "lucide-react";
 import { z } from "zod";
@@ -42,6 +43,7 @@ function CheckoutPage() {
   const [seats, setSeats] = useState<number>(1);
   const applyReferralPaid = useServerFn(applyReferralPaidFn);
   const validateCoupon = useServerFn(validateCouponFn);
+  const requestSubscription = useServerFn(requestSubscriptionFn);
   const isPersonal = workspace?.is_personal ?? true;
 
   const { data: plan } = useQuery({
