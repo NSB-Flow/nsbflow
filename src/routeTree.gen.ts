@@ -20,6 +20,7 @@ import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticat
 import { Route as ApiPublicReferralCheckRouteImport } from './routes/api/public/referral-check'
 import { Route as AuthenticatedAppWorkspacesRouteImport } from './routes/_authenticated/app.workspaces'
 import { Route as AuthenticatedAppTrialExpiradoRouteImport } from './routes/_authenticated/app.trial-expirado'
+import { Route as AuthenticatedAppReunioesRouteImport } from './routes/_authenticated/app.reunioes'
 import { Route as AuthenticatedAppRelatoriosRouteImport } from './routes/_authenticated/app.relatorios'
 import { Route as AuthenticatedAppPlanosRouteImport } from './routes/_authenticated/app.planos'
 import { Route as AuthenticatedAppIndicacoesRouteImport } from './routes/_authenticated/app.indicacoes'
@@ -45,10 +46,12 @@ import { Route as ApiPublicV1MeetingAnalysesRouteImport } from './routes/api/pub
 import { Route as ApiPublicV1CompaniesRouteImport } from './routes/api/public/v1/companies'
 import { Route as ApiPublicV1AgentRunsRouteImport } from './routes/api/public/v1/agent-runs'
 import { Route as ApiPublicHooksProcessExportJobsRouteImport } from './routes/api/public/hooks/process-export-jobs'
+import { Route as ApiPublicHooksMeetingTranscriptsRouteImport } from './routes/api/public/hooks/meeting-transcripts'
 import { Route as ApiPublicHooksCrmSyncRouteImport } from './routes/api/public/hooks/crm-sync'
 import { Route as AuthenticatedAppPessoasIdRouteImport } from './routes/_authenticated/app.pessoas.$id'
 import { Route as AuthenticatedAppHistoricoIdRouteImport } from './routes/_authenticated/app.historico.$id'
 import { Route as AuthenticatedAppEmpresasIdRouteImport } from './routes/_authenticated/app.empresas.$id'
+import { Route as ApiPublicMeetingsOauthProviderRouteImport } from './routes/api/public/meetings/oauth/$provider'
 import { Route as ApiPublicCrmSalesforceCallbackRouteImport } from './routes/api/public/crm/salesforce/callback'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -107,6 +110,12 @@ const AuthenticatedAppTrialExpiradoRoute =
   AuthenticatedAppTrialExpiradoRouteImport.update({
     id: '/trial-expirado',
     path: '/trial-expirado',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppReunioesRoute =
+  AuthenticatedAppReunioesRouteImport.update({
+    id: '/reunioes',
+    path: '/reunioes',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppRelatoriosRoute =
@@ -252,6 +261,12 @@ const ApiPublicHooksProcessExportJobsRoute =
     path: '/api/public/hooks/process-export-jobs',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksMeetingTranscriptsRoute =
+  ApiPublicHooksMeetingTranscriptsRouteImport.update({
+    id: '/api/public/hooks/meeting-transcripts',
+    path: '/api/public/hooks/meeting-transcripts',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksCrmSyncRoute = ApiPublicHooksCrmSyncRouteImport.update({
   id: '/api/public/hooks/crm-sync',
   path: '/api/public/hooks/crm-sync',
@@ -274,6 +289,12 @@ const AuthenticatedAppEmpresasIdRoute =
     id: '/empresas/$id',
     path: '/empresas/$id',
     getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const ApiPublicMeetingsOauthProviderRoute =
+  ApiPublicMeetingsOauthProviderRouteImport.update({
+    id: '/api/public/meetings/oauth/$provider',
+    path: '/api/public/meetings/oauth/$provider',
+    getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicCrmSalesforceCallbackRoute =
   ApiPublicCrmSalesforceCallbackRouteImport.update({
@@ -307,6 +328,7 @@ export interface FileRoutesByFullPath {
   '/app/indicacoes': typeof AuthenticatedAppIndicacoesRoute
   '/app/planos': typeof AuthenticatedAppPlanosRoute
   '/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
+  '/app/reunioes': typeof AuthenticatedAppReunioesRoute
   '/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
   '/app/workspaces': typeof AuthenticatedAppWorkspacesRoute
   '/api/public/referral-check': typeof ApiPublicReferralCheckRoute
@@ -315,6 +337,7 @@ export interface FileRoutesByFullPath {
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
   '/api/public/hooks/crm-sync': typeof ApiPublicHooksCrmSyncRoute
+  '/api/public/hooks/meeting-transcripts': typeof ApiPublicHooksMeetingTranscriptsRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
   '/api/public/v1/agent-runs': typeof ApiPublicV1AgentRunsRoute
   '/api/public/v1/companies': typeof ApiPublicV1CompaniesRoute
@@ -323,6 +346,7 @@ export interface FileRoutesByFullPath {
   '/app/empresas/': typeof AuthenticatedAppEmpresasIndexRoute
   '/app/pessoas/': typeof AuthenticatedAppPessoasIndexRoute
   '/api/public/crm/salesforce/callback': typeof ApiPublicCrmSalesforceCallbackRoute
+  '/api/public/meetings/oauth/$provider': typeof ApiPublicMeetingsOauthProviderRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -348,6 +372,7 @@ export interface FileRoutesByTo {
   '/app/indicacoes': typeof AuthenticatedAppIndicacoesRoute
   '/app/planos': typeof AuthenticatedAppPlanosRoute
   '/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
+  '/app/reunioes': typeof AuthenticatedAppReunioesRoute
   '/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
   '/app/workspaces': typeof AuthenticatedAppWorkspacesRoute
   '/api/public/referral-check': typeof ApiPublicReferralCheckRoute
@@ -356,6 +381,7 @@ export interface FileRoutesByTo {
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
   '/api/public/hooks/crm-sync': typeof ApiPublicHooksCrmSyncRoute
+  '/api/public/hooks/meeting-transcripts': typeof ApiPublicHooksMeetingTranscriptsRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
   '/api/public/v1/agent-runs': typeof ApiPublicV1AgentRunsRoute
   '/api/public/v1/companies': typeof ApiPublicV1CompaniesRoute
@@ -364,6 +390,7 @@ export interface FileRoutesByTo {
   '/app/empresas': typeof AuthenticatedAppEmpresasIndexRoute
   '/app/pessoas': typeof AuthenticatedAppPessoasIndexRoute
   '/api/public/crm/salesforce/callback': typeof ApiPublicCrmSalesforceCallbackRoute
+  '/api/public/meetings/oauth/$provider': typeof ApiPublicMeetingsOauthProviderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -392,6 +419,7 @@ export interface FileRoutesById {
   '/_authenticated/app/indicacoes': typeof AuthenticatedAppIndicacoesRoute
   '/_authenticated/app/planos': typeof AuthenticatedAppPlanosRoute
   '/_authenticated/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
+  '/_authenticated/app/reunioes': typeof AuthenticatedAppReunioesRoute
   '/_authenticated/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
   '/_authenticated/app/workspaces': typeof AuthenticatedAppWorkspacesRoute
   '/api/public/referral-check': typeof ApiPublicReferralCheckRoute
@@ -400,6 +428,7 @@ export interface FileRoutesById {
   '/_authenticated/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/_authenticated/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
   '/api/public/hooks/crm-sync': typeof ApiPublicHooksCrmSyncRoute
+  '/api/public/hooks/meeting-transcripts': typeof ApiPublicHooksMeetingTranscriptsRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
   '/api/public/v1/agent-runs': typeof ApiPublicV1AgentRunsRoute
   '/api/public/v1/companies': typeof ApiPublicV1CompaniesRoute
@@ -408,6 +437,7 @@ export interface FileRoutesById {
   '/_authenticated/app/empresas/': typeof AuthenticatedAppEmpresasIndexRoute
   '/_authenticated/app/pessoas/': typeof AuthenticatedAppPessoasIndexRoute
   '/api/public/crm/salesforce/callback': typeof ApiPublicCrmSalesforceCallbackRoute
+  '/api/public/meetings/oauth/$provider': typeof ApiPublicMeetingsOauthProviderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -436,6 +466,7 @@ export interface FileRouteTypes {
     | '/app/indicacoes'
     | '/app/planos'
     | '/app/relatorios'
+    | '/app/reunioes'
     | '/app/trial-expirado'
     | '/app/workspaces'
     | '/api/public/referral-check'
@@ -444,6 +475,7 @@ export interface FileRouteTypes {
     | '/app/historico/$id'
     | '/app/pessoas/$id'
     | '/api/public/hooks/crm-sync'
+    | '/api/public/hooks/meeting-transcripts'
     | '/api/public/hooks/process-export-jobs'
     | '/api/public/v1/agent-runs'
     | '/api/public/v1/companies'
@@ -452,6 +484,7 @@ export interface FileRouteTypes {
     | '/app/empresas/'
     | '/app/pessoas/'
     | '/api/public/crm/salesforce/callback'
+    | '/api/public/meetings/oauth/$provider'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -477,6 +510,7 @@ export interface FileRouteTypes {
     | '/app/indicacoes'
     | '/app/planos'
     | '/app/relatorios'
+    | '/app/reunioes'
     | '/app/trial-expirado'
     | '/app/workspaces'
     | '/api/public/referral-check'
@@ -485,6 +519,7 @@ export interface FileRouteTypes {
     | '/app/historico/$id'
     | '/app/pessoas/$id'
     | '/api/public/hooks/crm-sync'
+    | '/api/public/hooks/meeting-transcripts'
     | '/api/public/hooks/process-export-jobs'
     | '/api/public/v1/agent-runs'
     | '/api/public/v1/companies'
@@ -493,6 +528,7 @@ export interface FileRouteTypes {
     | '/app/empresas'
     | '/app/pessoas'
     | '/api/public/crm/salesforce/callback'
+    | '/api/public/meetings/oauth/$provider'
   id:
     | '__root__'
     | '/'
@@ -520,6 +556,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/indicacoes'
     | '/_authenticated/app/planos'
     | '/_authenticated/app/relatorios'
+    | '/_authenticated/app/reunioes'
     | '/_authenticated/app/trial-expirado'
     | '/_authenticated/app/workspaces'
     | '/api/public/referral-check'
@@ -528,6 +565,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/historico/$id'
     | '/_authenticated/app/pessoas/$id'
     | '/api/public/hooks/crm-sync'
+    | '/api/public/hooks/meeting-transcripts'
     | '/api/public/hooks/process-export-jobs'
     | '/api/public/v1/agent-runs'
     | '/api/public/v1/companies'
@@ -536,6 +574,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/empresas/'
     | '/_authenticated/app/pessoas/'
     | '/api/public/crm/salesforce/callback'
+    | '/api/public/meetings/oauth/$provider'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -547,12 +586,14 @@ export interface RootRouteChildren {
   GuiasProspeccaoDeClientesB2bRoute: typeof GuiasProspeccaoDeClientesB2bRoute
   ApiPublicReferralCheckRoute: typeof ApiPublicReferralCheckRoute
   ApiPublicHooksCrmSyncRoute: typeof ApiPublicHooksCrmSyncRoute
+  ApiPublicHooksMeetingTranscriptsRoute: typeof ApiPublicHooksMeetingTranscriptsRoute
   ApiPublicHooksProcessExportJobsRoute: typeof ApiPublicHooksProcessExportJobsRoute
   ApiPublicV1AgentRunsRoute: typeof ApiPublicV1AgentRunsRoute
   ApiPublicV1CompaniesRoute: typeof ApiPublicV1CompaniesRoute
   ApiPublicV1MeetingAnalysesRoute: typeof ApiPublicV1MeetingAnalysesRoute
   ApiPublicV1OpportunitiesRoute: typeof ApiPublicV1OpportunitiesRoute
   ApiPublicCrmSalesforceCallbackRoute: typeof ApiPublicCrmSalesforceCallbackRoute
+  ApiPublicMeetingsOauthProviderRoute: typeof ApiPublicMeetingsOauthProviderRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -632,6 +673,13 @@ declare module '@tanstack/react-router' {
       path: '/trial-expirado'
       fullPath: '/app/trial-expirado'
       preLoaderRoute: typeof AuthenticatedAppTrialExpiradoRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/reunioes': {
+      id: '/_authenticated/app/reunioes'
+      path: '/reunioes'
+      fullPath: '/app/reunioes'
+      preLoaderRoute: typeof AuthenticatedAppReunioesRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/relatorios': {
@@ -809,6 +857,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksProcessExportJobsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/meeting-transcripts': {
+      id: '/api/public/hooks/meeting-transcripts'
+      path: '/api/public/hooks/meeting-transcripts'
+      fullPath: '/api/public/hooks/meeting-transcripts'
+      preLoaderRoute: typeof ApiPublicHooksMeetingTranscriptsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/crm-sync': {
       id: '/api/public/hooks/crm-sync'
       path: '/api/public/hooks/crm-sync'
@@ -836,6 +891,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/empresas/$id'
       preLoaderRoute: typeof AuthenticatedAppEmpresasIdRouteImport
       parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/api/public/meetings/oauth/$provider': {
+      id: '/api/public/meetings/oauth/$provider'
+      path: '/api/public/meetings/oauth/$provider'
+      fullPath: '/api/public/meetings/oauth/$provider'
+      preLoaderRoute: typeof ApiPublicMeetingsOauthProviderRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/crm/salesforce/callback': {
       id: '/api/public/crm/salesforce/callback'
@@ -880,6 +942,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppIndicacoesRoute: typeof AuthenticatedAppIndicacoesRoute
   AuthenticatedAppPlanosRoute: typeof AuthenticatedAppPlanosRoute
   AuthenticatedAppRelatoriosRoute: typeof AuthenticatedAppRelatoriosRoute
+  AuthenticatedAppReunioesRoute: typeof AuthenticatedAppReunioesRoute
   AuthenticatedAppTrialExpiradoRoute: typeof AuthenticatedAppTrialExpiradoRoute
   AuthenticatedAppWorkspacesRoute: typeof AuthenticatedAppWorkspacesRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
@@ -909,6 +972,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppIndicacoesRoute: AuthenticatedAppIndicacoesRoute,
   AuthenticatedAppPlanosRoute: AuthenticatedAppPlanosRoute,
   AuthenticatedAppRelatoriosRoute: AuthenticatedAppRelatoriosRoute,
+  AuthenticatedAppReunioesRoute: AuthenticatedAppReunioesRoute,
   AuthenticatedAppTrialExpiradoRoute: AuthenticatedAppTrialExpiradoRoute,
   AuthenticatedAppWorkspacesRoute: AuthenticatedAppWorkspacesRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
@@ -941,12 +1005,14 @@ const rootRouteChildren: RootRouteChildren = {
   GuiasProspeccaoDeClientesB2bRoute: GuiasProspeccaoDeClientesB2bRoute,
   ApiPublicReferralCheckRoute: ApiPublicReferralCheckRoute,
   ApiPublicHooksCrmSyncRoute: ApiPublicHooksCrmSyncRoute,
+  ApiPublicHooksMeetingTranscriptsRoute: ApiPublicHooksMeetingTranscriptsRoute,
   ApiPublicHooksProcessExportJobsRoute: ApiPublicHooksProcessExportJobsRoute,
   ApiPublicV1AgentRunsRoute: ApiPublicV1AgentRunsRoute,
   ApiPublicV1CompaniesRoute: ApiPublicV1CompaniesRoute,
   ApiPublicV1MeetingAnalysesRoute: ApiPublicV1MeetingAnalysesRoute,
   ApiPublicV1OpportunitiesRoute: ApiPublicV1OpportunitiesRoute,
   ApiPublicCrmSalesforceCallbackRoute: ApiPublicCrmSalesforceCallbackRoute,
+  ApiPublicMeetingsOauthProviderRoute: ApiPublicMeetingsOauthProviderRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

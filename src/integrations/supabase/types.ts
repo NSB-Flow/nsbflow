@@ -736,6 +736,135 @@ export type Database = {
           },
         ]
       }
+      meeting_platform_connections: {
+        Row: {
+          access_token: string | null
+          connected_at: string
+          external_account_email: string | null
+          id: string
+          last_error: string | null
+          provider: string
+          refresh_token: string | null
+          status: string
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          connected_at?: string
+          external_account_email?: string | null
+          id?: string
+          last_error?: string | null
+          provider: string
+          refresh_token?: string | null
+          status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          access_token?: string | null
+          connected_at?: string
+          external_account_email?: string | null
+          id?: string
+          last_error?: string | null
+          provider?: string
+          refresh_token?: string | null
+          status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_platform_connections_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meetings: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string
+          external_meeting_id: string | null
+          id: string
+          last_error: string | null
+          meeting_link: string
+          opportunity_id: string | null
+          platform: string
+          scheduled_at: string | null
+          status: string
+          transcript_fetched_at: string | null
+          transcript_text: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by: string
+          external_meeting_id?: string | null
+          id?: string
+          last_error?: string | null
+          meeting_link: string
+          opportunity_id?: string | null
+          platform: string
+          scheduled_at?: string | null
+          status?: string
+          transcript_fetched_at?: string | null
+          transcript_text?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          external_meeting_id?: string | null
+          id?: string
+          last_error?: string | null
+          meeting_link?: string
+          opportunity_id?: string | null
+          platform?: string
+          scheduled_at?: string | null
+          status?: string
+          transcript_fetched_at?: string | null
+          transcript_text?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meetings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       module_grant_audit: {
         Row: {
           action: string
