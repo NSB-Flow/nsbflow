@@ -45,6 +45,7 @@ import { Route as ApiPublicV1MeetingAnalysesRouteImport } from './routes/api/pub
 import { Route as ApiPublicV1CompaniesRouteImport } from './routes/api/public/v1/companies'
 import { Route as ApiPublicV1AgentRunsRouteImport } from './routes/api/public/v1/agent-runs'
 import { Route as ApiPublicHooksProcessExportJobsRouteImport } from './routes/api/public/hooks/process-export-jobs'
+import { Route as ApiPublicHooksMeetingTranscriptsRouteImport } from './routes/api/public/hooks/meeting-transcripts'
 import { Route as ApiPublicHooksCrmSyncRouteImport } from './routes/api/public/hooks/crm-sync'
 import { Route as AuthenticatedAppPessoasIdRouteImport } from './routes/_authenticated/app.pessoas.$id'
 import { Route as AuthenticatedAppHistoricoIdRouteImport } from './routes/_authenticated/app.historico.$id'
@@ -253,6 +254,12 @@ const ApiPublicHooksProcessExportJobsRoute =
     path: '/api/public/hooks/process-export-jobs',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksMeetingTranscriptsRoute =
+  ApiPublicHooksMeetingTranscriptsRouteImport.update({
+    id: '/api/public/hooks/meeting-transcripts',
+    path: '/api/public/hooks/meeting-transcripts',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksCrmSyncRoute = ApiPublicHooksCrmSyncRouteImport.update({
   id: '/api/public/hooks/crm-sync',
   path: '/api/public/hooks/crm-sync',
@@ -322,6 +329,7 @@ export interface FileRoutesByFullPath {
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
   '/api/public/hooks/crm-sync': typeof ApiPublicHooksCrmSyncRoute
+  '/api/public/hooks/meeting-transcripts': typeof ApiPublicHooksMeetingTranscriptsRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
   '/api/public/v1/agent-runs': typeof ApiPublicV1AgentRunsRoute
   '/api/public/v1/companies': typeof ApiPublicV1CompaniesRoute
@@ -364,6 +372,7 @@ export interface FileRoutesByTo {
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
   '/api/public/hooks/crm-sync': typeof ApiPublicHooksCrmSyncRoute
+  '/api/public/hooks/meeting-transcripts': typeof ApiPublicHooksMeetingTranscriptsRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
   '/api/public/v1/agent-runs': typeof ApiPublicV1AgentRunsRoute
   '/api/public/v1/companies': typeof ApiPublicV1CompaniesRoute
@@ -409,6 +418,7 @@ export interface FileRoutesById {
   '/_authenticated/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/_authenticated/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
   '/api/public/hooks/crm-sync': typeof ApiPublicHooksCrmSyncRoute
+  '/api/public/hooks/meeting-transcripts': typeof ApiPublicHooksMeetingTranscriptsRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
   '/api/public/v1/agent-runs': typeof ApiPublicV1AgentRunsRoute
   '/api/public/v1/companies': typeof ApiPublicV1CompaniesRoute
@@ -454,6 +464,7 @@ export interface FileRouteTypes {
     | '/app/historico/$id'
     | '/app/pessoas/$id'
     | '/api/public/hooks/crm-sync'
+    | '/api/public/hooks/meeting-transcripts'
     | '/api/public/hooks/process-export-jobs'
     | '/api/public/v1/agent-runs'
     | '/api/public/v1/companies'
@@ -496,6 +507,7 @@ export interface FileRouteTypes {
     | '/app/historico/$id'
     | '/app/pessoas/$id'
     | '/api/public/hooks/crm-sync'
+    | '/api/public/hooks/meeting-transcripts'
     | '/api/public/hooks/process-export-jobs'
     | '/api/public/v1/agent-runs'
     | '/api/public/v1/companies'
@@ -540,6 +552,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/historico/$id'
     | '/_authenticated/app/pessoas/$id'
     | '/api/public/hooks/crm-sync'
+    | '/api/public/hooks/meeting-transcripts'
     | '/api/public/hooks/process-export-jobs'
     | '/api/public/v1/agent-runs'
     | '/api/public/v1/companies'
@@ -560,6 +573,7 @@ export interface RootRouteChildren {
   GuiasProspeccaoDeClientesB2bRoute: typeof GuiasProspeccaoDeClientesB2bRoute
   ApiPublicReferralCheckRoute: typeof ApiPublicReferralCheckRoute
   ApiPublicHooksCrmSyncRoute: typeof ApiPublicHooksCrmSyncRoute
+  ApiPublicHooksMeetingTranscriptsRoute: typeof ApiPublicHooksMeetingTranscriptsRoute
   ApiPublicHooksProcessExportJobsRoute: typeof ApiPublicHooksProcessExportJobsRoute
   ApiPublicV1AgentRunsRoute: typeof ApiPublicV1AgentRunsRoute
   ApiPublicV1CompaniesRoute: typeof ApiPublicV1CompaniesRoute
@@ -823,6 +837,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksProcessExportJobsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/meeting-transcripts': {
+      id: '/api/public/hooks/meeting-transcripts'
+      path: '/api/public/hooks/meeting-transcripts'
+      fullPath: '/api/public/hooks/meeting-transcripts'
+      preLoaderRoute: typeof ApiPublicHooksMeetingTranscriptsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/crm-sync': {
       id: '/api/public/hooks/crm-sync'
       path: '/api/public/hooks/crm-sync'
@@ -962,6 +983,7 @@ const rootRouteChildren: RootRouteChildren = {
   GuiasProspeccaoDeClientesB2bRoute: GuiasProspeccaoDeClientesB2bRoute,
   ApiPublicReferralCheckRoute: ApiPublicReferralCheckRoute,
   ApiPublicHooksCrmSyncRoute: ApiPublicHooksCrmSyncRoute,
+  ApiPublicHooksMeetingTranscriptsRoute: ApiPublicHooksMeetingTranscriptsRoute,
   ApiPublicHooksProcessExportJobsRoute: ApiPublicHooksProcessExportJobsRoute,
   ApiPublicV1AgentRunsRoute: ApiPublicV1AgentRunsRoute,
   ApiPublicV1CompaniesRoute: ApiPublicV1CompaniesRoute,
