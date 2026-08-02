@@ -86,38 +86,24 @@ function CheckoutPage() {
     setProcessing(true);
     try {
       const effectiveSeats = isPersonal ? 1 : Math.max(1, seats);
-      const { error } = await supabase
-        .from("subscriptions")
-        .update({
-          plan_id: plan.id,
-          status: "active",
-          billing_cycle: cycle,
+      // A ativação NÃO acontece no navegador: o servidor registra a solicitação,
+      // recalcula preço/cupom e só libera o plano após confirmação de pagamento.
+      await requestSubscription({
+        data: {
+          workspaceId,
+          planId: plan.id,
+          cycle,
           seats: effectiveSeats,
-          current_period_start: new Date().toISOString(),
-          current_period_end: new Date(Date.now() + (cycle === "yearly" ? 365 : 30) * 86400000).toISOString(),
-          trial_ends_at: null,
-          provider: "manual",
-        })
-        .eq("workspace_id", workspaceId);
-
-      if (error) throw error;
-
-      const { data: sub } = await supabase.from("subscriptions").select("id").eq("workspace_id", workspaceId).maybeSingle();
-      if (sub) {
-        await supabase.from("subscription_invoices").insert({
-          subscription_id: sub.id,
-          amount_cents: total,
-          currency: "BRL",
-          status: "paid",
-          paid_at: new Date().toISOString(),
-        });
-      }
+          ...(couponApplied ? { couponCode: couponApplied.code } : {}),
+        },
+      });
 
       // Dispara bônus de indicação (idempotente no servidor)
       try { await applyReferralPaid(); } catch { /* noop */ }
 
-      toast.success("Assinatura ativada!");
+      toast.success("Solicitação enviada! A assinatura é liberada após a confirmação do pagamento.");
       nav({ to: "/app/assinatura" });
+
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha no checkout");
     } finally {
