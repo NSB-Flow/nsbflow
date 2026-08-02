@@ -4,11 +4,15 @@ import { createFileRoute } from "@tanstack/react-router";
  * Public hook that drives the async audit export queue.
  * Two callers: the enqueue server function (best-effort immediate trigger)
  * and pg_cron (every minute — catches jobs that lost their initial trigger).
+ * Both must present the CRON_SECRET shared secret.
  */
 export const Route = createFileRoute("/api/public/hooks/process-export-jobs")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const { assertCronCaller } = await import("@/lib/cron-auth.server");
+        const denied = assertCronCaller(request);
+        if (denied) return denied;
         try {
           const bodyText = await request.text();
           let jobId: string | undefined;
