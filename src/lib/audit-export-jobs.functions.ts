@@ -135,9 +135,13 @@ export const enqueueAuditExportFn = createServerFn({ method: "POST" })
     const base = process.env.PUBLIC_APP_URL || "https://nsbflow.lovable.app";
     void fetch(`${base}/api/public/hooks/process-export-jobs`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        "x-cron-secret": process.env["CRON_SECRET"] ?? "",
+      },
       body: JSON.stringify({ jobId: (inserted as { id: string }).id }),
     }).catch(() => undefined);
+
 
     return toJob(inserted as RawRow);
   });
