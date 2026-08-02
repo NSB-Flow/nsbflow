@@ -49,6 +49,7 @@ import { Route as ApiPublicHooksCrmSyncRouteImport } from './routes/api/public/h
 import { Route as AuthenticatedAppPessoasIdRouteImport } from './routes/_authenticated/app.pessoas.$id'
 import { Route as AuthenticatedAppHistoricoIdRouteImport } from './routes/_authenticated/app.historico.$id'
 import { Route as AuthenticatedAppEmpresasIdRouteImport } from './routes/_authenticated/app.empresas.$id'
+import { Route as ApiPublicMeetingsOauthProviderRouteImport } from './routes/api/public/meetings/oauth/$provider'
 import { Route as ApiPublicCrmSalesforceCallbackRouteImport } from './routes/api/public/crm/salesforce/callback'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -275,6 +276,12 @@ const AuthenticatedAppEmpresasIdRoute =
     path: '/empresas/$id',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const ApiPublicMeetingsOauthProviderRoute =
+  ApiPublicMeetingsOauthProviderRouteImport.update({
+    id: '/api/public/meetings/oauth/$provider',
+    path: '/api/public/meetings/oauth/$provider',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicCrmSalesforceCallbackRoute =
   ApiPublicCrmSalesforceCallbackRouteImport.update({
     id: '/api/public/crm/salesforce/callback',
@@ -323,6 +330,7 @@ export interface FileRoutesByFullPath {
   '/app/empresas/': typeof AuthenticatedAppEmpresasIndexRoute
   '/app/pessoas/': typeof AuthenticatedAppPessoasIndexRoute
   '/api/public/crm/salesforce/callback': typeof ApiPublicCrmSalesforceCallbackRoute
+  '/api/public/meetings/oauth/$provider': typeof ApiPublicMeetingsOauthProviderRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -364,6 +372,7 @@ export interface FileRoutesByTo {
   '/app/empresas': typeof AuthenticatedAppEmpresasIndexRoute
   '/app/pessoas': typeof AuthenticatedAppPessoasIndexRoute
   '/api/public/crm/salesforce/callback': typeof ApiPublicCrmSalesforceCallbackRoute
+  '/api/public/meetings/oauth/$provider': typeof ApiPublicMeetingsOauthProviderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -408,6 +417,7 @@ export interface FileRoutesById {
   '/_authenticated/app/empresas/': typeof AuthenticatedAppEmpresasIndexRoute
   '/_authenticated/app/pessoas/': typeof AuthenticatedAppPessoasIndexRoute
   '/api/public/crm/salesforce/callback': typeof ApiPublicCrmSalesforceCallbackRoute
+  '/api/public/meetings/oauth/$provider': typeof ApiPublicMeetingsOauthProviderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -452,6 +462,7 @@ export interface FileRouteTypes {
     | '/app/empresas/'
     | '/app/pessoas/'
     | '/api/public/crm/salesforce/callback'
+    | '/api/public/meetings/oauth/$provider'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -493,6 +504,7 @@ export interface FileRouteTypes {
     | '/app/empresas'
     | '/app/pessoas'
     | '/api/public/crm/salesforce/callback'
+    | '/api/public/meetings/oauth/$provider'
   id:
     | '__root__'
     | '/'
@@ -536,6 +548,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/empresas/'
     | '/_authenticated/app/pessoas/'
     | '/api/public/crm/salesforce/callback'
+    | '/api/public/meetings/oauth/$provider'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -553,6 +566,7 @@ export interface RootRouteChildren {
   ApiPublicV1MeetingAnalysesRoute: typeof ApiPublicV1MeetingAnalysesRoute
   ApiPublicV1OpportunitiesRoute: typeof ApiPublicV1OpportunitiesRoute
   ApiPublicCrmSalesforceCallbackRoute: typeof ApiPublicCrmSalesforceCallbackRoute
+  ApiPublicMeetingsOauthProviderRoute: typeof ApiPublicMeetingsOauthProviderRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -837,6 +851,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppEmpresasIdRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/api/public/meetings/oauth/$provider': {
+      id: '/api/public/meetings/oauth/$provider'
+      path: '/api/public/meetings/oauth/$provider'
+      fullPath: '/api/public/meetings/oauth/$provider'
+      preLoaderRoute: typeof ApiPublicMeetingsOauthProviderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/crm/salesforce/callback': {
       id: '/api/public/crm/salesforce/callback'
       path: '/api/public/crm/salesforce/callback'
@@ -947,6 +968,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicV1MeetingAnalysesRoute: ApiPublicV1MeetingAnalysesRoute,
   ApiPublicV1OpportunitiesRoute: ApiPublicV1OpportunitiesRoute,
   ApiPublicCrmSalesforceCallbackRoute: ApiPublicCrmSalesforceCallbackRoute,
+  ApiPublicMeetingsOauthProviderRoute: ApiPublicMeetingsOauthProviderRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
