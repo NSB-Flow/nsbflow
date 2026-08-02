@@ -28,6 +28,7 @@ export const Route = createFileRoute("/_authenticated/app/admin-modules")({
 
 const KNOWN_MODULES: { key: string; label: string; description: string }[] = [
   { key: "meeting_recording", label: "Gravação de Reunião", description: "Habilita o botão 'Iniciar Reunião' no Deap Intelligence, com captura de áudio direto pelo navegador e upload automático para análise." },
+  { key: "native_meeting_capture", label: "Captura Nativa de Reuniões", description: "Conecta a conta Microsoft 365, Zoom ou Google Workspace de cada vendedor e captura automaticamente a transcrição das reuniões remotas agendadas." },
   { key: "deap.meeting.briefing", label: "Deap Briefing AI", description: "Acesso ao agente de briefing pré-reunião." },
   { key: "deap.meeting.intelligence", label: "Deap Intelligence AI", description: "Acesso ao agente de análise pós-reunião." },
   { key: "deap.assessment.sales", label: "Sales Development AI", description: "Assessment de desenvolvimento comercial." },

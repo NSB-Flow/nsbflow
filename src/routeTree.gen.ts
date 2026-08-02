@@ -20,6 +20,7 @@ import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticat
 import { Route as ApiPublicReferralCheckRouteImport } from './routes/api/public/referral-check'
 import { Route as AuthenticatedAppWorkspacesRouteImport } from './routes/_authenticated/app.workspaces'
 import { Route as AuthenticatedAppTrialExpiradoRouteImport } from './routes/_authenticated/app.trial-expirado'
+import { Route as AuthenticatedAppReunioesRouteImport } from './routes/_authenticated/app.reunioes'
 import { Route as AuthenticatedAppRelatoriosRouteImport } from './routes/_authenticated/app.relatorios'
 import { Route as AuthenticatedAppPlanosRouteImport } from './routes/_authenticated/app.planos'
 import { Route as AuthenticatedAppIndicacoesRouteImport } from './routes/_authenticated/app.indicacoes'
@@ -109,6 +110,12 @@ const AuthenticatedAppTrialExpiradoRoute =
   AuthenticatedAppTrialExpiradoRouteImport.update({
     id: '/trial-expirado',
     path: '/trial-expirado',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppReunioesRoute =
+  AuthenticatedAppReunioesRouteImport.update({
+    id: '/reunioes',
+    path: '/reunioes',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppRelatoriosRoute =
@@ -321,6 +328,7 @@ export interface FileRoutesByFullPath {
   '/app/indicacoes': typeof AuthenticatedAppIndicacoesRoute
   '/app/planos': typeof AuthenticatedAppPlanosRoute
   '/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
+  '/app/reunioes': typeof AuthenticatedAppReunioesRoute
   '/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
   '/app/workspaces': typeof AuthenticatedAppWorkspacesRoute
   '/api/public/referral-check': typeof ApiPublicReferralCheckRoute
@@ -364,6 +372,7 @@ export interface FileRoutesByTo {
   '/app/indicacoes': typeof AuthenticatedAppIndicacoesRoute
   '/app/planos': typeof AuthenticatedAppPlanosRoute
   '/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
+  '/app/reunioes': typeof AuthenticatedAppReunioesRoute
   '/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
   '/app/workspaces': typeof AuthenticatedAppWorkspacesRoute
   '/api/public/referral-check': typeof ApiPublicReferralCheckRoute
@@ -410,6 +419,7 @@ export interface FileRoutesById {
   '/_authenticated/app/indicacoes': typeof AuthenticatedAppIndicacoesRoute
   '/_authenticated/app/planos': typeof AuthenticatedAppPlanosRoute
   '/_authenticated/app/relatorios': typeof AuthenticatedAppRelatoriosRoute
+  '/_authenticated/app/reunioes': typeof AuthenticatedAppReunioesRoute
   '/_authenticated/app/trial-expirado': typeof AuthenticatedAppTrialExpiradoRoute
   '/_authenticated/app/workspaces': typeof AuthenticatedAppWorkspacesRoute
   '/api/public/referral-check': typeof ApiPublicReferralCheckRoute
@@ -456,6 +466,7 @@ export interface FileRouteTypes {
     | '/app/indicacoes'
     | '/app/planos'
     | '/app/relatorios'
+    | '/app/reunioes'
     | '/app/trial-expirado'
     | '/app/workspaces'
     | '/api/public/referral-check'
@@ -499,6 +510,7 @@ export interface FileRouteTypes {
     | '/app/indicacoes'
     | '/app/planos'
     | '/app/relatorios'
+    | '/app/reunioes'
     | '/app/trial-expirado'
     | '/app/workspaces'
     | '/api/public/referral-check'
@@ -544,6 +556,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/indicacoes'
     | '/_authenticated/app/planos'
     | '/_authenticated/app/relatorios'
+    | '/_authenticated/app/reunioes'
     | '/_authenticated/app/trial-expirado'
     | '/_authenticated/app/workspaces'
     | '/api/public/referral-check'
@@ -660,6 +673,13 @@ declare module '@tanstack/react-router' {
       path: '/trial-expirado'
       fullPath: '/app/trial-expirado'
       preLoaderRoute: typeof AuthenticatedAppTrialExpiradoRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/reunioes': {
+      id: '/_authenticated/app/reunioes'
+      path: '/reunioes'
+      fullPath: '/app/reunioes'
+      preLoaderRoute: typeof AuthenticatedAppReunioesRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/relatorios': {
@@ -922,6 +942,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppIndicacoesRoute: typeof AuthenticatedAppIndicacoesRoute
   AuthenticatedAppPlanosRoute: typeof AuthenticatedAppPlanosRoute
   AuthenticatedAppRelatoriosRoute: typeof AuthenticatedAppRelatoriosRoute
+  AuthenticatedAppReunioesRoute: typeof AuthenticatedAppReunioesRoute
   AuthenticatedAppTrialExpiradoRoute: typeof AuthenticatedAppTrialExpiradoRoute
   AuthenticatedAppWorkspacesRoute: typeof AuthenticatedAppWorkspacesRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
@@ -951,6 +972,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppIndicacoesRoute: AuthenticatedAppIndicacoesRoute,
   AuthenticatedAppPlanosRoute: AuthenticatedAppPlanosRoute,
   AuthenticatedAppRelatoriosRoute: AuthenticatedAppRelatoriosRoute,
+  AuthenticatedAppReunioesRoute: AuthenticatedAppReunioesRoute,
   AuthenticatedAppTrialExpiradoRoute: AuthenticatedAppTrialExpiradoRoute,
   AuthenticatedAppWorkspacesRoute: AuthenticatedAppWorkspacesRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,

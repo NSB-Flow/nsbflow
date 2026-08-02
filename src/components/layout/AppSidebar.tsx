@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, MessagesSquare, ClipboardCheck, Building2, Users, BookOpen,
   GraduationCap, BarChart3, History, Settings, HelpCircle, LogOut,
-  CreditCard, Sparkles, ChevronsUpDown, Check, Plus, Shield, Gift,
+  CreditCard, Sparkles, Video, ChevronsUpDown, Check, Plus, Shield, Gift,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
@@ -31,6 +31,7 @@ type Item = {
 const ITEMS: Item[] = [
   { key: "dashboard", title: "Dashboard", url: "/app", icon: LayoutDashboard, group: "principal" },
   { key: "deap-meeting", title: "DEAP Meeting", url: "/app/deap-meeting", icon: MessagesSquare, group: "principal", feature: "deap.meeting.briefing" },
+  { key: "reunioes", title: "Reuniões Remotas", url: "/app/reunioes", icon: Video, group: "principal" },
   { key: "deap-assessment", title: "DEAP Assessment", url: "/app/deap-assessment", icon: ClipboardCheck, group: "principal", feature: "deap.assessment.sales" },
   { key: "empresas", title: "Empresas", url: "/app/empresas", icon: Building2, group: "principal" },
   { key: "pessoas", title: "Pessoas", url: "/app/pessoas", icon: Users, group: "principal" },
