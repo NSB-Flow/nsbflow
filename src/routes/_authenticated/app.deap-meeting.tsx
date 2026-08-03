@@ -597,21 +597,22 @@ function RemoteMeetingPanel({
 
   if (meetingId && meeting.data) {
     const st = REMOTE_STATUS[meeting.data.status] ?? REMOTE_STATUS.scheduled;
+    const ready = meeting.data.status === "transcript_ready";
     return (
-      <div className="rounded-lg border p-3 space-y-2">
+      <div ref={analyzeHintRef} className="rounded-lg border p-3 space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="min-w-0">
             <div className="text-sm font-medium truncate">
               {REMOTE_PLATFORMS.find((p) => p.value === meeting.data?.platform)?.label ?? meeting.data.platform}
             </div>
             <div className="text-xs text-muted-foreground truncate">{meeting.data.meeting_link}</div>
-            {meeting.data.last_error && meeting.data.status !== "transcript_ready" && (
+            {meeting.data.last_error && !ready && (
               <div className="text-xs text-destructive truncate">{meeting.data.last_error}</div>
             )}
           </div>
           <div className="flex items-center gap-2">
             <Badge variant={st.variant}>{st.label}</Badge>
-            {meeting.data.status !== "transcript_ready" && (
+            {!ready && (
               <Button size="sm" variant="ghost" disabled={polling} onClick={poll}>
                 {polling ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
                 <span className="ml-1.5">Buscar agora</span>
@@ -619,10 +620,34 @@ function RemoteMeetingPanel({
             )}
           </div>
         </div>
-        <p className="text-xs text-muted-foreground">
-          A análise via Reunião Remota consome 3 créditos.
-        </p>
+        {ready ? (
+          <div className="flex items-start gap-2 rounded-md bg-emerald-500/10 p-2 text-xs">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 mt-0.5 shrink-0" />
+            <span>Transcrição pronta — clique em “Analisar Reunião” abaixo (consome 3 créditos).</span>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">
+              Você será avisado automaticamente aqui quando a transcrição ficar pronta — não precisa
+              verificar manualmente. A análise consome 3 créditos.
+            </p>
+            {notifyPerm === "default" && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={async () => {
+                  const perm = await Notification.requestPermission();
+                  setNotifyPerm(perm);
+                  if (perm === "granted") toast.success("Avisos do navegador ativados");
+                }}
+              >
+                <BellRing className="h-3.5 w-3.5 mr-1.5" /> Ativar aviso no navegador
+              </Button>
+            )}
+          </div>
+        )}
       </div>
+
     );
   }
 
