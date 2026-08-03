@@ -18,16 +18,24 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import {
   Loader2, FileText, Sparkles, Upload, FileAudio, Save, Star, Copy, FileDown,
-  AlertTriangle, Mic, Lock, Info, CheckCircle2, UploadCloud, X,
+  AlertTriangle, Mic, Lock, Info, CheckCircle2, UploadCloud, X, Video, RefreshCw,
 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { generateReportPdf, downloadBlob } from "@/lib/pdf-report";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/workspace-context";
 import { useWorkspaceCredits } from "@/lib/workspace-credits";
-import { useEntitlements } from "@/lib/entitlements";
+import { useEntitlements, canUseRemoteMeetingCapture } from "@/lib/entitlements";
 import { Progress } from "@/components/ui/progress";
 import { Sparkles as SparklesIcon, Infinity as InfinityIcon } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  getMeetingConnectionsFn, createMeetingFn, fetchMeetingTranscriptNowFn,
+} from "@/lib/meetings.functions";
+
 
 const searchSchema = z.object({ companyId: z.string().uuid().optional() });
 
