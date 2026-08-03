@@ -14,7 +14,7 @@ import { useAuth } from "@/lib/auth-context";
 import { canAccess, type ModuleKey } from "@/lib/roles";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/lib/workspace-context";
-import { useEntitlements, type FeatureKey } from "@/lib/entitlements";
+import { useEntitlements, canUseRemoteMeetingCapture, type FeatureKey } from "@/lib/entitlements";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 
