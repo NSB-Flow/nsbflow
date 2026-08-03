@@ -20,10 +20,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Loader2, Plug, Plus, RefreshCw, Video, FileText, Unplug } from "lucide-react";
+import { Loader2, Plug, Plus, RefreshCw, Video, FileText, Unplug, ShieldCheck, CheckCircle2, XCircle } from "lucide-react";
 import {
   getMeetingConnectionsFn, startMeetingOAuthFn, disconnectMeetingProviderFn,
-  createMeetingFn, fetchMeetingTranscriptNowFn,
+  createMeetingFn, fetchMeetingTranscriptNowFn, testMeetingConnectionFn,
 } from "@/lib/meetings.functions";
 
 export const Route = createFileRoute("/_authenticated/app/reunioes")({
