@@ -167,3 +167,41 @@ export const fetchMeetingTranscriptNowFn = createServerFn({ method: "POST" })
     const { pollTranscripts } = await import("./meetings/transcripts.server");
     return pollTranscripts(data.meetingId);
   });
+
+export const testMeetingConnectionFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) =>
+    z.object({ workspaceId: z.string().uuid(), provider: z.enum(PROVIDERS) }).parse(raw),
+  )
+  .handler(async ({ data, context }) => {
+    await assertCaptureAccess(context.supabase, context.userId, data.workspaceId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: conn } = await supabaseAdmin
+      .from("meeting_platform_connections")
+      .select("id, user_id, workspace_id, provider, access_token, refresh_token, token_expires_at, status")
+      .eq("user_id", context.userId)
+      .eq("provider", data.provider)
+      .maybeSingle();
+    if (!conn) {
+      return {
+        provider: data.provider,
+        ok: false,
+        email: null,
+        totalMs: 0,
+        checks: [],
+        error: "Conta não conectada",
+      };
+    }
+    const { probeConnection } = await import("./meetings/providers.server");
+    const result = await probeConnection(
+      conn as unknown as import("./meetings/providers.server").ConnectionRow,
+    );
+    await supabaseAdmin
+      .from("meeting_platform_connections")
+      .update({
+        status: result.ok ? "active" : "error",
+        last_error: result.ok ? null : (result.error ?? "").slice(0, 500),
+      })
+      .eq("id", conn.id);
+    return result;
+  });
