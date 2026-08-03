@@ -46,16 +46,19 @@ export const getMeetingConnectionsFn = createServerFn({ method: "POST" })
     const { credentialsConfigured } = await import("./meetings/providers.server");
     const { data: rows } = await supabaseAdmin
       .from("meeting_platform_connections")
-      .select("provider, external_account_email, connected_at, status, last_error")
+      .select("provider, external_account_email, connected_at, status, last_error, token_expires_at")
       .eq("user_id", context.userId);
     return PROVIDERS.map((provider) => {
       const row = (rows ?? []).find((r) => r.provider === provider);
+      const expiresAt = row?.token_expires_at ?? null;
       return {
         provider,
         connected: !!row && row.status === "active",
         email: row?.external_account_email ?? null,
         connectedAt: row?.connected_at ?? null,
         lastError: row?.last_error ?? null,
+        tokenExpiresAt: expiresAt,
+        tokenExpired: !!expiresAt && new Date(expiresAt).getTime() <= Date.now(),
         credentialsConfigured: credentialsConfigured(provider),
       };
     });
