@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import {
   Loader2, FileText, Sparkles, Upload, FileAudio, Save, Star, Copy, FileDown,
-  AlertTriangle, Mic, Lock, Info, CheckCircle2, UploadCloud, X, Video, RefreshCw,
+  AlertTriangle, Mic, Lock, Info, CheckCircle2, UploadCloud, X, Video, RefreshCw, BellRing,
 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { generateReportPdf, downloadBlob } from "@/lib/pdf-report";
