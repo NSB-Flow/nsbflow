@@ -468,7 +468,11 @@ function RemoteMeetingPanel({
   const meeting = useQuery({
     queryKey: ["deap-remote-meeting", meetingId],
     enabled: !!meetingId,
-    refetchInterval: 60_000,
+    refetchInterval: (q) =>
+      (q.state.data as { status?: string } | null | undefined)?.status === "transcript_ready"
+        ? false
+        : 20_000,
+    refetchIntervalInBackground: true,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("meetings")
@@ -480,9 +484,55 @@ function RemoteMeetingPanel({
     },
   });
 
+  const status = meeting.data?.status ?? null;
+  const prevStatusRef = useRef<string | null>(null);
+  const analyzeHintRef = useRef<HTMLDivElement | null>(null);
+
+  // Realtime: reage no instante em que o polling do backend grava a transcrição.
   useEffect(() => {
-    onReadyChange(meeting.data?.status === "transcript_ready");
-  }, [meeting.data?.status, onReadyChange]);
+    if (!meetingId) return;
+    const channel = supabase
+      .channel(`deap-meeting-${meetingId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "meetings", filter: `id=eq.${meetingId}` },
+        () => meeting.refetch(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meetingId]);
+
+  useEffect(() => {
+    onReadyChange(status === "transcript_ready");
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = status;
+    if (!status || prev === null || prev === status) return;
+
+    if (status === "transcript_ready") {
+      toast.success("Transcrição pronta", {
+        description: "Clique em “Analisar Reunião” para gerar o relatório.",
+        duration: 15_000,
+        action: {
+          label: "Analisar agora",
+          onClick: () => analyzeHintRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }),
+        },
+      });
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+        new Notification("NSB Flow — Transcrição pronta", {
+          body: "A transcrição da sua reunião remota já está disponível para análise.",
+        });
+      }
+    } else if (status === "failed") {
+      toast.error("Falha ao capturar a transcrição", {
+        description: meeting.data?.last_error ?? "Tente buscar novamente ou reconecte sua conta.",
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, onReadyChange]);
+
 
   const save = async () => {
     if (!companyId) return toast.error("Selecione a conta");
