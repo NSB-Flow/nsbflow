@@ -15,7 +15,9 @@ import { getWebhookUrlFn, saveWebhookUrlFn } from "@/lib/agent-service.functions
 import { useAlertPrefs } from "@/lib/alert-prefs";
 import { toast } from "sonner";
 import { formatBrPhone, digitsOnly } from "@/lib/phone";
-import { Loader2, ShieldCheck, BellRing } from "lucide-react";
+import { Loader2, ShieldCheck, BellRing, Video } from "lucide-react";
+import { useEntitlements, canUseRemoteMeetingCapture } from "@/lib/entitlements";
+
 
 export const Route = createFileRoute("/_authenticated/app/configuracoes")({
   head: () => ({ meta: [{ title: "Configurações — NSB Flow" }] }),
