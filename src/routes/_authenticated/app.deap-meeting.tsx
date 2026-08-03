@@ -679,7 +679,7 @@ function RemoteMeetingPanel({
         {saving ? "Registrando..." : "Registrar reunião"}
       </Button>
       <p className="text-xs text-muted-foreground">
-        A transcrição é buscada automaticamente após a reunião. A análise consome 3 créditos.
+        A transcrição é buscada automaticamente após a reunião.
       </p>
     </div>
   );
