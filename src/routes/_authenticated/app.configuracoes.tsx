@@ -27,6 +27,9 @@ export const Route = createFileRoute("/_authenticated/app/configuracoes")({
 function Config() {
   const { user, roles, fullName, sector, refresh } = useAuth();
   const { prefs, update: updatePrefs, reset: resetPrefs } = useAlertPrefs(user?.id);
+  const ent = useEntitlements();
+  const canRemote = !ent.loading && canUseRemoteMeetingCapture(ent, roles);
+
   const getUrl = useServerFn(getWebhookUrlFn);
   const saveUrl = useServerFn(saveWebhookUrlFn);
   const [name, setName] = useState(fullName ?? "");
