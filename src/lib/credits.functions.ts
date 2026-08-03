@@ -65,7 +65,12 @@ export const adminAdjustWorkspaceCreditsFn = createServerFn({ method: "POST" })
     return { ok: true, balance: newBalance };
   });
 
-/** Atualiza assentos contratados (PJ). Recalcula pool só na próxima reposição. */
+/**
+ * Solicita alteração de assentos contratados (PJ). NUNCA aplica direto:
+ * cria uma solicitação pendente que só um super admin (ou o webhook do
+ * gateway de pagamento) pode aprovar — caso contrário um admin de workspace
+ * poderia inflar assentos e, com isso, o pool mensal de créditos de graça.
+ */
 export const updateSubscriptionSeatsFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw: unknown) =>
@@ -78,13 +83,65 @@ export const updateSubscriptionSeatsFn = createServerFn({ method: "POST" })
     });
     if (!isAdmin) throw new Error("Apenas administradores do workspace.");
 
-    const { error } = await supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: ws } = await supabaseAdmin
+      .from("workspaces").select("id, is_personal").eq("id", data.workspaceId).maybeSingle();
+    if (!ws) throw new Error("Workspace não encontrado.");
+    if (ws.is_personal) throw new Error("Assentos aplicam-se apenas a workspaces de empresa.");
+
+    const { data: sub } = await supabaseAdmin
       .from("subscriptions")
-      .update({ seats: data.seats })
-      .eq("workspace_id", data.workspaceId);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+      .select("id, plan_id, billing_cycle, seats")
+      .eq("workspace_id", data.workspaceId)
+      .maybeSingle();
+    if (!sub) throw new Error("Assinatura não encontrada.");
+    if (sub.seats === data.seats) return { ok: true as const, status: "unchanged" as const };
+
+    // Já existe solicitação pendente?
+    const { data: pending } = await supabaseAdmin
+      .from("subscription_requests")
+      .select("id")
+      .eq("workspace_id", data.workspaceId)
+      .eq("status", "pending")
+      .maybeSingle();
+    if (pending) throw new Error("Já existe uma solicitação pendente para este workspace.");
+
+    const { data: plan } = await supabaseAdmin
+      .from("plans")
+      .select("id, price_monthly_cents, price_yearly_cents")
+      .eq("id", sub.plan_id)
+      .maybeSingle();
+    if (!plan) throw new Error("Plano não encontrado.");
+
+    // Preço calculado no servidor — o cliente nunca define valores.
+    const base = sub.billing_cycle === "yearly" ? plan.price_yearly_cents : plan.price_monthly_cents;
+    const amountCents = Math.max(0, base * data.seats);
+
+    const { data: req, error } = await supabaseAdmin
+      .from("subscription_requests")
+      .insert({
+        workspace_id: data.workspaceId,
+        plan_id: plan.id,
+        billing_cycle: sub.billing_cycle,
+        seats: data.seats,
+        amount_cents: amountCents,
+        status: "pending",
+        requested_by: userId,
+      })
+      .select("id, seats, amount_cents")
+      .single();
+    if (error) throw new Error("Não foi possível registrar a solicitação de assentos.");
+
+    return {
+      ok: true as const,
+      status: "pending" as const,
+      requestId: req.id as string,
+      seats: req.seats as number,
+      amountCents: req.amount_cents as number,
+    };
   });
+
 
 /** Concede o bônus de conversão de indicação (chamado ao ativar assinatura paga do indicado). */
 export const applyReferralPaidFn = createServerFn({ method: "POST" })
