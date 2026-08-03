@@ -378,3 +378,121 @@ export async function fetchTranscript(
   if (!code) throw new Error("Não foi possível identificar o código da reunião no link do Meet");
   return fetchGoogleMeetTranscript(token, code);
 }
+
+/* ---------------------------------------------------------------------------
+ * Connection diagnostics ("Testar conexão")
+ * ------------------------------------------------------------------------- */
+
+export interface ProbeCheck {
+  label: string;
+  scope: string;
+  ok: boolean;
+  status: number | null;
+  ms: number;
+  detail: string | null;
+}
+
+export interface ProbeResult {
+  provider: MeetingProvider;
+  ok: boolean;
+  email: string | null;
+  totalMs: number;
+  checks: ProbeCheck[];
+  error: string | null;
+}
+
+async function timedGet(
+  label: string,
+  scope: string,
+  url: string,
+  token: string,
+  okStatuses: number[] = [200],
+): Promise<ProbeCheck> {
+  const started = Date.now();
+  try {
+    const res = await fetch(url, { headers: { authorization: `Bearer ${token}` } });
+    const ms = Date.now() - started;
+    if (okStatuses.includes(res.status)) {
+      return { label, scope, ok: true, status: res.status, ms, detail: null };
+    }
+    const body = (await res.text().catch(() => "")).slice(0, 180);
+    return { label, scope, ok: false, status: res.status, ms, detail: body || res.statusText };
+  } catch (e) {
+    return {
+      label,
+      scope,
+      ok: false,
+      status: null,
+      ms: Date.now() - started,
+      detail: e instanceof Error ? e.message : String(e),
+    };
+  }
+}
+
+/** Read-only permission/latency probe for one user connection. */
+export async function probeConnection(conn: ConnectionRow): Promise<ProbeResult> {
+  const started = Date.now();
+  const base: ProbeResult = {
+    provider: conn.provider,
+    ok: false,
+    email: null,
+    totalMs: 0,
+    checks: [],
+    error: null,
+  };
+
+  let token: string;
+  try {
+    token = await validAccessToken(conn);
+  } catch (e) {
+    base.totalMs = Date.now() - started;
+    base.error = e instanceof Error ? e.message : String(e);
+    return base;
+  }
+
+  if (conn.provider === "microsoft") {
+    base.checks = await Promise.all([
+      timedGet("Perfil da conta", "User.Read", "https://graph.microsoft.com/v1.0/me", token),
+      timedGet(
+        "Reuniões online",
+        "OnlineMeetings.Read",
+        "https://graph.microsoft.com/v1.0/me/onlineMeetings?$top=1",
+        token,
+        [200, 400],
+      ),
+    ]);
+  } else if (conn.provider === "zoom") {
+    base.checks = await Promise.all([
+      timedGet("Perfil da conta", "user:read", "https://api.zoom.us/v2/users/me", token),
+      timedGet(
+        "Gravações na nuvem",
+        "recording:read",
+        "https://api.zoom.us/v2/users/me/recordings?page_size=1",
+        token,
+      ),
+    ]);
+  } else {
+    base.checks = await Promise.all([
+      timedGet(
+        "Perfil da conta",
+        "openid email",
+        "https://openidconnect.googleapis.com/v1/userinfo",
+        token,
+      ),
+      timedGet(
+        "Registros de conferência",
+        "meetings.space.readonly",
+        "https://meet.googleapis.com/v2/conferenceRecords?pageSize=1",
+        token,
+      ),
+    ]);
+  }
+
+  base.email = await fetchAccountEmail(conn.provider, token);
+  base.ok = base.checks.every((c) => c.ok);
+  base.totalMs = Date.now() - started;
+  if (!base.ok) {
+    base.error = base.checks.find((c) => !c.ok)?.detail ?? "Verificação falhou";
+  }
+  return base;
+}
