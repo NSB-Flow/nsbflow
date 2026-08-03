@@ -345,11 +345,24 @@ function MeetingsPage() {
           ) : (
             (connections.data ?? []).map((c) => {
               const t = tests[c.provider];
+              const needsReauth =
+                !!c.credentialsConfigured &&
+                (c.tokenExpired ||
+                  !!c.lastError ||
+                  (!!t && !t.ok) ||
+                  (!!c.email && !c.connected));
               return (
               <div key={c.provider} className="space-y-2 border-b border-border/60 pb-3 last:border-0 last:pb-0">
                 <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-sm font-medium">{PROVIDER_LABEL[c.provider as Provider]}</div>
+                  <div className="text-sm font-medium flex items-center gap-2">
+                    {PROVIDER_LABEL[c.provider as Provider]}
+                    {needsReauth && (
+                      <Badge variant="destructive" className="text-[10px]">
+                        {c.tokenExpired ? "Token expirado" : "Reautorização necessária"}
+                      </Badge>
+                    )}
+                  </div>
                   <div className="text-xs text-muted-foreground truncate">
                     {c.connected
                       ? `${c.email ?? "conta conectada"}${c.connectedAt ? ` · desde ${format(new Date(c.connectedAt), "dd/MM/yyyy", { locale: ptBR })}` : ""}`
@@ -357,6 +370,11 @@ function MeetingsPage() {
                         ? "Não conectada"
                         : "Credenciais do app não configuradas no projeto"}
                   </div>
+                  {needsReauth && (c.lastError || (t && !t.ok && t.error)) && (
+                    <div className="text-xs text-destructive truncate">
+                      {c.lastError ?? t?.error}
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
@@ -372,6 +390,11 @@ function MeetingsPage() {
                     )}
                     Testar conexão
                   </Button>
+                  {needsReauth && (
+                    <Button size="sm" onClick={() => connect(c.provider as Provider)}>
+                      <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Reautorizar
+                    </Button>
+                  )}
                   {c.connected ? (
                     <Button
                       size="sm"
@@ -390,9 +413,11 @@ function MeetingsPage() {
                       <Unplug className="h-3.5 w-3.5 mr-1.5" /> Desconectar
                     </Button>
                   ) : (
+                    !needsReauth && (
                     <Button size="sm" variant="outline" disabled={!c.credentialsConfigured} onClick={() => connect(c.provider as Provider)}>
                       <Plug className="h-3.5 w-3.5 mr-1.5" /> Conectar
                     </Button>
+                    )
                   )}
                 </div>
                 </div>
