@@ -60,15 +60,20 @@ function AssinaturaPage() {
     if (!workspaceId || seats === ent.seatsTotal) return;
     setSavingSeats(true);
     try {
-      await updateSeats({ data: { workspaceId, seats } });
+      const res = await updateSeats({ data: { workspaceId, seats } });
       await qc.invalidateQueries();
-      toast.success("Assentos atualizados. O novo pool valerá na próxima reposição.");
+      if (res.status === "pending") {
+        toast.success("Solicitação enviada. Os assentos serão ajustados após a confirmação do pagamento.");
+      } else {
+        toast.info("Nenhuma alteração a registrar.");
+      }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Falha ao atualizar assentos.");
+      toast.error(e instanceof Error ? e.message : "Falha ao solicitar assentos.");
     } finally {
       setSavingSeats(false);
     }
   };
+
 
   if (ent.loading) return <div className="p-8">Carregando...</div>;
 
@@ -184,15 +189,16 @@ function AssinaturaPage() {
                   />
                 </div>
                 <Button onClick={saveSeats} disabled={savingSeats || seats === ent.seatsTotal}>
-                  {savingSeats ? "Salvando..." : "Atualizar assentos"}
+                  {savingSeats ? "Enviando..." : "Solicitar alteração"}
                 </Button>
                 {credits.monthlyAllotment != null && (
                   <p className="text-xs text-muted-foreground">
                     Novo pool: <strong>{credits.monthlyAllotment * seats}</strong> créditos/mês.
-                    Ajustes valem na próxima reposição.
+                    A alteração é aplicada só após a confirmação do pagamento.
                   </p>
                 )}
               </div>
+
             </CardContent>
           </Card>
         )}
