@@ -62,8 +62,10 @@ export function AppSidebar() {
   const visible = ITEMS.filter((it) => {
     if (roles.length && !canAccess(roles, it.key)) return false;
     if (it.feature && !ent.loading && !ent.has(it.feature)) return false;
+    if (it.key === "reunioes" && !ent.loading && !canUseRemoteMeetingCapture(ent, roles)) return false;
     return true;
   });
+
   const principal = visible.filter((i) => i.group === "principal");
   const billing = visible.filter((i) => i.group === "billing");
   const sistema = visible.filter((i) => i.group === "sistema");
