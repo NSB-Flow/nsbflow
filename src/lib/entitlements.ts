@@ -83,7 +83,21 @@ const EMPTY: Entitlements = {
   currentPeriodEnd: null,
 };
 
+/**
+ * Captura de transcrição via Reunião Remota (Teams/Zoom/Meet).
+ * Recurso padrão dos planos Pro e Enterprise — self-service, sem grant manual.
+ * Super admins veem sempre.
+ */
+export function canUseRemoteMeetingCapture(
+  ent: Pick<Entitlements, "planTier">,
+  roles: string[],
+): boolean {
+  if (roles.includes("super_admin")) return true;
+  return ent.planTier === "pro" || ent.planTier === "enterprise";
+}
+
 export function useEntitlements(): Entitlements {
+
   const { workspaceId } = useWorkspace();
 
   const { data, isLoading } = useQuery({
