@@ -85,6 +85,7 @@ function MeetingsPage() {
   const disconnect = useServerFn(disconnectMeetingProviderFn);
   const createMeeting = useServerFn(createMeetingFn);
   const fetchNow = useServerFn(fetchMeetingTranscriptNowFn);
+  const testConnection = useServerFn(testMeetingConnectionFn);
 
   const hasAddon = roles.includes("super_admin") || ent.hasModule("native_meeting_capture");
 
