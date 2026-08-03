@@ -343,8 +343,11 @@ function MeetingsPage() {
               <Loader2 className="h-4 w-4 animate-spin" /> Carregando...
             </div>
           ) : (
-            (connections.data ?? []).map((c) => (
-              <div key={c.provider} className="flex items-center justify-between gap-3 border-b border-border/60 pb-3 last:border-0 last:pb-0">
+            (connections.data ?? []).map((c) => {
+              const t = tests[c.provider];
+              return (
+              <div key={c.provider} className="space-y-2 border-b border-border/60 pb-3 last:border-0 last:pb-0">
+                <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="text-sm font-medium">{PROVIDER_LABEL[c.provider as Provider]}</div>
                   <div className="text-xs text-muted-foreground truncate">
@@ -355,25 +358,88 @@ function MeetingsPage() {
                         : "Credenciais do app não configuradas no projeto"}
                   </div>
                 </div>
-                {c.connected ? (
+                <div className="flex items-center gap-2">
                   <Button
                     size="sm"
-                    variant="ghost"
-                    onClick={async () => {
-                      await disconnect({ data: { workspaceId: workspaceId!, provider: c.provider as Provider } });
-                      toast.success("Conta desconectada");
-                      connections.refetch();
-                    }}
+                    variant="outline"
+                    disabled={!c.connected || testing === c.provider}
+                    onClick={() => runTest(c.provider as Provider)}
                   >
-                    <Unplug className="h-3.5 w-3.5 mr-1.5" /> Desconectar
+                    {testing === c.provider ? (
+                      <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                    ) : (
+                      <ShieldCheck className="h-3.5 w-3.5 mr-1.5" />
+                    )}
+                    Testar conexão
                   </Button>
-                ) : (
-                  <Button size="sm" variant="outline" disabled={!c.credentialsConfigured} onClick={() => connect(c.provider as Provider)}>
-                    <Plug className="h-3.5 w-3.5 mr-1.5" /> Conectar
-                  </Button>
+                  {c.connected ? (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={async () => {
+                        await disconnect({ data: { workspaceId: workspaceId!, provider: c.provider as Provider } });
+                        toast.success("Conta desconectada");
+                        setTests((prev) => {
+                          const next = { ...prev };
+                          delete next[c.provider];
+                          return next;
+                        });
+                        connections.refetch();
+                      }}
+                    >
+                      <Unplug className="h-3.5 w-3.5 mr-1.5" /> Desconectar
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="outline" disabled={!c.credentialsConfigured} onClick={() => connect(c.provider as Provider)}>
+                      <Plug className="h-3.5 w-3.5 mr-1.5" /> Conectar
+                    </Button>
+                  )}
+                </div>
+                </div>
+                {t && (
+                  <div className="rounded-md border bg-muted/40 p-3 space-y-2">
+                    <div className="flex items-center gap-2 text-xs font-medium">
+                      {t.ok ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                      ) : (
+                        <XCircle className="h-3.5 w-3.5 text-destructive" />
+                      )}
+                      {t.ok ? "Conexão válida" : "Falha na verificação"}
+                      <span className="text-muted-foreground font-normal">
+                        · {t.totalMs} ms{t.email ? ` · ${t.email}` : ""}
+                      </span>
+                    </div>
+                    {t.checks.length > 0 && (
+                      <ul className="space-y-1">
+                        {t.checks.map((chk) => (
+                          <li key={chk.scope} className="flex flex-wrap items-center gap-2 text-xs">
+                            {chk.ok ? (
+                              <CheckCircle2 className="h-3 w-3 text-emerald-600 shrink-0" />
+                            ) : (
+                              <XCircle className="h-3 w-3 text-destructive shrink-0" />
+                            )}
+                            <span>{chk.label}</span>
+                            <code className="rounded bg-background px-1 py-0.5 text-[10px] text-muted-foreground">
+                              {chk.scope}
+                            </code>
+                            <span className="text-muted-foreground">
+                              {chk.status ?? "—"} · {chk.ms} ms
+                            </span>
+                            {!chk.ok && chk.detail && (
+                              <span className="text-destructive truncate max-w-xs">{chk.detail}</span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {!t.ok && t.checks.length === 0 && t.error && (
+                      <p className="text-xs text-destructive">{t.error}</p>
+                    )}
+                  </div>
                 )}
               </div>
-            ))
+              );
+            })
           )}
         </CardContent>
       </Card>
