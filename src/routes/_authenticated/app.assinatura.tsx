@@ -189,15 +189,16 @@ function AssinaturaPage() {
                   />
                 </div>
                 <Button onClick={saveSeats} disabled={savingSeats || seats === ent.seatsTotal}>
-                  {savingSeats ? "Salvando..." : "Atualizar assentos"}
+                  {savingSeats ? "Enviando..." : "Solicitar alteração"}
                 </Button>
                 {credits.monthlyAllotment != null && (
                   <p className="text-xs text-muted-foreground">
                     Novo pool: <strong>{credits.monthlyAllotment * seats}</strong> créditos/mês.
-                    Ajustes valem na próxima reposição.
+                    A alteração é aplicada só após a confirmação do pagamento.
                   </p>
                 )}
               </div>
+
             </CardContent>
           </Card>
         )}
