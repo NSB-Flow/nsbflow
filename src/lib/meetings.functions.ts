@@ -7,7 +7,10 @@ type Sb = import("@supabase/supabase-js").SupabaseClient;
 const PROVIDERS = ["microsoft", "zoom", "google"] as const;
 const PLATFORMS = ["teams", "zoom", "google_meet"] as const;
 
-/** Member of the workspace + the native_meeting_capture add-on (super admins bypass). */
+/**
+ * Recurso padrão dos planos Pro e Enterprise (self-service, sem grant manual).
+ * Super admins seguem com bypass total.
+ */
 async function assertCaptureAccess(supabase: Sb, userId: string, workspaceId: string) {
   const [{ data: isSuper }, { data: isMember }] = await Promise.all([
     supabase.rpc("is_super_admin", { _user_id: userId }),
@@ -18,22 +21,16 @@ async function assertCaptureAccess(supabase: Sb, userId: string, workspaceId: st
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: sub } = await supabaseAdmin
     .from("subscriptions")
-    .select("id")
+    .select("plans(tier)")
     .eq("workspace_id", workspaceId)
     .maybeSingle();
-  const { data: grant } = sub
-    ? await supabaseAdmin
-        .from("enterprise_module_grants")
-        .select("enabled")
-        .eq("subscription_id", sub.id)
-        .eq("feature_key", "native_meeting_capture")
-        .maybeSingle()
-    : { data: null };
-  if (!grant?.enabled) {
-    throw new Error("Add-on de captura nativa de reuniões não habilitado para este workspace");
+  const plan = Array.isArray(sub?.plans) ? sub?.plans[0] : sub?.plans;
+  if (plan?.tier !== "pro" && plan?.tier !== "enterprise") {
+    throw new Error("Captura de reuniões remotas disponível nos planos Pro e Enterprise");
   }
   return { isSuper: false };
 }
+
 
 const workspaceInput = z.object({ workspaceId: z.string().uuid() });
 
