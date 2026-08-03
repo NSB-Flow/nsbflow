@@ -487,6 +487,12 @@ function RemoteMeetingPanel({
   const status = meeting.data?.status ?? null;
   const prevStatusRef = useRef<string | null>(null);
   const analyzeHintRef = useRef<HTMLDivElement | null>(null);
+  const [notifyPerm, setNotifyPerm] = useState<NotificationPermission | "unsupported">("unsupported");
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) setNotifyPerm(Notification.permission);
+  }, []);
+
 
   // Realtime: reage no instante em que o polling do backend grava a transcrição.
   useEffect(() => {
