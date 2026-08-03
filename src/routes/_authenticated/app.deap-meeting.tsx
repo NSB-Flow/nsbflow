@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import {
   Loader2, FileText, Sparkles, Upload, FileAudio, Save, Star, Copy, FileDown,
-  AlertTriangle, Mic, Lock, Info, CheckCircle2, UploadCloud, X, Video, RefreshCw,
+  AlertTriangle, Mic, Lock, Info, CheckCircle2, UploadCloud, X, Video, RefreshCw, BellRing,
 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { generateReportPdf, downloadBlob } from "@/lib/pdf-report";
@@ -468,7 +468,11 @@ function RemoteMeetingPanel({
   const meeting = useQuery({
     queryKey: ["deap-remote-meeting", meetingId],
     enabled: !!meetingId,
-    refetchInterval: 60_000,
+    refetchInterval: (q) =>
+      (q.state.data as { status?: string } | null | undefined)?.status === "transcript_ready"
+        ? false
+        : 20_000,
+    refetchIntervalInBackground: true,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("meetings")
@@ -480,9 +484,61 @@ function RemoteMeetingPanel({
     },
   });
 
+  const status = meeting.data?.status ?? null;
+  const prevStatusRef = useRef<string | null>(null);
+  const analyzeHintRef = useRef<HTMLDivElement | null>(null);
+  const [notifyPerm, setNotifyPerm] = useState<NotificationPermission | "unsupported">("unsupported");
+
   useEffect(() => {
-    onReadyChange(meeting.data?.status === "transcript_ready");
-  }, [meeting.data?.status, onReadyChange]);
+    if (typeof window !== "undefined" && "Notification" in window) setNotifyPerm(Notification.permission);
+  }, []);
+
+
+  // Realtime: reage no instante em que o polling do backend grava a transcrição.
+  useEffect(() => {
+    if (!meetingId) return;
+    const channel = supabase
+      .channel(`deap-meeting-${meetingId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "meetings", filter: `id=eq.${meetingId}` },
+        () => meeting.refetch(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meetingId]);
+
+  useEffect(() => {
+    onReadyChange(status === "transcript_ready");
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = status;
+    if (!status || prev === null || prev === status) return;
+
+    if (status === "transcript_ready") {
+      toast.success("Transcrição pronta", {
+        description: "Clique em “Analisar Reunião” para gerar o relatório.",
+        duration: 15_000,
+        action: {
+          label: "Analisar agora",
+          onClick: () => analyzeHintRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }),
+        },
+      });
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+        new Notification("NSB Flow — Transcrição pronta", {
+          body: "A transcrição da sua reunião remota já está disponível para análise.",
+        });
+      }
+    } else if (status === "failed") {
+      toast.error("Falha ao capturar a transcrição", {
+        description: meeting.data?.last_error ?? "Tente buscar novamente ou reconecte sua conta.",
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, onReadyChange]);
+
 
   const save = async () => {
     if (!companyId) return toast.error("Selecione a conta");
@@ -547,21 +603,22 @@ function RemoteMeetingPanel({
 
   if (meetingId && meeting.data) {
     const st = REMOTE_STATUS[meeting.data.status] ?? REMOTE_STATUS.scheduled;
+    const ready = meeting.data.status === "transcript_ready";
     return (
-      <div className="rounded-lg border p-3 space-y-2">
+      <div ref={analyzeHintRef} className="rounded-lg border p-3 space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="min-w-0">
             <div className="text-sm font-medium truncate">
               {REMOTE_PLATFORMS.find((p) => p.value === meeting.data?.platform)?.label ?? meeting.data.platform}
             </div>
             <div className="text-xs text-muted-foreground truncate">{meeting.data.meeting_link}</div>
-            {meeting.data.last_error && meeting.data.status !== "transcript_ready" && (
+            {meeting.data.last_error && !ready && (
               <div className="text-xs text-destructive truncate">{meeting.data.last_error}</div>
             )}
           </div>
           <div className="flex items-center gap-2">
             <Badge variant={st.variant}>{st.label}</Badge>
-            {meeting.data.status !== "transcript_ready" && (
+            {!ready && (
               <Button size="sm" variant="ghost" disabled={polling} onClick={poll}>
                 {polling ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
                 <span className="ml-1.5">Buscar agora</span>
@@ -569,10 +626,34 @@ function RemoteMeetingPanel({
             )}
           </div>
         </div>
-        <p className="text-xs text-muted-foreground">
-          A análise via Reunião Remota consome 3 créditos.
-        </p>
+        {ready ? (
+          <div className="flex items-start gap-2 rounded-md bg-emerald-500/10 p-2 text-xs">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 mt-0.5 shrink-0" />
+            <span>Transcrição pronta — clique em “Analisar Reunião” abaixo (consome 3 créditos).</span>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">
+              Você será avisado automaticamente aqui quando a transcrição ficar pronta — não precisa
+              verificar manualmente. A análise consome 3 créditos.
+            </p>
+            {notifyPerm === "default" && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={async () => {
+                  const perm = await Notification.requestPermission();
+                  setNotifyPerm(perm);
+                  if (perm === "granted") toast.success("Avisos do navegador ativados");
+                }}
+              >
+                <BellRing className="h-3.5 w-3.5 mr-1.5" /> Ativar aviso no navegador
+              </Button>
+            )}
+          </div>
+        )}
       </div>
+
     );
   }
 
