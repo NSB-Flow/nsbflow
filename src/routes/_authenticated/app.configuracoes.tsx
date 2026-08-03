@@ -248,7 +248,28 @@ function Config() {
         </CardContent>
       </Card>
 
+      {canRemote && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-display flex items-center gap-2">
+              <Video className="h-4 w-4 text-gold" /> Integrações de Reunião
+            </CardTitle>
+            <CardDescription>
+              Conecte Microsoft 365, Zoom ou Google Workspace para capturar automaticamente a
+              transcrição das suas reuniões remotas.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="outline">
+              <Link to="/app/reunioes">Gerenciar conexões</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
+
+
 
         <CardHeader>
           <CardTitle className="font-display flex items-center gap-2">
