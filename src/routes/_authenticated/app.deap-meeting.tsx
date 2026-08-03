@@ -406,6 +406,196 @@ const ACCEPT = {
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
 };
 
+type CaptureMethod = "upload" | "mic_recording" | "remote_meeting";
+
+const REMOTE_PLATFORMS: { value: "teams" | "zoom" | "google_meet"; label: string; provider: string }[] = [
+  { value: "teams", label: "Microsoft Teams", provider: "microsoft" },
+  { value: "zoom", label: "Zoom", provider: "zoom" },
+  { value: "google_meet", label: "Google Meet", provider: "google" },
+];
+
+const REMOTE_STATUS: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
+  scheduled: { label: "Aguardando transcrição", variant: "secondary" },
+  transcript_pending: { label: "Aguardando transcrição", variant: "secondary" },
+  transcript_ready: { label: "Transcrição pronta", variant: "default" },
+  failed: { label: "Falhou", variant: "destructive" },
+};
+
+function RemoteMeetingPanel({
+  companyId,
+  workspaceId,
+  disabled,
+  meetingId,
+  onCreated,
+  onReadyChange,
+}: {
+  companyId: string | null;
+  workspaceId: string | null;
+  disabled?: boolean;
+  meetingId: string | null;
+  onCreated: (id: string) => void;
+  onReadyChange: (ready: boolean) => void;
+}) {
+  const getConnections = useServerFn(getMeetingConnectionsFn);
+  const createMeeting = useServerFn(createMeetingFn);
+  const fetchNow = useServerFn(fetchMeetingTranscriptNowFn);
+
+  const [platform, setPlatform] = useState<"teams" | "zoom" | "google_meet" | "">("");
+  const [link, setLink] = useState("");
+  const [when, setWhen] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [polling, setPolling] = useState(false);
+
+  const connections = useQuery({
+    queryKey: ["meeting-connections", workspaceId],
+    enabled: !!workspaceId,
+    queryFn: () => getConnections({ data: { workspaceId: workspaceId! } }),
+  });
+
+  const connected = (connections.data ?? []).filter((c) => c.connected);
+  const availablePlatforms = REMOTE_PLATFORMS.filter((p) =>
+    connected.some((c) => c.provider === p.provider),
+  );
+
+  const meeting = useQuery({
+    queryKey: ["deap-remote-meeting", meetingId],
+    enabled: !!meetingId,
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("meetings")
+        .select("id, status, meeting_link, platform, scheduled_at, transcript_text, last_error")
+        .eq("id", meetingId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  useEffect(() => {
+    onReadyChange(meeting.data?.status === "transcript_ready");
+  }, [meeting.data?.status, onReadyChange]);
+
+  const save = async () => {
+    if (!companyId) return toast.error("Selecione a conta");
+    if (!platform) return toast.error("Escolha a plataforma");
+    if (!link.trim()) return toast.error("Cole o link da reunião");
+    setSaving(true);
+    try {
+      const r = await createMeeting({
+        data: {
+          workspaceId: workspaceId!,
+          companyId,
+          platform,
+          meetingLink: link.trim(),
+          scheduledAt: when ? new Date(when).toISOString() : null,
+        },
+      });
+      onCreated(r.id);
+      toast.success("Reunião registrada — aguardando transcrição");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao registrar reunião");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const poll = async () => {
+    if (!meetingId) return;
+    setPolling(true);
+    try {
+      const r = await fetchNow({ data: { workspaceId: workspaceId!, meetingId } });
+      if (r.ready > 0) toast.success("Transcrição capturada");
+      else toast.info("Transcrição ainda não disponível na plataforma");
+      meeting.refetch();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao buscar transcrição");
+    } finally {
+      setPolling(false);
+    }
+  };
+
+  if (connections.isLoading) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Loader2 className="h-4 w-4 animate-spin" /> Carregando conexões...
+      </div>
+    );
+  }
+
+  if (availablePlatforms.length === 0) {
+    return (
+      <div className="rounded-lg border border-gold/40 bg-gold/10 p-3 space-y-2">
+        <div className="flex items-start gap-2 text-sm">
+          <AlertTriangle className="h-4 w-4 text-gold mt-0.5 shrink-0" />
+          <span>Conecte sua conta em Configurações &gt; Integrações de Reunião para usar este método.</span>
+        </div>
+        <Button asChild size="sm" variant="outline">
+          <Link to="/app/reunioes">Ir para Integrações de Reunião</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  if (meetingId && meeting.data) {
+    const st = REMOTE_STATUS[meeting.data.status] ?? REMOTE_STATUS.scheduled;
+    return (
+      <div className="rounded-lg border p-3 space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="min-w-0">
+            <div className="text-sm font-medium truncate">
+              {REMOTE_PLATFORMS.find((p) => p.value === meeting.data?.platform)?.label ?? meeting.data.platform}
+            </div>
+            <div className="text-xs text-muted-foreground truncate">{meeting.data.meeting_link}</div>
+            {meeting.data.last_error && meeting.data.status !== "transcript_ready" && (
+              <div className="text-xs text-destructive truncate">{meeting.data.last_error}</div>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant={st.variant}>{st.label}</Badge>
+            {meeting.data.status !== "transcript_ready" && (
+              <Button size="sm" variant="ghost" disabled={polling} onClick={poll}>
+                {polling ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                <span className="ml-1.5">Buscar agora</span>
+              </Button>
+            )}
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          A análise via Reunião Remota consome 3 créditos.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3 rounded-lg border p-3">
+      <Field label="Plataforma *">
+        <Select value={platform} onValueChange={(v) => setPlatform(v as typeof platform)}>
+          <SelectTrigger><SelectValue placeholder="Escolha a plataforma conectada" /></SelectTrigger>
+          <SelectContent>
+            {availablePlatforms.map((p) => (
+              <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+      <Field label="Link da reunião *">
+        <Input placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)} />
+      </Field>
+      <Field label="Data/hora prevista">
+        <Input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
+      </Field>
+      <Button variant="outline" className="w-full" onClick={save} disabled={saving || disabled || !companyId}>
+        {saving ? "Registrando..." : "Registrar reunião"}
+      </Button>
+      <p className="text-xs text-muted-foreground">
+        A transcrição é buscada automaticamente após a reunião. A análise consome 3 créditos.
+      </p>
+    </div>
+  );
+}
+
 function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
   const runAgent = useServerFn(runAgentFn);
   const { user, roles } = useAuth();
@@ -422,6 +612,9 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
   const [uploadPct, setUploadPct] = useState(0);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ runId?: string; data?: unknown; error?: string } | null>(null);
+  const [method, setMethod] = useState<CaptureMethod>("upload");
+  const [remoteMeetingId, setRemoteMeetingId] = useState<string | null>(null);
+  const [remoteReady, setRemoteReady] = useState(false);
   const canceledRef = useRef(false);
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -510,7 +703,11 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
           agent: "deap_intelligence",
           workspaceId,
           companyId: company.id,
-          payload: parsed.data,
+          captureMethod: method,
+          payload:
+            method === "remote_meeting"
+              ? { ...parsed.data, capture_method: method, meeting_id: remoteMeetingId }
+              : { ...parsed.data, capture_method: method },
         },
       });
       if (r.status === "error") {
@@ -534,59 +731,101 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
     workspaceRole === "admin_empresa" ||
     ent.hasModule("meeting_recording");
 
+  const canRemoteMeeting = !ent.loading && canUseRemoteMeetingCapture(ent, roles);
+
+  const methodOptions: { value: CaptureMethod; label: string; icon: typeof Upload }[] = [
+    { value: "upload", label: "Upload manual", icon: Upload },
+    ...(canRecordMeeting ? [{ value: "mic_recording" as CaptureMethod, label: "Iniciar Reunião", icon: Mic }] : []),
+    ...(canRemoteMeeting ? [{ value: "remote_meeting" as CaptureMethod, label: "Reunião Remota", icon: Video }] : []),
+  ];
+
+  const canSubmit =
+    !!company &&
+    !loading &&
+    !uploading &&
+    (method === "remote_meeting" ? remoteReady : !!form.attachment_url);
+
   return (
     <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
       <Card>
         <CardHeader>
           <CardTitle className="font-display">Dados da reunião</CardTitle>
-          <CardDescription>Selecione a conta, envie a gravação ou transcrição e clique em Analisar.</CardDescription>
+          <CardDescription>Selecione a conta, escolha o método de captura e clique em Analisar.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <CompanySection company={company} onChange={setCompany} />
 
-          <div>
-            <Label className="mb-1.5 block">Upload (áudio, vídeo, TXT, DOCX, PDF) *</Label>
-            <div
-              {...getRootProps()}
-              className={
-                "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors " +
-                (isDragActive ? "border-accent bg-accent/5" : "border-border hover:border-accent/60")
-              }
-            >
-              <input {...getInputProps()} />
-              {form.attachment_name && !uploading ? (
-                <CheckCircle2 className="h-6 w-6 mx-auto text-emerald-500" />
-              ) : uploading ? (
-                <UploadCloud className="h-6 w-6 mx-auto text-accent animate-pulse" />
-              ) : (
-                <Upload className="h-6 w-6 mx-auto text-muted-foreground" />
-              )}
-              <p className="text-sm mt-2">
-                {uploading ? (
-                  <span className="text-muted-foreground">Enviando… {Math.round(uploadPct)}%</span>
-                ) : form.attachment_name ? (
-                  <span className="font-medium text-foreground">{form.attachment_name}</span>
-                ) : (
-                  <>Arraste um arquivo ou clique para selecionar</>
-                )}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {form.attachment_name && !uploading ? "Anexo pronto — clique para trocar" : "até 512 MB"}
-              </p>
+          <div className="space-y-1.5">
+            <Label>Método de captura *</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {methodOptions.map((o) => {
+                const Icon = o.icon;
+                const active = method === o.value;
+                return (
+                  <button
+                    key={o.value}
+                    type="button"
+                    onClick={() => setMethod(o.value)}
+                    className={
+                      "rounded-lg border p-2.5 text-xs font-medium flex flex-col items-center gap-1.5 transition-colors " +
+                      (active
+                        ? "border-accent bg-accent/10 text-foreground"
+                        : "border-border text-muted-foreground hover:border-accent/60")
+                    }
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="text-center leading-tight">{o.label}</span>
+                  </button>
+                );
+              })}
             </div>
-            {uploading && (
-              <div className="mt-2 space-y-1.5">
-                <Progress value={uploadPct} className="h-1.5" />
-                <div className="flex justify-end">
-                  <Button size="sm" variant="ghost" onClick={cancelUpload}>
-                    <X className="h-3.5 w-3.5 mr-1.5" /> Cancelar envio
-                  </Button>
-                </div>
-              </div>
-            )}
           </div>
 
-          {canRecordMeeting && (
+          {method === "upload" && (
+            <div>
+              <Label className="mb-1.5 block">Upload (áudio, vídeo, TXT, DOCX, PDF) *</Label>
+              <div
+                {...getRootProps()}
+                className={
+                  "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors " +
+                  (isDragActive ? "border-accent bg-accent/5" : "border-border hover:border-accent/60")
+                }
+              >
+                <input {...getInputProps()} />
+                {form.attachment_name && !uploading ? (
+                  <CheckCircle2 className="h-6 w-6 mx-auto text-emerald-500" />
+                ) : uploading ? (
+                  <UploadCloud className="h-6 w-6 mx-auto text-accent animate-pulse" />
+                ) : (
+                  <Upload className="h-6 w-6 mx-auto text-muted-foreground" />
+                )}
+                <p className="text-sm mt-2">
+                  {uploading ? (
+                    <span className="text-muted-foreground">Enviando… {Math.round(uploadPct)}%</span>
+                  ) : form.attachment_name ? (
+                    <span className="font-medium text-foreground">{form.attachment_name}</span>
+                  ) : (
+                    <>Arraste um arquivo ou clique para selecionar</>
+                  )}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {form.attachment_name && !uploading ? "Anexo pronto — clique para trocar" : "até 512 MB"}
+                </p>
+              </div>
+              {uploading && (
+                <div className="mt-2 space-y-1.5">
+                  <Progress value={uploadPct} className="h-1.5" />
+                  <div className="flex justify-end">
+                    <Button size="sm" variant="ghost" onClick={cancelUpload}>
+                      <X className="h-3.5 w-3.5 mr-1.5" /> Cancelar envio
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {method === "mic_recording" && canRecordMeeting && (
             <MicRecorder
               disabled={uploading || loading}
               uploading={uploading}
@@ -599,8 +838,18 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
             />
           )}
 
+          {method === "remote_meeting" && canRemoteMeeting && (
+            <RemoteMeetingPanel
+              companyId={company?.id ?? null}
+              workspaceId={workspaceId ?? null}
+              disabled={loading}
+              meetingId={remoteMeetingId}
+              onCreated={setRemoteMeetingId}
+              onReadyChange={setRemoteReady}
+            />
+          )}
 
-          <Button className="w-full" onClick={submit} disabled={loading || uploading || !form.attachment_url || !company}>
+          <Button className="w-full" onClick={submit} disabled={!canSubmit}>
             {loading ? (<><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Analisando reunião...</>) : (<><FileAudio className="h-4 w-4 mr-2" /> Analisar Reunião</>)}
           </Button>
         </CardContent>
@@ -616,6 +865,7 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
     </div>
   );
 }
+
 
 // ---------- Result Panel ----------
 
