@@ -62,6 +62,24 @@ const STATUS: Record<string, { label: string; variant: "default" | "secondary" |
   failed: { label: "Falhou", variant: "destructive" },
 };
 
+interface TestCheck {
+  label: string;
+  scope: string;
+  ok: boolean;
+  status: number | null;
+  ms: number;
+  detail: string | null;
+}
+
+interface TestResult {
+  provider: string;
+  ok: boolean;
+  email: string | null;
+  totalMs: number;
+  checks: TestCheck[];
+  error: string | null;
+}
+
 interface MeetingRow {
   id: string;
   platform: string;
