@@ -113,13 +113,16 @@ export const runAgentFn = createServerFn({ method: "POST" })
       // Super_admin: bypass do consumo de crédito (ver comentário acima).
       creditSource = "super_admin_bypass";
     } else {
-      const { data: creditRes, error: creditErr } = await supabaseAdmin.rpc("try_consume_agent_credit", {
+      const units = CAPTURE_METHOD_COST[data.captureMethod ?? ""] ?? 1;
+      const { data: creditRes, error: creditErr } = await supabaseAdmin.rpc("try_consume_agent_credits", {
         _workspace_id: data.workspaceId,
         _user_id: userId,
         _run_id: runId,
-        _description: `Execução: ${data.agent}`,
+        _description: `Execução: ${data.agent}${units > 1 ? ` (${units} créditos — reunião remota)` : ""}`,
+        _units: units,
       });
       if (creditErr) throw new Error(creditErr.message);
+
       const credit = creditRes as { ok: boolean; source?: string; reason?: string };
       if (!credit?.ok) {
         const reason = credit?.reason ?? "no_credit";
