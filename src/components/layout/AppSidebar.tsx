@@ -14,7 +14,7 @@ import { useAuth } from "@/lib/auth-context";
 import { canAccess, type ModuleKey } from "@/lib/roles";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/lib/workspace-context";
-import { useEntitlements, type FeatureKey } from "@/lib/entitlements";
+import { useEntitlements, canUseRemoteMeetingCapture, type FeatureKey } from "@/lib/entitlements";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 
@@ -31,7 +31,7 @@ type Item = {
 const ITEMS: Item[] = [
   { key: "dashboard", title: "Dashboard", url: "/app", icon: LayoutDashboard, group: "principal" },
   { key: "deap-meeting", title: "DEAP Meeting", url: "/app/deap-meeting", icon: MessagesSquare, group: "principal", feature: "deap.meeting.briefing" },
-  { key: "reunioes", title: "Reuniões Remotas", url: "/app/reunioes", icon: Video, group: "principal" },
+  
   { key: "deap-assessment", title: "DEAP Assessment", url: "/app/deap-assessment", icon: ClipboardCheck, group: "principal", feature: "deap.assessment.sales" },
   { key: "empresas", title: "Empresas", url: "/app/empresas", icon: Building2, group: "principal" },
   { key: "pessoas", title: "Pessoas", url: "/app/pessoas", icon: Users, group: "principal" },
@@ -46,6 +46,8 @@ const ITEMS: Item[] = [
   { key: "indicacoes", title: "Indicações", url: "/app/indicacoes", icon: Gift, group: "billing" },
 
   { key: "configuracoes", title: "Configurações", url: "/app/configuracoes", icon: Settings, group: "sistema" },
+  { key: "reunioes", title: "Integrações de Reunião", url: "/app/reunioes", icon: Video, group: "sistema" },
+
   { key: "ajuda", title: "Ajuda", url: "/app/ajuda", icon: HelpCircle, group: "sistema", soon: true },
 ];
 
@@ -60,8 +62,10 @@ export function AppSidebar() {
   const visible = ITEMS.filter((it) => {
     if (roles.length && !canAccess(roles, it.key)) return false;
     if (it.feature && !ent.loading && !ent.has(it.feature)) return false;
+    if (it.key === "reunioes" && !ent.loading && !canUseRemoteMeetingCapture(ent, roles)) return false;
     return true;
   });
+
   const principal = visible.filter((i) => i.group === "principal");
   const billing = visible.filter((i) => i.group === "billing");
   const sistema = visible.filter((i) => i.group === "sistema");

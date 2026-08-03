@@ -1823,6 +1823,16 @@ export type Database = {
         }
         Returns: Json
       }
+      try_consume_agent_credits: {
+        Args: {
+          _description: string
+          _run_id: string
+          _units?: number
+          _user_id: string
+          _workspace_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role:

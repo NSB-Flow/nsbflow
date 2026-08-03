@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -15,7 +15,9 @@ import { getWebhookUrlFn, saveWebhookUrlFn } from "@/lib/agent-service.functions
 import { useAlertPrefs } from "@/lib/alert-prefs";
 import { toast } from "sonner";
 import { formatBrPhone, digitsOnly } from "@/lib/phone";
-import { Loader2, ShieldCheck, BellRing } from "lucide-react";
+import { Loader2, ShieldCheck, BellRing, Video } from "lucide-react";
+import { useEntitlements, canUseRemoteMeetingCapture } from "@/lib/entitlements";
+
 
 export const Route = createFileRoute("/_authenticated/app/configuracoes")({
   head: () => ({ meta: [{ title: "Configurações — NSB Flow" }] }),
@@ -25,6 +27,9 @@ export const Route = createFileRoute("/_authenticated/app/configuracoes")({
 function Config() {
   const { user, roles, fullName, sector, refresh } = useAuth();
   const { prefs, update: updatePrefs, reset: resetPrefs } = useAlertPrefs(user?.id);
+  const ent = useEntitlements();
+  const canRemote = !ent.loading && canUseRemoteMeetingCapture(ent, roles);
+
   const getUrl = useServerFn(getWebhookUrlFn);
   const saveUrl = useServerFn(saveWebhookUrlFn);
   const [name, setName] = useState(fullName ?? "");
@@ -248,7 +253,28 @@ function Config() {
         </CardContent>
       </Card>
 
+      {canRemote && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-display flex items-center gap-2">
+              <Video className="h-4 w-4 text-gold" /> Integrações de Reunião
+            </CardTitle>
+            <CardDescription>
+              Conecte Microsoft 365, Zoom ou Google Workspace para capturar automaticamente a
+              transcrição das suas reuniões remotas.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="outline">
+              <Link to="/app/reunioes">Gerenciar conexões</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
+
+
 
         <CardHeader>
           <CardTitle className="font-display flex items-center gap-2">
