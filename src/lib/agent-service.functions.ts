@@ -3,13 +3,18 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Json } from "@/integrations/supabase/types";
 
+/** Sobrecarga de custo por método de captura (não altera agents.credit_cost). */
+const CAPTURE_METHOD_COST: Record<string, number> = { remote_meeting: 3 };
+
 const RunInput = z.object({
   agent: z.string().min(1),
   workspaceId: z.string().uuid(),
   companyId: z.string().uuid(),
   runId: z.string().uuid().optional(),
+  captureMethod: z.enum(["upload", "mic_recording", "remote_meeting"]).optional(),
   payload: z.record(z.any()),
 });
+
 
 /**
  * Executa um agente externo (n8n) e persiste em agent_runs.
