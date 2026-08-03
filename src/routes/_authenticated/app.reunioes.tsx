@@ -126,6 +126,23 @@ function MeetingsPage() {
   const [saving, setSaving] = useState(false);
   const [transcript, setTranscript] = useState<MeetingRow | null>(null);
   const [polling, setPolling] = useState<string | null>(null);
+  const [testing, setTesting] = useState<Provider | null>(null);
+  const [tests, setTests] = useState<Record<string, TestResult>>({});
+
+  const runTest = async (provider: Provider) => {
+    setTesting(provider);
+    try {
+      const r = (await testConnection({ data: { workspaceId: workspaceId!, provider } })) as TestResult;
+      setTests((prev) => ({ ...prev, [provider]: r }));
+      if (r.ok) toast.success(`${PROVIDER_LABEL[provider]}: conexão válida (${r.totalMs} ms)`);
+      else toast.error(`${PROVIDER_LABEL[provider]}: ${r.error ?? "falha na verificação"}`);
+      connections.refetch();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao testar conexão");
+    } finally {
+      setTesting(null);
+    }
+  };
 
   const opportunities = useQuery({
     queryKey: ["opportunities-for-meeting", company?.id],
