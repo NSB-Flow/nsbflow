@@ -46,6 +46,8 @@ const ITEMS: Item[] = [
   { key: "indicacoes", title: "Indicações", url: "/app/indicacoes", icon: Gift, group: "billing" },
 
   { key: "configuracoes", title: "Configurações", url: "/app/configuracoes", icon: Settings, group: "sistema" },
+  { key: "reunioes", title: "Integrações de Reunião", url: "/app/reunioes", icon: Video, group: "sistema" },
+
   { key: "ajuda", title: "Ajuda", url: "/app/ajuda", icon: HelpCircle, group: "sistema", soon: true },
 ];
 
