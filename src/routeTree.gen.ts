@@ -48,6 +48,7 @@ import { Route as ApiPublicV1AgentRunsRouteImport } from './routes/api/public/v1
 import { Route as ApiPublicHooksProcessExportJobsRouteImport } from './routes/api/public/hooks/process-export-jobs'
 import { Route as ApiPublicHooksMeetingTranscriptsRouteImport } from './routes/api/public/hooks/meeting-transcripts'
 import { Route as ApiPublicHooksCrmSyncRouteImport } from './routes/api/public/hooks/crm-sync'
+import { Route as ApiPublicHooksAgentResultRouteImport } from './routes/api/public/hooks/agent-result'
 import { Route as AuthenticatedAppPessoasIdRouteImport } from './routes/_authenticated/app.pessoas.$id'
 import { Route as AuthenticatedAppHistoricoIdRouteImport } from './routes/_authenticated/app.historico.$id'
 import { Route as AuthenticatedAppEmpresasIdRouteImport } from './routes/_authenticated/app.empresas.$id'
@@ -272,6 +273,12 @@ const ApiPublicHooksCrmSyncRoute = ApiPublicHooksCrmSyncRouteImport.update({
   path: '/api/public/hooks/crm-sync',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksAgentResultRoute =
+  ApiPublicHooksAgentResultRouteImport.update({
+    id: '/api/public/hooks/agent-result',
+    path: '/api/public/hooks/agent-result',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAppPessoasIdRoute =
   AuthenticatedAppPessoasIdRouteImport.update({
     id: '/pessoas/$id',
@@ -336,6 +343,7 @@ export interface FileRoutesByFullPath {
   '/app/empresas/$id': typeof AuthenticatedAppEmpresasIdRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
+  '/api/public/hooks/agent-result': typeof ApiPublicHooksAgentResultRoute
   '/api/public/hooks/crm-sync': typeof ApiPublicHooksCrmSyncRoute
   '/api/public/hooks/meeting-transcripts': typeof ApiPublicHooksMeetingTranscriptsRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
@@ -380,6 +388,7 @@ export interface FileRoutesByTo {
   '/app/empresas/$id': typeof AuthenticatedAppEmpresasIdRoute
   '/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
+  '/api/public/hooks/agent-result': typeof ApiPublicHooksAgentResultRoute
   '/api/public/hooks/crm-sync': typeof ApiPublicHooksCrmSyncRoute
   '/api/public/hooks/meeting-transcripts': typeof ApiPublicHooksMeetingTranscriptsRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
@@ -427,6 +436,7 @@ export interface FileRoutesById {
   '/_authenticated/app/empresas/$id': typeof AuthenticatedAppEmpresasIdRoute
   '/_authenticated/app/historico/$id': typeof AuthenticatedAppHistoricoIdRoute
   '/_authenticated/app/pessoas/$id': typeof AuthenticatedAppPessoasIdRoute
+  '/api/public/hooks/agent-result': typeof ApiPublicHooksAgentResultRoute
   '/api/public/hooks/crm-sync': typeof ApiPublicHooksCrmSyncRoute
   '/api/public/hooks/meeting-transcripts': typeof ApiPublicHooksMeetingTranscriptsRoute
   '/api/public/hooks/process-export-jobs': typeof ApiPublicHooksProcessExportJobsRoute
@@ -474,6 +484,7 @@ export interface FileRouteTypes {
     | '/app/empresas/$id'
     | '/app/historico/$id'
     | '/app/pessoas/$id'
+    | '/api/public/hooks/agent-result'
     | '/api/public/hooks/crm-sync'
     | '/api/public/hooks/meeting-transcripts'
     | '/api/public/hooks/process-export-jobs'
@@ -518,6 +529,7 @@ export interface FileRouteTypes {
     | '/app/empresas/$id'
     | '/app/historico/$id'
     | '/app/pessoas/$id'
+    | '/api/public/hooks/agent-result'
     | '/api/public/hooks/crm-sync'
     | '/api/public/hooks/meeting-transcripts'
     | '/api/public/hooks/process-export-jobs'
@@ -564,6 +576,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/empresas/$id'
     | '/_authenticated/app/historico/$id'
     | '/_authenticated/app/pessoas/$id'
+    | '/api/public/hooks/agent-result'
     | '/api/public/hooks/crm-sync'
     | '/api/public/hooks/meeting-transcripts'
     | '/api/public/hooks/process-export-jobs'
@@ -585,6 +598,7 @@ export interface RootRouteChildren {
   GuiasFollowUpEmailTemplatesRoute: typeof GuiasFollowUpEmailTemplatesRoute
   GuiasProspeccaoDeClientesB2bRoute: typeof GuiasProspeccaoDeClientesB2bRoute
   ApiPublicReferralCheckRoute: typeof ApiPublicReferralCheckRoute
+  ApiPublicHooksAgentResultRoute: typeof ApiPublicHooksAgentResultRoute
   ApiPublicHooksCrmSyncRoute: typeof ApiPublicHooksCrmSyncRoute
   ApiPublicHooksMeetingTranscriptsRoute: typeof ApiPublicHooksMeetingTranscriptsRoute
   ApiPublicHooksProcessExportJobsRoute: typeof ApiPublicHooksProcessExportJobsRoute
@@ -871,6 +885,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksCrmSyncRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/agent-result': {
+      id: '/api/public/hooks/agent-result'
+      path: '/api/public/hooks/agent-result'
+      fullPath: '/api/public/hooks/agent-result'
+      preLoaderRoute: typeof ApiPublicHooksAgentResultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/app/pessoas/$id': {
       id: '/_authenticated/app/pessoas/$id'
       path: '/pessoas/$id'
@@ -1004,6 +1025,7 @@ const rootRouteChildren: RootRouteChildren = {
   GuiasFollowUpEmailTemplatesRoute: GuiasFollowUpEmailTemplatesRoute,
   GuiasProspeccaoDeClientesB2bRoute: GuiasProspeccaoDeClientesB2bRoute,
   ApiPublicReferralCheckRoute: ApiPublicReferralCheckRoute,
+  ApiPublicHooksAgentResultRoute: ApiPublicHooksAgentResultRoute,
   ApiPublicHooksCrmSyncRoute: ApiPublicHooksCrmSyncRoute,
   ApiPublicHooksMeetingTranscriptsRoute: ApiPublicHooksMeetingTranscriptsRoute,
   ApiPublicHooksProcessExportJobsRoute: ApiPublicHooksProcessExportJobsRoute,
@@ -1017,13 +1039,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
