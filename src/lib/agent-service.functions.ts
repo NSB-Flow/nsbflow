@@ -38,17 +38,19 @@ export const runAgentFn = createServerFn({ method: "POST" })
     // 2) resolve conta (isolamento por workspace via RLS)
     const { data: company, error: companyErr } = await supabase
       .from("companies")
-      .select("id, razao_social, cnpj, workspace_id")
+      .select("id, razao_social, cnpj, segment, company_size, workspace_id")
       .eq("id", data.companyId)
       .eq("workspace_id", data.workspaceId)
       .maybeSingle();
     if (companyErr) throw new Error(companyErr.message);
     if (!company) throw new Error("Conta não encontrada neste workspace.");
 
-    // 3) setor do vendedor a partir do perfil
+    // 3) setor/nome do vendedor a partir do perfil
     const { data: profile } = await supabase
-      .from("profiles").select("sector").eq("id", userId).maybeSingle();
+      .from("profiles").select("sector, full_name").eq("id", userId).maybeSingle();
     const sellerSector = profile?.sector ?? null;
+    const sellerName = profile?.full_name ?? null;
+
 
     // 4) consome crédito (workspace pool → user pool). Enterprise = ilimitado.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -150,6 +152,22 @@ export const runAgentFn = createServerFn({ method: "POST" })
       return { runId, status: "error", error: msg };
     }
 
+    // 5b) contexto extra: briefing anterior (apenas para deap_intelligence)
+    let previousBriefing: Json | null = null;
+    if (data.agent === "deap_intelligence") {
+      const { data: prev } = await supabase
+        .from("agent_runs")
+        .select("result")
+        .eq("agent", "deap_briefing")
+        .eq("company_id", company.id)
+        .eq("status", "done")
+        .not("result", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      previousBriefing = prev?.result ?? null;
+    }
+
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 120_000);
@@ -161,12 +179,20 @@ export const runAgentFn = createServerFn({ method: "POST" })
           runId,
           workspaceId: data.workspaceId,
           companyId: company.id,
-          company: { id: company.id, razao_social: company.razao_social, cnpj: company.cnpj },
-          seller: { userId, sector: sellerSector },
+          company: {
+            id: company.id,
+            razao_social: company.razao_social,
+            cnpj: company.cnpj,
+            ...(company.segment ? { segmento: company.segment } : { segmento: null }),
+            ...(company.company_size ? { porte: company.company_size } : { porte: null }),
+          },
+          seller: { userId, name: sellerName, sector: sellerSector },
+          ...(data.agent === "deap_intelligence" ? { previous_briefing: previousBriefing } : {}),
           payload: data.payload,
         }),
         signal: controller.signal,
       });
+
       clearTimeout(timeout);
 
       const text = await res.text();
