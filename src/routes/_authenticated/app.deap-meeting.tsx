@@ -360,7 +360,11 @@ function BriefingTab({ initialCompanyId }: { initialCompanyId: string | null }) 
         toast.error(r.error ?? "Falha ao gerar briefing");
       } else {
         setResult({ runId: r.runId, data: r.result });
-        toast.success("Briefing gerado");
+        if (r.status === "processing") {
+          toast.info("Processamento iniciado. Você será notificado quando o resultado estiver pronto.");
+        } else {
+          toast.success("Briefing gerado");
+        }
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro";
