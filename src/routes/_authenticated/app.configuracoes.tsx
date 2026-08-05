@@ -54,7 +54,7 @@ function Config() {
   useEffect(() => {
     getUrl()
       .then((r) => {
-        setIsAdmin(r.isAdmin);
+        setIsSuperAdmin(r.isSuperAdmin);
         setWebhook(r.url);
       })
       .catch(() => void 0)
