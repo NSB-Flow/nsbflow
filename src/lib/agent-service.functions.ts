@@ -175,11 +175,19 @@ export const runAgentFn = createServerFn({ method: "POST" })
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 120_000);
       const webhookSecret = process.env.N8N_WEBHOOK_SECRET ?? "";
+      
+      if (!webhookSecret) {
+        const msg = "Erro de configuração: N8N_WEBHOOK_SECRET não definido no servidor.";
+        console.error(`[runAgentFn] Falha crítica: ${msg}`);
+        await supabase.from("agent_runs").update({ status: "error", error: msg }).eq("id", runId);
+        return { runId, status: "error", error: msg };
+      }
+
       const res = await fetch(webhookUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(webhookSecret ? { "x-webhook-secret": webhookSecret } : {}),
+          "x-webhook-secret": webhookSecret,
         },
         body: JSON.stringify({
           agent: data.agent,
