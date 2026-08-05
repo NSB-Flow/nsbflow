@@ -221,5 +221,13 @@ export const reviewSubscriptionRequestFn = createServerFn({ method: "POST" })
       })
       .eq("id", req.id);
 
+    // Bônus de indicação: apenas AQUI, após a confirmação do pagamento.
+    try {
+      await admin.rpc("apply_referral_paid", { _referred_user_id: req.requested_by });
+    } catch {
+      /* bônus não deve bloquear a ativação */
+    }
+
     return { ok: true as const, status: "approved" as const };
   });
+

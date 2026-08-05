@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { useWorkspace } from "@/lib/workspace-context";
-import { applyReferralPaidFn } from "@/lib/credits.functions";
+
 import { validateCouponFn } from "@/lib/coupons.functions";
 import { requestSubscriptionFn } from "@/lib/subscriptions.functions";
 import { toast } from "sonner";
@@ -41,7 +41,7 @@ function CheckoutPage() {
   const [couponApplied, setCouponApplied] = useState<{ code: string; percent: number } | null>(null);
   const [processing, setProcessing] = useState(false);
   const [seats, setSeats] = useState<number>(1);
-  const applyReferralPaid = useServerFn(applyReferralPaidFn);
+  
   const validateCoupon = useServerFn(validateCouponFn);
   const requestSubscription = useServerFn(requestSubscriptionFn);
   const isPersonal = workspace?.is_personal ?? true;
@@ -100,8 +100,9 @@ function CheckoutPage() {
         },
       });
 
-      // Dispara bônus de indicação (idempotente no servidor)
-      try { await applyReferralPaid(); } catch { /* noop */ }
+      // O bônus de indicação é concedido apenas pelo servidor, após a
+      // confirmação do pagamento (aprovação da solicitação).
+
 
       toast.success("Solicitação enviada! A assinatura é liberada após a confirmação do pagamento.");
       nav({ to: "/app/assinatura" });

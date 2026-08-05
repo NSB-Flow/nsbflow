@@ -143,15 +143,7 @@ export const updateSubscriptionSeatsFn = createServerFn({ method: "POST" })
   });
 
 
-/** Concede o bônus de conversão de indicação (chamado ao ativar assinatura paga do indicado). */
-export const applyReferralPaidFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { userId } = context;
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin.rpc("apply_referral_paid", {
-      _referred_user_id: userId,
-    });
-    if (error) throw new Error(error.message);
-    return data as { ok: boolean; reason?: string; bonus?: number };
-  });
+// NOTA: o bônus de conversão de indicação NÃO é exposto ao cliente.
+// Ele é concedido exclusivamente no servidor, em reviewSubscriptionRequestFn
+// (aprovação/confirmação de pagamento), via RPC apply_referral_paid.
+
