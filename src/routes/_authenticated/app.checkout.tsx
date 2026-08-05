@@ -41,7 +41,7 @@ function CheckoutPage() {
   const [couponApplied, setCouponApplied] = useState<{ code: string; percent: number } | null>(null);
   const [processing, setProcessing] = useState(false);
   const [seats, setSeats] = useState<number>(1);
-  const applyReferralPaid = useServerFn(applyReferralPaidFn);
+  
   const validateCoupon = useServerFn(validateCouponFn);
   const requestSubscription = useServerFn(requestSubscriptionFn);
   const isPersonal = workspace?.is_personal ?? true;
