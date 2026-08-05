@@ -360,7 +360,11 @@ function BriefingTab({ initialCompanyId }: { initialCompanyId: string | null }) 
         toast.error(r.error ?? "Falha ao gerar briefing");
       } else {
         setResult({ runId: r.runId, data: r.result });
-        toast.success("Briefing gerado");
+        if (r.status === "processing") {
+          toast.info("Processamento iniciado. Você será notificado quando o resultado estiver pronto.");
+        } else {
+          toast.success("Briefing gerado");
+        }
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro";
@@ -804,7 +808,11 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
         toast.error(r.error ?? "Falha ao analisar reunião");
       } else {
         setResult({ runId: r.runId, data: r.result });
-        toast.success("Reunião analisada");
+        if (r.status === "processing") {
+          toast.info("Análise iniciada. O resultado aparecerá em instantes.");
+        } else {
+          toast.success("Reunião analisada");
+        }
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro";
@@ -1023,6 +1031,24 @@ function ResultPanel({ agent, reportType, loading, result, company }: ResultProp
           <CardContent className="py-16 text-center text-sm text-muted-foreground">
             <FileText className="h-8 w-8 mx-auto mb-3 opacity-40" />
             Preencha o formulário para gerar o relatório executivo.
+          </CardContent>
+        </Card>
+      )}
+      {!loading && result && !result.data && !result.error && result.runId && (
+        <Card>
+          <CardContent className="py-16 flex flex-col items-center justify-center gap-4">
+            <RefreshCw className="h-8 w-8 animate-spin text-gold" />
+            <div className="text-center">
+              <div className="font-medium">Processamento em fila</div>
+              <p className="text-sm text-muted-foreground mt-1 max-w-[280px]">
+                O n8n está gerando o relatório. O resultado aparecerá aqui automaticamente via Realtime.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/app/historico" search={{ id: result.runId }}>
+                Ver no Histórico
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       )}
