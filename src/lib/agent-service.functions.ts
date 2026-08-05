@@ -140,11 +140,13 @@ export const runAgentFn = createServerFn({ method: "POST" })
       creditSource = credit.source;
     }
 
-    // 5) webhook
-    const { data: setting } = await supabase
+    // 5) webhook (configuração global — leitura privilegiada, pois só super_admin tem acesso via RLS)
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: setting } = await supabaseAdmin
       .from("app_settings").select("value").eq("key", "n8n_webhook_url").maybeSingle();
     const webhookUrl =
       (setting?.value as { url?: string } | null)?.url ?? process.env.N8N_WEBHOOK_URL ?? "";
+
 
     if (!webhookUrl) {
       const msg = "Nenhum webhook configurado. Um administrador deve cadastrar a URL em Configurações.";
