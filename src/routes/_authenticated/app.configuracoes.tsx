@@ -37,7 +37,7 @@ function Config() {
   const [phone, setPhone] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
   const [webhook, setWebhook] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [loadingWebhook, setLoadingWebhook] = useState(true);
   const [savingWebhook, setSavingWebhook] = useState(false);
 
@@ -54,7 +54,7 @@ function Config() {
   useEffect(() => {
     getUrl()
       .then((r) => {
-        setIsAdmin(r.isAdmin);
+        setIsSuperAdmin(r.isSuperAdmin);
         setWebhook(r.url);
       })
       .catch(() => void 0)
@@ -272,47 +272,44 @@ function Config() {
         </Card>
       )}
 
-      <Card>
-
-
-
-        <CardHeader>
-          <CardTitle className="font-display flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-gold" /> Integração n8n (Agent Service)
-          </CardTitle>
-          <CardDescription>
-            URL do webhook que executa os agentes de IA. {isAdmin ? "Somente administradores editam." : "Apenas administradores podem editar esta configuração."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {loadingWebhook ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" /> Carregando...
-            </div>
-          ) : !isAdmin ? (
-            <p className="text-sm text-muted-foreground">
-              Peça a um administrador para configurar o webhook do n8n.
-            </p>
-          ) : (
-            <>
-              <div className="space-y-1.5">
-                <Label>URL do webhook</Label>
-                <Input
-                  placeholder="https://seu-n8n.exemplo.com/webhook/nsbflow"
-                  value={webhook}
-                  onChange={(e) => setWebhook(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  A plataforma enviará POST com <code>{"{ agent, runId, payload }"}</code> e aguardará o JSON de resposta.
-                </p>
+      {isSuperAdmin && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-display flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-gold" /> Integração n8n (Agent Service)
+            </CardTitle>
+            <CardDescription>
+              Configuração global da plataforma: URL única do webhook que executa os agentes de IA
+              para todos os workspaces. Exclusiva do super administrador.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {loadingWebhook ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" /> Carregando...
               </div>
-              <Button onClick={saveWebhook} disabled={savingWebhook}>
-                {savingWebhook ? "Salvando..." : "Salvar webhook"}
-              </Button>
-            </>
-          )}
-        </CardContent>
-      </Card>
+            ) : (
+              <>
+                <div className="space-y-1.5">
+                  <Label>URL do webhook</Label>
+                  <Input
+                    placeholder="https://seu-n8n.exemplo.com/webhook/nsbflow"
+                    value={webhook}
+                    onChange={(e) => setWebhook(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    A plataforma enviará POST com <code>{"{ agent, runId, payload }"}</code> e aguardará o JSON de resposta.
+                  </p>
+                </div>
+                <Button onClick={saveWebhook} disabled={savingWebhook}>
+                  {savingWebhook ? "Salvando..." : "Salvar webhook"}
+                </Button>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
     </div>
   );
 }
