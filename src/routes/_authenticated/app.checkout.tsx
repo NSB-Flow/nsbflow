@@ -100,8 +100,9 @@ function CheckoutPage() {
         },
       });
 
-      // Dispara bônus de indicação (idempotente no servidor)
-      try { await applyReferralPaid(); } catch { /* noop */ }
+      // O bônus de indicação é concedido apenas pelo servidor, após a
+      // confirmação do pagamento (aprovação da solicitação).
+
 
       toast.success("Solicitação enviada! A assinatura é liberada após a confirmação do pagamento.");
       nav({ to: "/app/assinatura" });
