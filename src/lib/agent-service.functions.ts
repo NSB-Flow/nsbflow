@@ -25,7 +25,7 @@ const RunInput = z.object({
 export const runAgentFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw: unknown) => RunInput.parse(raw))
-  .handler(async ({ data, context }): Promise<{ runId: string; status: "done" | "error"; result?: Json | null; error?: string | null; creditSource?: string }> => {
+  .handler(async ({ data, context }): Promise<{ runId: string; status: "pending" | "processing" | "done" | "error"; result?: Json | null; error?: string | null; creditSource?: string }> => {
     const { supabase, userId } = context;
 
     // 1) valida membership no workspace
