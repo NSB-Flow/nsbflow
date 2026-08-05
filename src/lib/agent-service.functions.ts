@@ -174,9 +174,13 @@ export const runAgentFn = createServerFn({ method: "POST" })
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 120_000);
+      const webhookSecret = process.env.N8N_WEBHOOK_SECRET ?? "";
       const res = await fetch(webhookUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(webhookSecret ? { "x-webhook-secret": webhookSecret } : {}),
+        },
         body: JSON.stringify({
           agent: data.agent,
           runId,
