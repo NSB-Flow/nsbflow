@@ -808,7 +808,11 @@ function MeetingTab({ initialCompanyId }: { initialCompanyId: string | null }) {
         toast.error(r.error ?? "Falha ao analisar reunião");
       } else {
         setResult({ runId: r.runId, data: r.result });
-        toast.success("Reunião analisada");
+        if (r.status === "processing") {
+          toast.info("Análise iniciada. O resultado aparecerá em instantes.");
+        } else {
+          toast.success("Reunião analisada");
+        }
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro";
