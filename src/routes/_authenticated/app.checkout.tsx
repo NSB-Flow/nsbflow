@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { useWorkspace } from "@/lib/workspace-context";
-import { applyReferralPaidFn } from "@/lib/credits.functions";
+
 import { validateCouponFn } from "@/lib/coupons.functions";
 import { requestSubscriptionFn } from "@/lib/subscriptions.functions";
 import { toast } from "sonner";
