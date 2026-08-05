@@ -37,7 +37,7 @@ function Config() {
   const [phone, setPhone] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
   const [webhook, setWebhook] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [loadingWebhook, setLoadingWebhook] = useState(true);
   const [savingWebhook, setSavingWebhook] = useState(false);
 
