@@ -1034,6 +1034,24 @@ function ResultPanel({ agent, reportType, loading, result, company }: ResultProp
           </CardContent>
         </Card>
       )}
+      {!loading && result && !result.data && !result.error && result.runId && (
+        <Card>
+          <CardContent className="py-16 flex flex-col items-center justify-center gap-4">
+            <RefreshCw className="h-8 w-8 animate-spin text-gold" />
+            <div className="text-center">
+              <div className="font-medium">Processamento em fila</div>
+              <p className="text-sm text-muted-foreground mt-1 max-w-[280px]">
+                O n8n está gerando o relatório. O resultado aparecerá aqui automaticamente via Realtime.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/app/historico" search={{ id: result.runId }}>
+                Ver no Histórico
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
       {!loading && result?.error && (
         <Card className="border-destructive">
           <CardContent className="py-8">
