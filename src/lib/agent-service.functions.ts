@@ -221,11 +221,13 @@ export const runAgentFn = createServerFn({ method: "POST" })
         return { runId, status: "error", error: `HTTP ${res.status}`, result: json };
       }
 
+      // O agente n8n recebeu o trigger. O status agora é 'processing'.
+      // O resultado final será gravado via callback em /api/public/hooks/agent-result
       await supabase.from("agent_runs")
-        .update({ status: "done", result: json as never, error: null })
+        .update({ status: "processing", error: null })
         .eq("id", runId);
 
-      return { runId, status: "done", result: json, creditSource };
+      return { runId, status: "processing", creditSource };
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro desconhecido";
       await supabase.from("agent_runs").update({ status: "error", error: msg }).eq("id", runId);
