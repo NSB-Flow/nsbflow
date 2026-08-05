@@ -74,6 +74,7 @@ export type Database = {
           payload: Json
           result: Json | null
           status: string
+          structured_data: Json | null
           tags: string[]
           title: string | null
           updated_at: string
@@ -93,6 +94,7 @@ export type Database = {
           payload?: Json
           result?: Json | null
           status?: string
+          structured_data?: Json | null
           tags?: string[]
           title?: string | null
           updated_at?: string
@@ -112,6 +114,7 @@ export type Database = {
           payload?: Json
           result?: Json | null
           status?: string
+          structured_data?: Json | null
           tags?: string[]
           title?: string | null
           updated_at?: string
@@ -681,33 +684,42 @@ export type Database = {
       meeting_analyses: {
         Row: {
           agent_run_id: string
+          analysis_completeness: number | null
+          briefing_used: boolean | null
           coaching_scores: Json | null
           company_id: string
           created_at: string
           id: string
           meeting_score: number | null
+          metadata: Json | null
           nps_estimate: number | null
           opportunity_score: number | null
           workspace_id: string
         }
         Insert: {
           agent_run_id: string
+          analysis_completeness?: number | null
+          briefing_used?: boolean | null
           coaching_scores?: Json | null
           company_id: string
           created_at?: string
           id?: string
           meeting_score?: number | null
+          metadata?: Json | null
           nps_estimate?: number | null
           opportunity_score?: number | null
           workspace_id: string
         }
         Update: {
           agent_run_id?: string
+          analysis_completeness?: number | null
+          briefing_used?: boolean | null
           coaching_scores?: Json | null
           company_id?: string
           created_at?: string
           id?: string
           meeting_score?: number | null
+          metadata?: Json | null
           nps_estimate?: number | null
           opportunity_score?: number | null
           workspace_id?: string
