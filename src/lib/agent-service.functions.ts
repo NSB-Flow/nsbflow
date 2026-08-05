@@ -141,7 +141,8 @@ export const runAgentFn = createServerFn({ method: "POST" })
     }
 
     // 5) webhook (configuração global — leitura privilegiada, pois só super_admin tem acesso via RLS)
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+
     const { data: setting } = await supabaseAdmin
       .from("app_settings").select("value").eq("key", "n8n_webhook_url").maybeSingle();
     const webhookUrl =
