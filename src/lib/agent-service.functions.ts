@@ -221,14 +221,14 @@ export const runAgentFn = createServerFn({ method: "POST" })
     }
   });
 
-/** Salva URL de webhook (admin) */
+/** Salva URL de webhook — configuração global, exclusiva de super_admin */
 export const saveWebhookUrlFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw: unknown) => z.object({ url: z.string().url().or(z.literal("")) }).parse(raw))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
-    if (!isAdmin) throw new Error("Apenas administradores podem editar as configurações.");
+    const { data: isSuperAdmin } = await supabase.rpc("is_super_admin", { _user_id: userId });
+    if (!isSuperAdmin) throw new Error("Apenas o super administrador pode editar esta configuração.");
     const { error } = await supabase.from("app_settings").upsert({
       key: "n8n_webhook_url",
       value: { url: data.url },
@@ -239,13 +239,14 @@ export const saveWebhookUrlFn = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** Retorna URL configurada (admin) */
+/** Retorna URL configurada (somente super_admin) */
 export const getWebhookUrlFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
-    if (!isAdmin) return { url: "", isAdmin: false as const };
+    const { data: isSuperAdmin } = await supabase.rpc("is_super_admin", { _user_id: userId });
+    if (!isSuperAdmin) return { url: "", isSuperAdmin: false as const };
     const { data } = await supabase.from("app_settings").select("value").eq("key", "n8n_webhook_url").maybeSingle();
-    return { isAdmin: true as const, url: (data?.value as { url?: string } | null)?.url ?? "" };
+    return { isSuperAdmin: true as const, url: (data?.value as { url?: string } | null)?.url ?? "" };
+
   });
