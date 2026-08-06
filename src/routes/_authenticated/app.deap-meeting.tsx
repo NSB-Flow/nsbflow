@@ -977,15 +977,75 @@ interface ResultProps {
 function ResultPanel({ agent, reportType, loading, result, company }: ResultProps) {
   const { fullName, user } = useAuth();
   const nav = useNavigate();
+  const [asyncResult, setAsyncResult] = useState<{ status: string; result: any; error: string | null } | null>(null);
+
+  // Monitora o status no banco quando o resultado inicial for 'processing'
+  useEffect(() => {
+    if (!result?.runId || result.data || result.error) {
+      setAsyncResult(null);
+      return;
+    }
+
+    console.log(`[ResultPanel] [DEBUG] Monitoring agent_run_id: ${result.runId} for status updates.`);
+
+    const channel = supabase
+      .channel(`agent-run-${result.runId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "agent_runs",
+          filter: `id=eq.${result.runId}`,
+        },
+        (payload) => {
+          console.log("[ResultPanel] [DEBUG] Realtime update received:", payload.new);
+          const nr = payload.new as any;
+          if (nr.status === "done" || nr.status === "error") {
+            setAsyncResult({ status: nr.status, result: nr.result, error: nr.error });
+          }
+        },
+      )
+      .subscribe();
+
+    // Polling de fallback
+    const interval = setInterval(async () => {
+      console.log(`[ResultPanel] [DEBUG] Polling status for ${result.runId}...`);
+      const { data, error } = await supabase
+        .from("agent_runs")
+        .select("status, result, error")
+        .eq("id", result.runId!)
+        .single();
+      
+      if (error) {
+        console.error("[ResultPanel] [DEBUG] Polling error:", error.message);
+        return;
+      }
+      
+      console.log(`[ResultPanel] [DEBUG] Polling status result: ${data?.status}`);
+      if (data && (data.status === "done" || data.status === "error")) {
+        setAsyncResult({ status: data.status, result: data.result, error: data.error });
+        clearInterval(interval);
+      }
+    }, 5000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
+  }, [result?.runId, result?.data, result?.error]);
+
+  const currentResult = asyncResult || (result?.data ? { status: "done", result: result.data, error: null } : null);
+  const currentError = asyncResult?.error || result?.error;
 
   const completeness =
-    result?.data && typeof result.data === "object" && result.data !== null
-      ? (result.data as Record<string, unknown>).analysis_completeness
+    currentResult?.result && typeof currentResult.result === "object"
+      ? (currentResult.result as Record<string, unknown>).analysis_completeness
       : undefined;
   const partial = completeness === "partial_no_briefing";
 
   const exportPdf = async () => {
-    if (!result?.data || !company) return;
+    if (!currentResult?.result || !company) return;
     const blob = await generateReportPdf(
       {
         reportType,
@@ -995,7 +1055,7 @@ function ResultPanel({ agent, reportType, loading, result, company }: ResultProp
         author: fullName ?? user?.email ?? "NSB Flow",
         date: new Date().toLocaleDateString("pt-BR"),
       },
-      result.data,
+      currentResult.result,
     );
     const safe = company.razao_social.replace(/[^\w\-]+/g, "_") || "relatorio";
     downloadBlob(blob, `${reportType.replace(/\s+/g, "_")}-${safe}.pdf`);
@@ -1074,7 +1134,7 @@ function ResultPanel({ agent, reportType, loading, result, company }: ResultProp
             </div>
             <Button variant="outline" size="sm" onClick={toggleFavorite}><Star className="h-4 w-4 mr-1.5" /> Favoritar</Button>
             <Button variant="outline" size="sm" onClick={duplicate}><Copy className="h-4 w-4 mr-1.5" /> Duplicar</Button>
-            <Button variant="outline" size="sm" onClick={() => result?.runId && nav({ to: "/app/historico/$id", params: { id: result.runId } })}>
+            <Button variant="outline" size="sm" onClick={() => result?.runId && nav({ to: "/app/historico/$id", params: { id: result.runId! } })}>
               <Save className="h-4 w-4 mr-1.5" /> Abrir no histórico
             </Button>
             <Button size="sm" onClick={exportPdf}><FileDown className="h-4 w-4 mr-1.5" /> Exportar PDF</Button>
