@@ -198,7 +198,9 @@ function RoleAuditPage() {
       });
       toast.success(`Exportação enfileirada (Status: ${job.status}). Você será notificado quando estiver pronta.`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Falha ao enfileirar exportação.");
+      const errorMsg = e instanceof Error ? e.message : "Falha ao enfileirar exportação.";
+      toast.error(errorMsg);
+      console.error("[EXPORT ERROR]", e);
     } finally {
       setExporting(false);
     }
