@@ -183,7 +183,7 @@ function RoleAuditPage() {
   const runAsyncExport = async () => {
     setExporting(true);
     try {
-      await enqueueExport({
+      const job = await enqueueExport({
         data: {
           kind: "role_audit",
           filters: {
@@ -196,7 +196,7 @@ function RoleAuditPage() {
           },
         },
       });
-      toast.success("Exportação enfileirada. Você será notificado quando estiver pronta.");
+      toast.success(`Exportação enfileirada (Status: ${job.status}). Você será notificado quando estiver pronta.`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao enfileirar exportação.");
     } finally {

@@ -276,7 +276,7 @@ function WorkspaceAuditPage() {
     if (!selectedId) return;
     setExporting(true);
     try {
-      await enqueueExport({
+      const job = await enqueueExport({
         data: {
           kind: "workspace_member_audit",
           workspaceId: selectedId,
@@ -290,7 +290,7 @@ function WorkspaceAuditPage() {
           },
         },
       });
-      toast.success("Exportação enfileirada. Você será notificado quando estiver pronta.");
+      toast.success(`Exportação enfileirada (Status: ${job.status}). Você será notificado quando estiver pronta.`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao enfileirar exportação.");
     } finally {
