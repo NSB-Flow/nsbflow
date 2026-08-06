@@ -275,21 +275,22 @@ function WorkspaceAuditPage() {
   const runAsyncExport = async () => {
     if (!selectedId) return;
     setExporting(true);
+    const payload = {
+      kind: "workspace_member_audit" as const,
+      workspaceId: selectedId,
+      filters: {
+        search: q,
+        action,
+        sortBy,
+        sortDir,
+        fromDate: fromISO,
+        toDate: toISO,
+      },
+    };
+    console.log("[EXPORT DEBUG] Calling enqueueAuditExportFn", payload);
     try {
-      const job = await enqueueExport({
-        data: {
-          kind: "workspace_member_audit",
-          workspaceId: selectedId,
-          filters: {
-            search: q,
-            action,
-            sortBy,
-            sortDir,
-            fromDate: fromISO,
-            toDate: toISO,
-          },
-        },
-      });
+      const job = await enqueueExport({ data: payload });
+      console.log("[EXPORT DEBUG] Job created", job);
       toast.success(`Exportação enfileirada (Status: ${job.status}). Você será notificado quando estiver pronta.`);
     } catch (e) {
       const errorMsg = e instanceof Error ? e.message : "Falha ao enfileirar exportação.";
