@@ -41,7 +41,8 @@ export const Route = createFileRoute("/api/public/hooks/agent-result")({
           }
 
           // 2) Atualiza agent_runs
-          const { error: updateErr } = await supabaseAdmin
+          console.log(`[agent-result] Updating run ${data.agent_run_id}`);
+          const { error: updateErr, count } = await supabaseAdmin
             .from("agent_runs")
             .update({
               status: data.status === "completed" ? "done" : "error",
@@ -49,12 +50,25 @@ export const Route = createFileRoute("/api/public/hooks/agent-result")({
               structured_data: data.structured_data || null,
               error: data.error || null,
               updated_at: new Date().toISOString(),
-            })
+            }, { count: 'exact' })
             .eq("id", data.agent_run_id);
 
+          console.log(`[agent-result] Update result for ${data.agent_run_id}: count=${count}, error=${updateErr?.message || 'none'}`);
+
           if (updateErr) {
-            console.error(`[agent-result] Update error: ${updateErr.message}`);
-            return new Response("Update error", { status: 500 });
+            console.error(`[agent-result] Update database error: ${updateErr.message}`);
+            return new Response(JSON.stringify({ ok: false, error: updateErr.message }), { 
+              status: 500,
+              headers: { "Content-Type": "application/json" }
+            });
+          }
+
+          if (count === 0) {
+            console.error(`[agent-result] No rows updated for run ${data.agent_run_id}`);
+            return new Response(JSON.stringify({ ok: false, error: "Run ID not found during update" }), { 
+              status: 404,
+              headers: { "Content-Type": "application/json" }
+            });
           }
 
           // 3) Se for deap_intelligence, popula meeting_analyses
