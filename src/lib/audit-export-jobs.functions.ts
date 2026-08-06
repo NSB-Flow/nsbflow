@@ -132,15 +132,17 @@ export const enqueueAuditExportFn = createServerFn({ method: "POST" })
       .single();
     if (insErr || !inserted) throw new Error(insErr?.message ?? "Failed to enqueue job");
 
-    const base = process.env.PUBLIC_APP_URL || "https://nsbflow.lovable.app";
+    const base = process.env.VITE_PUBLIC_APP_URL || process.env.PUBLIC_APP_URL || "https://nsbflow.lovable.app";
     void fetch(`${base}/api/public/hooks/process-export-jobs`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "x-cron-secret": process.env["CRON_SECRET"] ?? "",
+        "x-cron-secret": process.env["CRON_SECRET"] || "",
       },
       body: JSON.stringify({ jobId: (inserted as { id: string }).id }),
-    }).catch(() => undefined);
+    }).catch((e) => {
+      console.error("[EXPORT] Failed to trigger processor:", e);
+    });
 
 
     return toJob(inserted as RawRow);
