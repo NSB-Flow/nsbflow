@@ -1036,6 +1036,18 @@ function ResultPanel({ agent, reportType, loading, result, company }: ResultProp
   }, [result?.runId, result?.data, result?.error]);
 
   const currentResult = asyncResult || (result?.data ? { status: "done", result: result.data, error: null } : null);
+  
+  console.log("[ResultPanel] [DEBUG] Render cycle:", {
+    loading,
+    hasInitialResult: !!result,
+    initialData: !!result?.data,
+    initialError: !!result?.error,
+    asyncStatus: asyncResult?.status,
+    hasAsyncResult: !!asyncResult?.result,
+    currentResultStatus: currentResult?.status,
+    currentResultData: !!currentResult?.result
+  });
+
   const currentError = asyncResult?.error || result?.error;
 
   const completeness =
@@ -1094,7 +1106,7 @@ function ResultPanel({ agent, reportType, loading, result, company }: ResultProp
           </CardContent>
         </Card>
       )}
-      {!loading && result && !result.data && !result.error && result.runId && (
+      {!loading && result && !result.data && !result.error && result.runId && (!asyncResult || asyncResult.status === "processing") && (
         <Card>
           <CardContent className="py-16 flex flex-col items-center justify-center gap-4">
             <RefreshCw className="h-8 w-8 animate-spin text-gold" />
@@ -1125,7 +1137,7 @@ function ResultPanel({ agent, reportType, loading, result, company }: ResultProp
           </CardContent>
         </Card>
       )}
-      {!loading && result?.data != null && (
+      {!loading && currentResult?.status === "done" && currentResult?.result != null && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
           <div className="flex flex-wrap items-center gap-2 mb-4">
             <div className="mr-auto">
@@ -1158,7 +1170,7 @@ function ResultPanel({ agent, reportType, loading, result, company }: ResultProp
             </div>
           )}
 
-          <AgentReport data={result.data} />
+          <AgentReport data={currentResult.result} />
         </motion.div>
       )}
     </div>
