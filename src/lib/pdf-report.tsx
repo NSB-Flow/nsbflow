@@ -416,6 +416,8 @@ function buildToc(data: Json): string[] {
 }
 
 function ReportDoc({ meta, data }: { meta: PdfMeta; data: Json }): ReactElement {
+  const isStringData = typeof data === "string";
+  
   const d = (data && typeof data === "object" ? (data as Record<string, Json>) : {}) as Record<
     string,
     Json
@@ -475,45 +477,57 @@ function ReportDoc({ meta, data }: { meta: PdfMeta; data: Json }): ReactElement 
           </View>
         )}
 
-        {(d.summary ?? d.resumo) != null && (
-          <View>
-            <Text style={styles.h2}>Resumo Executivo</Text>
-            <View style={styles.cardAccent}>
-              <Value value={d.summary ?? d.resumo} />
-            </View>
+        {/* Fallback para String/Markdown */}
+        {isStringData && (
+          <View style={{ marginTop: 20 }}>
+            <MarkdownRenderer text={data as string} />
           </View>
         )}
 
-        {(d.scores ?? d.pontuacoes) != null && (
-          <View>
-            <Text style={styles.h2}>Indicadores</Text>
-            <ScoresBlock scores={d.scores ?? d.pontuacoes} />
-          </View>
-        )}
-
-        {Array.isArray(sections) && sections.length > 0 && (
-          <View>
-            <Text style={styles.h2}>Detalhamento</Text>
-            {sections.map((s, i) => (
-              <SectionBlock key={i} section={s} index={i} />
-            ))}
-          </View>
-        )}
-
-        {(d.recommendations ?? d.recomendacoes) != null && (
-          <View>
-            <Text style={styles.h2}>Recomendações</Text>
-            <View style={styles.card}>
-              {coerceArray(d.recommendations ?? d.recomendacoes).map((it, i) => (
-                <View key={i} style={styles.bullet}>
-                  <Text style={[styles.bulletDot, { color: C.gold }]}>{i + 1}.</Text>
-                  <View style={styles.bulletText}>
-                    <Value value={it} />
-                  </View>
+        {/* Layout Estruturado (Comportamento Original) */}
+        {!isStringData && (
+          <>
+            {(d.summary ?? d.resumo) != null && (
+              <View>
+                <Text style={styles.h2}>Resumo Executivo</Text>
+                <View style={styles.cardAccent}>
+                  <Value value={d.summary ?? d.resumo} />
                 </View>
-              ))}
-            </View>
-          </View>
+              </View>
+            )}
+
+            {(d.scores ?? d.pontuacoes) != null && (
+              <View>
+                <Text style={styles.h2}>Indicadores</Text>
+                <ScoresBlock scores={d.scores ?? d.pontuacoes} />
+              </View>
+            )}
+
+            {Array.isArray(sections) && sections.length > 0 && (
+              <View>
+                <Text style={styles.h2}>Detalhamento</Text>
+                {sections.map((s, i) => (
+                  <SectionBlock key={i} section={s} index={i} />
+                ))}
+              </View>
+            )}
+
+            {(d.recommendations ?? d.recomendacoes) != null && (
+              <View>
+                <Text style={styles.h2}>Recomendações</Text>
+                <View style={styles.card}>
+                  {coerceArray(d.recommendations ?? d.recomendacoes).map((it, i) => (
+                    <View key={i} style={styles.bullet}>
+                      <Text style={[styles.bulletDot, { color: C.gold }]}>{i + 1}.</Text>
+                      <View style={styles.bulletText}>
+                        <Value value={it} />
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+          </>
         )}
 
         <View style={styles.footer} fixed>
