@@ -1134,7 +1134,7 @@ function ResultPanel({ agent, reportType, loading, result, company }: ResultProp
             </div>
             <Button variant="outline" size="sm" onClick={toggleFavorite}><Star className="h-4 w-4 mr-1.5" /> Favoritar</Button>
             <Button variant="outline" size="sm" onClick={duplicate}><Copy className="h-4 w-4 mr-1.5" /> Duplicar</Button>
-            <Button variant="outline" size="sm" onClick={() => result?.runId && nav({ to: "/app/historico/$id", params: { id: result.runId } })}>
+            <Button variant="outline" size="sm" onClick={() => result?.runId && nav({ to: "/app/historico/$id", params: { id: result.runId! } })}>
               <Save className="h-4 w-4 mr-1.5" /> Abrir no histórico
             </Button>
             <Button size="sm" onClick={exportPdf}><FileDown className="h-4 w-4 mr-1.5" /> Exportar PDF</Button>
