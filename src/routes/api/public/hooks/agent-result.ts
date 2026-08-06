@@ -18,6 +18,10 @@ export const Route = createFileRoute("/api/public/hooks/agent-result")({
           const secret = request.headers.get("x-webhook-secret");
           const expectedSecret = process.env.N8N_CALLBACK_SECRET;
 
+          // 0) Log infra info (no keys)
+          const supabaseUrl = process.env.SUPABASE_URL || "NOT_SET";
+          console.log(`[agent-result] Supabase Project URL: ${supabaseUrl}`);
+
           if (!expectedSecret || secret !== expectedSecret) {
             console.error("[agent-result] Unauthorized callback attempt");
             return new Response("Unauthorized", { status: 401 });
@@ -31,29 +35,37 @@ export const Route = createFileRoute("/api/public/hooks/agent-result")({
           // 1) Busca o run original para saber o agent e o workspace/company
           const { data: run, error: runErr } = await supabaseAdmin
             .from("agent_runs")
-            .select("agent, workspace_id, company_id, created_by")
+            .select("agent, workspace_id, company_id, created_by, status")
             .eq("id", data.agent_run_id)
             .maybeSingle();
 
           if (runErr || !run) {
-            console.error(`[agent-result] Run ${data.agent_run_id} not found`);
+            console.error(`[agent-result] Run ${data.agent_run_id} not found. Error: ${runErr?.message || 'none'}`);
             return new Response("Run not found", { status: 404 });
           }
 
+          console.log(`[agent-result] Current database status for ${data.agent_run_id}: ${run.status}`);
+
           // 2) Atualiza agent_runs
-          console.log(`[agent-result] Updating run ${data.agent_run_id}`);
-          const { error: updateErr, count } = await supabaseAdmin
+          const newStatus = data.status === "completed" ? "done" : "error";
+          console.log(`[agent-result] Updating run ${data.agent_run_id} to status: ${newStatus} in table: agent_runs`);
+          
+          const { data: updatedRows, error: updateErr, count } = await supabaseAdmin
             .from("agent_runs")
             .update({
-              status: data.status === "completed" ? "done" : "error",
+              status: newStatus,
               result: data.result || null,
               structured_data: data.structured_data || null,
               error: data.error || null,
               updated_at: new Date().toISOString(),
             }, { count: 'exact' })
-            .eq("id", data.agent_run_id);
+            .eq("id", data.agent_run_id)
+            .select();
 
           console.log(`[agent-result] Update result for ${data.agent_run_id}: count=${count}, error=${updateErr?.message || 'none'}`);
+          if (updatedRows && updatedRows.length > 0) {
+            console.log(`[agent-result] Row returned by update().select():`, JSON.stringify(updatedRows[0]));
+          }
 
           if (updateErr) {
             console.error(`[agent-result] Update database error: ${updateErr.message}`);
@@ -95,8 +107,6 @@ export const Route = createFileRoute("/api/public/hooks/agent-result")({
 
             if (analysisErr) {
               console.error(`[agent-result] Analysis upsert error: ${analysisErr.message}`);
-              // Não falha o request do webhook se a gravação de indicadores falhar, 
-              // mas logamos o erro.
             }
           }
 
