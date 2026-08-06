@@ -55,7 +55,11 @@ export const Route = createFileRoute("/api/public/hooks/agent-result")({
 
           console.log(`[agent-result] [DEBUG] Update result for ${agent_run_id}: count=${count}, error=${updateErr?.message || 'none'}`);
           if (updatedRows && updatedRows.length > 0) {
-            console.log(`[agent-result] [DEBUG] Updated record:`, JSON.stringify(updatedRows[0]));
+            const row = updatedRows[0];
+            console.log(`[agent-result] [DEBUG] Updated record (ID: ${row.id}):`, JSON.stringify(row));
+            // Log do tamanho/presença do campo result especificamente
+            const resultSize = typeof row.result === 'string' ? row.result.length : (row.result ? 'object' : 'null');
+            console.log(`[agent-result] [DEBUG] Result field check: type=${typeof row.result}, size/presence=${resultSize}`);
           }
 
           if (updateErr) {

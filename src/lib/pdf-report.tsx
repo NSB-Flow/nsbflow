@@ -378,6 +378,7 @@ function ReportDoc({ meta, data }: { meta: PdfMeta; data: Json }): ReactElement 
 }
 
 export async function generateReportPdf(meta: PdfMeta, data: Json): Promise<Blob> {
+  console.log("[generateReportPdf] [DEBUG] Full data received by PDF generator:", JSON.stringify(data));
   const blob = await pdf(<ReportDoc meta={meta} data={data} />).toBlob();
   return blob;
 }
