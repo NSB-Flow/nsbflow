@@ -1106,7 +1106,7 @@ function ResultPanel({ agent, reportType, loading, result, company }: ResultProp
           </CardContent>
         </Card>
       )}
-      {!loading && result && !result.data && !result.error && result.runId && (
+      {!loading && result && !result.data && !result.error && result.runId && (!asyncResult || asyncResult.status === "processing") && (
         <Card>
           <CardContent className="py-16 flex flex-col items-center justify-center gap-4">
             <RefreshCw className="h-8 w-8 animate-spin text-gold" />
