@@ -1014,7 +1014,7 @@ function ResultPanel({ agent, reportType, loading, result, company }: ResultProp
       const { data, error } = await supabase
         .from("agent_runs")
         .select("status, result, error")
-        .eq("id", result.runId)
+        .eq("id", result.runId!)
         .single();
       
       if (error) {
