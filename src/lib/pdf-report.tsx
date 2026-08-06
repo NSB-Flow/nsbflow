@@ -97,6 +97,13 @@ const styles = StyleSheet.create({
   scoreRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 4 },
   scoreBarBg: { height: 5, backgroundColor: C.border, borderRadius: 3, marginTop: 2 },
   scoreBarFill: { height: 5, backgroundColor: C.accent, borderRadius: 3 },
+  // Estilos para Markdown
+  hr: { borderBottom: `1pt solid ${C.border}`, marginVertical: 10 },
+  table: { display: "flex", width: "auto", borderStyle: "solid", borderRightWidth: 0, borderBottomWidth: 0, marginTop: 10 },
+  tableRow: { margin: "auto", flexDirection: "row" },
+  tableCol: { borderStyle: "solid", borderLeftWidth: 1, borderTopWidth: 1, borderColor: C.border, padding: 5 },
+  tableCell: { margin: "auto", fontSize: 9 },
+  tableHeader: { backgroundColor: C.soft, fontFamily: "Helvetica-Bold" },
 });
 
 type Json = unknown;
@@ -113,12 +120,7 @@ export interface PdfMeta {
 function humanize(k: string) {
   return k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
-function shortStr(v: Json): string {
-  if (v == null) return "—";
-  if (typeof v === "string") return v;
-  if (typeof v === "number" || typeof v === "boolean") return String(v);
-  try { return JSON.stringify(v); } catch { return String(v); }
-}
+
 function coerceArray(v: Json): Json[] {
   if (Array.isArray(v)) return v;
   if (v && typeof v === "object") return Object.values(v as Record<string, Json>);
@@ -126,9 +128,149 @@ function coerceArray(v: Json): Json[] {
   return [v];
 }
 
+/**
+ * Simples parser de Markdown para renderizar componentes @react-pdf/renderer
+ */
+function MarkdownRenderer({ text }: { text: string }) {
+  const lines = text.split("\n");
+  const elements: ReactElement[] = [];
+  let currentList: { type: "ul" | "ol"; items: string[] } | null = null;
+  let currentTable: string[][] | null = null;
+
+  const flushList = () => {
+    if (currentList) {
+      const list = currentList;
+      elements.push(
+        <View key={`list-${elements.length}`} style={{ marginVertical: 5 }}>
+          {list.items.map((item, i) => (
+            <View key={i} style={styles.bullet}>
+              <Text style={styles.bulletDot}>{list.type === "ul" ? "•" : `${i + 1}.`}</Text>
+              <Text style={styles.bulletText}>{item}</Text>
+            </View>
+          ))}
+        </View>
+      );
+      currentList = null;
+    }
+  };
+
+  const flushTable = () => {
+    if (currentTable && currentTable.length > 0) {
+      const table = currentTable;
+      elements.push(
+        <View key={`table-${elements.length}`} style={styles.table}>
+          {table.map((row, i) => (
+            <View key={i} style={[styles.tableRow, i === 0 ? styles.tableHeader : {}]}>
+              {row.map((cell, j) => (
+                <View key={j} style={[styles.tableCol, { flex: 1 }]}>
+                  <Text style={styles.tableCell}>{cell.trim()}</Text>
+                </View>
+              ))}
+            </View>
+          ))}
+        </View>
+      );
+      currentTable = null;
+    }
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+
+    // Separadores
+    if (line === "---" || line === "***" || line === "___") {
+      flushList();
+      flushTable();
+      elements.push(<View key={i} style={styles.hr} />);
+      continue;
+    }
+
+    // Títulos
+    if (line.startsWith("# ")) {
+      flushList();
+      flushTable();
+      elements.push(<Text key={i} style={styles.h1}>{line.replace("# ", "")}</Text>);
+      continue;
+    }
+    if (line.startsWith("## ")) {
+      flushList();
+      flushTable();
+      elements.push(<Text key={i} style={styles.h2}>{line.replace("## ", "")}</Text>);
+      continue;
+    }
+    if (line.startsWith("### ")) {
+      flushList();
+      flushTable();
+      elements.push(<Text key={i} style={styles.h3}>{line.replace("### ", "")}</Text>);
+      continue;
+    }
+
+    // Listas
+    const ulMatch = line.match(/^[-*+]\s+(.*)/);
+    const olMatch = line.match(/^\d+\.\s+(.*)/);
+
+    if (ulMatch) {
+      flushTable();
+      if (!currentList || currentList.type !== "ul") {
+        flushList();
+        currentList = { type: "ul", items: [] };
+      }
+      currentList.items.push(ulMatch[1]);
+      continue;
+    }
+    if (olMatch) {
+      flushTable();
+      if (!currentList || currentList.type !== "ol") {
+        flushList();
+        currentList = { type: "ol", items: [] };
+      }
+      currentList.items.push(olMatch[1]);
+      continue;
+    }
+
+    // Tabelas (muito básico)
+    if (line.startsWith("|") && line.endsWith("|")) {
+      flushList();
+      const cells = line.split("|").filter(c => c.trim() !== "" || line.indexOf(c) !== 0 && line.lastIndexOf(c) !== line.length - 1);
+      // Ignora linhas de separação de tabela |---|---|
+      if (cells.every(c => c.trim().match(/^:?-+:?$/))) {
+        continue;
+      }
+      if (!currentTable) {
+        currentTable = [];
+      }
+      currentTable.push(cells);
+      continue;
+    }
+
+    // Se não for nada do acima, é um parágrafo
+    if (line !== "") {
+      flushList();
+      flushTable();
+      elements.push(<Text key={i} style={{ marginTop: 5 }}>{line}</Text>);
+    } else {
+      // Linha vazia reseta listas e tabelas
+      flushList();
+      flushTable();
+    }
+  }
+
+  flushList();
+  flushTable();
+
+  return <View>{elements}</View>;
+}
+
 function Value({ value }: { value: Json }) {
   if (value == null) return null;
-  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean")
+  if (typeof value === "string") {
+    // Se a string parece markdown ou texto longo, usa o renderer de markdown
+    if (value.includes("\n") || value.startsWith("#") || value.startsWith("-") || value.startsWith("|")) {
+      return <MarkdownRenderer text={value} />;
+    }
+    return <Text>{value}</Text>;
+  }
+  if (typeof value === "number" || typeof value === "boolean")
     return <Text>{String(value)}</Text>;
   if (Array.isArray(value)) {
     if (value.every((v) => typeof v === "string" || typeof v === "number")) {
@@ -174,7 +316,7 @@ function SectionBlock({ section, index }: { section: Json; index: number }) {
   if (typeof section === "string") {
     return (
       <View style={styles.card} wrap={false}>
-        <Text>{section}</Text>
+        <Value value={section} />
       </View>
     );
   }
@@ -245,7 +387,17 @@ function ScoresBlock({ scores }: { scores: Json }) {
 }
 
 function buildToc(data: Json): string[] {
-  if (!data || typeof data !== "object") return [];
+  if (!data) return [];
+  
+  // Se for string, tentamos extrair títulos Markdown para o índice
+  if (typeof data === "string") {
+    const titles = data.split("\n")
+      .filter(line => line.trim().startsWith("# "))
+      .map(line => line.trim().replace("# ", ""));
+    return titles.length > 0 ? titles : ["Relatório Completo"];
+  }
+
+  if (typeof data !== "object") return [];
   const d = data as Record<string, Json>;
   const items: string[] = [];
   if (d.summary ?? d.resumo) items.push("Resumo Executivo");
